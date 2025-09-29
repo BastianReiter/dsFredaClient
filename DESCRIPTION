@@ -1,0 +1,44 @@
+Package: dsFredaClient
+Title: Federated Refinement, Exploration and Data Augmentation
+Version: 0.2.00
+Authors@R: 
+    person("Bastian", "Reiter", , "b.reiter@med.uni-frankfurt.de", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-1088-0502"))
+Description: Client-side DataSHIELD R package as part of a Framework for Federated Data Processing
+URL: https://ccphos.netlify.app/, https://github.com/BastianReiter/dsFredaClient
+License: CC BY 4.0
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    cli,
+    dplyr,
+    dsBaseClient (>= 6.3.0),
+    dsTidyverseClient,
+    DSI,
+    DSOpal,
+    httr,
+    purrr,
+    tibble,
+    tidyr,
+    assertthat
+Suggests: 
+    CCPhosApp (>= 0.1.1),
+    dsBase,
+    dsFreda,
+    dsTidyverse,
+    DSLite,
+    ggplot2,
+    gt,
+    quarto,
+    rmarkdown,
+    scales,
+    sysfonts,
+    utils
+Depends: 
+    R (>= 4.3.0)
+LazyData: true
+Remotes: 
+    BastianReiter/CCPhosApp,
+    datashield/dsBaseClient,
+    BastianReiter/dsFreda,

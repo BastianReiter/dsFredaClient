@@ -1,0 +1,91 @@
+---
+title: "CurationReport"
+format: html
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(dplyr)
+library(gt)
+library(gtExtras)
+library(knitr)
+library(purrr)
+library(TinkerLab)
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE)
+
+#source("RSetup.R", local = knitr::knit_global())
+```
+
+
+```{r}
+
+CurationReport <- readRDS(file = "C:/Users/Basti/Desktop/CurationReport_10000.RDS")
+
+```
+
+### Entry Counts
+
+```{r warning=FALSE}
+
+CurationReport$EntryCounts %>%
+    imap_chr(function(Dataframe, tablename)
+             {
+                paste0("<h5>", tablename, "</h5>",
+                        as_raw_html(gt(Dataframe) %>% gtTheme_Tinker()),
+                       "\n")
+             }) %>%
+    paste(collapse = "") %>%
+    asis_output()
+
+```
+
+
+### Transformation Monitors
+
+```{r}
+
+CurationReport$Transformation$All$Monitors %>%
+    imap_chr(function(Dataframe, tablename)
+             {
+                paste0("<h5>", tablename, "</h5>",
+                        as_raw_html(gt(Dataframe) %>% gtTheme_Tinker()),
+                       "\n")
+             }) %>%
+    paste(collapse = "") %>%
+    asis_output()
+
+```
+
+
+### Diagnosis Redundancies
+
+```{r}
+
+CurationReport$DiagnosisClassification %>%
+    select(SiteName,
+           DiagnosisRedundancies,
+           PatientsWithDiagnosisRedundancies) %>%
+    rename(Patients = "PatientsWithDiagnosisRedundancies") %>%
+    gt() %>%
+    TinkerLab::gtTheme_Tinker()
+
+```
+
+### Diagnosis Associations
+
+```{r}
+
+CurationReport$DiagnosisClassification %>%
+    select(SiteName,
+           DiagnosisAssociations,
+           PatientsWithDiagnosisAssociations) %>%
+    rename(Patients = "PatientsWithDiagnosisAssociations") %>%
+    gt() %>%
+    TinkerLab::gtTheme_Tinker()
+
+```
+
+

@@ -1,0 +1,330 @@
+
+---
+title: "CCPhos Tutorial"
+author: "Bastian Reiter"
+format: html
+---
+
+
+## Introduction
+
+The German Cancer Consortium's (DKTK) Clinical Communication Platform (CCP) is built on a federated infrastructure. Each participating site - usually a university hospital - holds data on a server called *bridgehead*. To foster clinical research with these data and enable analysis while protecting patient data privacy, the CCP developed solutions for federated data analysis. This means that researchers will not have direct access to individual-level patient data. Rather they will send commands to an R session running on the participating servers from their own bridgehead (*client*) and receive aggregated statistics which will then be further processed to get cumulated analysis results. The open source software **DataSHIELD** provides functionality for secure communication between client and server. It is important to note that this does not entail any transfer of individual-level data from the servers.
+While federated data analysis is a powerful solution to enable research with real world health data, it poses a variety of challenges, including:
+
+* Processing data without ability do control output on individual-level
+* Potential selection biases induced by data heterogeneity
+* Some methods deliver mathematically equivalent results in a federated setting, others can only be considered 'virtual meta analyses'
+
+
+## CCPhos
+
+CCPhos enables you to process, explore and analyze data in the federated infrastructure of the DKTK-CCP. It consists of three *R* packages:
+
+* `dsCCPhos` (runs in server R session)
+    + Contains functionality that processes individual-level data and returns aggregated statistics
+* `dsCCPhosClient` (runs in client R session)
+    + Functions send commands to servers and process the returned responses
+* `CCPhosApp` (runs in client R session)
+    + A Shiny app to facilitate general usage, process monitoring as well as data exploration)
+
+
+## DataSHIELD
+
+To use CCPhos and analyze CCP data you will not need to have a deep understanding of how *DataSHIELD* works. However, for more complex tasks it can be useful to familiarize yourself with its functionality, especially if you aim to use enhancing packages. The *DataSHIELD* core group developed `dsBase/dsBaseClient` which lets you use some general functions you may know from the `base` package in *R*. The *DataSHIELD* community is an active and open platform. Contributors developed a broad variety of enhancing packages, for example `dsTidyverse` that lets you use functions known from the "normal" `tidyverse` package family. Generally speaking, *DataSHIELD* packages always consist of a package pair - one part runs on the server-side, one on the client-side. Functions from these packages are usually directly paired. A server-side function may be named `somefunctionDS()` and can be called within a client-side function named `ds.somefunction()`. There are two main types of server-side *DataSHIELD* functions:
+
+* ASSIGN
+    + Functions of this type do not return any data to the client, they serve as a way to create new objects on the server
+* AGGREGATE
+    + These functions return some kind of aggregated data (like an arithmetic mean, a quantile or a frequency table) to the client
+
+To learn more about *DataSHIELD*, please head to the *DataSHIELD* Community Wiki: <https://wiki.datashield.org>. They also a useful tutorials.
+
+
+## Tutorial
+
+This tutorial is centered around the functionality of `dsCCPhosClient`.
+To demonstrate the general workflow and enable testing as well as script development without connecting to the real world bridgeheads, `dsCCPhosClient` entails the possibility to connect to virtual servers (making use of the package `DSLite`). For the purposes of this tutorial we will use this virtual setting but also show how to potentially connect to real world servers. After the connection process, the general workflow and thus the steps in this tutorial are the same for both ways.
+
+
+#### Setup
+
+First, we need to install and load some necessary packages:
+
+```{r Setup}
+#| eval: false
+
+install.packages("devtools")   # This is needed to install packages from remote repositories
+
+# The client-side part of dsCCPhos:
+devtools::install_github(repo = "BastianReiter/dsCCPhosClient")
+
+# When using this tutorial with the virtual setup, we will also need the server-side part of CCPhos and dsBase:
+devtools::install_github(repo = "BastianReiter/dsCCPhos")
+devtools::install_github(repo = "datashield/dsBase")
+
+# Let's also install other DataSHIELD packages to get more functionality:
+install.packages("dsTidyverse")
+install.packages("dsTidyverseClient")
+
+# Load some package namespaces
+library(dsBaseClient)
+library(dsCCPhosClient)
+library(dsTidyverseClient)
+```
+
+
+
+#### Connect
+
+As mentioned above for the purposes of this tutorial you can either connect to virtual servers or to real world servers if you have access.
+
+###### Virtual Infrastructure
+
+We need some artificial test data to setup the virtual infrastructure.
+You can obtain a suitable .rds-file upon request.
+
+```{r}
+#| eval: false
+
+# Read in test data inserting your respective file path
+TestData <- readRDS("CCPTestData.rds")
+
+# We can use the following convenience function to connect to virtual servers
+CCPConnections <- ConnectToVirtualCCP(CCPTestData = TestData,
+                                      NumberOfSites = 3,
+                                      NumberOfPatientsPerSite = 2000,
+                                      AddedDsPackages = "dsTidyverse")
+```
+
+###### Real world servers
+
+If you instead want to connect to real world servers, you need credentials for each server. In specific, these are pairs of a server *URL* and a *secret token*, the latter being a large string of characters and numbers.
+You can use the convenience function `ConnectToCCP()` that returns a list of so-called `DSConnection` objects. You will use this list (saved here under the name `CCPConnections`) every time you call a *DataSHIELD*-function throughout this course.
+For `ConnectToCCP()` to work you need to pass the server credentials in the form of a `data.frame` with a specific structure:
+
+| SiteName | URL | ProjectName | Token |
+|----------|-----|-------------|-------|
+| Sissy    | https://sissyserver/opal | TestProject | xxx123456789 |
+| Franz    | https://franzserver/opal | TestProject | xxx234567891 |
+
+You can either create this `data.frame` manually in the R session or also save the credentials in a csv-file that you upload to your R session.
+Note: The specification of *ProjectName* is needed because it may differ from server to server due to technical reasons.
+
+
+```{r}
+#| eval: false
+
+# Read in CCP site specifications from uploaded file...
+Credentials <- read.csv(file = "SiteSpecs.csv")
+
+# ... or enter specifications manually
+Credentials <- data.frame(SiteName = c("Sissy",
+                                       "Franz"),
+                          URL = c("https://sissyserver/opal",
+                                  "https://franzserver/opal"),
+                          ProjectName = c("TestProject",
+                                          "TestProject"),
+                          Token = c("xxx123456789",
+                                    "xxx234567891"))
+```
+
+
+#### Check server requirements
+
+After successful connection let us make sure that all participating servers fulfill certain requirements so that we don't run into trouble down the way. We can define and check these requirements using another convenience function `CheckServerRequirements()`.
+
+
+```{r}
+#| eval: false
+
+# When connecting to real world servers we need the 'Credentials' data.frame again to pass the before-mentioned project names.
+# In the virtual setting we can just set the argument NULL.
+ServerRequirements <- CheckServerRequirements(CCPSiteSpecifications = NULL,
+                                              DataSources = CCPConnections)
+```
+
+
+#### Load Raw Data Set
+
+We are now connected to the servers, this means we have access to both the *Opal* database where the raw data is stored as well as an *R* session that runs on the server. In order to actually work with the data we have to load the database tables into the *R* session, where they will be accessible as *R* objects. Specifically, using the following functionality, we will assign the *Raw Data Set (RDS)* tables as `data.frame` objects. To facilitate working with this data set we will bundle them in a `list` object, which we will call `RawDataSet`. All of this is done by `LoadRawDataSet()`.
+
+```{r}
+#| eval: false
+
+# Again, when dealing with real world servers, we have to pass the 'Credentials' object defined at login.
+Messages <- LoadRawDataSet(CCPSiteSpecifications = NULL,
+                           DataSources = CCPConnections)
+
+```
+
+
+#### Check RDS tables
+
+Before we move on, let's take a look at these *RDS* tables using `ds.CheckDataSet`.
+
+```{r}
+#| eval: false
+
+RDSTableCheck <- ds.CheckDataSet(DataSources = CCPConnections,
+                                 DataSetName = "RawDataSet",
+                                 AssumeCCPDataSet = TRUE)
+
+```
+The resulting object `RDSTableCheck` contains useful meta data, in particular about the completeness of the *RDS* tables. In a real analysis it is recommended to take a close look at it to gain insight into the initial quality of these real world data. This is where the *CCPhosApp* is very helpful, since it automatically displays the resulting meta data in an easily accessible way. For now, let's have a look at the content of `RDSTableCheck` by exploring it via the console.
+
+```{r}
+#| eval: false
+
+# Tabular overview of the RDS tables' feature-wise completeness
+View(RDSTableCheck$TableStatus)
+
+# We can dive deeper by accessing the other list objects and look at a specific RDS table (here 'RDS_Diagnosis')
+View(RDSTableCheck$TableRowCounts$RDS_Diagnosis)
+View(RDSTableCheck$FeatureExistence$RDS_Diagnosis)
+View(RDSTableCheck$FeatureTypes$RDS_Diagnosis)
+View(RDSTableCheck$NonMissingValueRates$RDS_Diagnosis)
+
+```
+
+
+#### First data transformation: Curation
+
+Now we can perform the first big processing step: The transformation of the *Raw Data Set (RDS)* into the *Curated Data Set (CDS)*. This is done in one 'big sweep' by calling `ds.CurateData()`. This function uses meta data stored in the `dsCCPhos` package to perform a series of cleaning and harmonization steps, including:
+
+* Harmonization of table meta data and structure
+* Entry exclusion (unlinked and duplicate entries, or ones that are missing obligatory features)
+* Value harmonization (Recoding, Classification, Formatting)
+
+All of these processing steps can potentially be controlled by specific arguments and meta data objects, but we will not get into those details at this point.
+
+
+```{r}
+#| eval: false
+
+# Transform Raw Data Set (RDS) into Curated Data Set (CDS) (using default settings)
+Curation <- ds.CurateData(RawDataSetName = "RawDataSet",
+                          OutputName = "CurationOutput",
+                          DataSources = CCPConnections)
+
+CDSTableCheck <- ds.CheckDataSet(DataSources = CCPConnections,
+                                 DataSetName = "CuratedDataSet",
+                                 AssumeCCPDataSet = TRUE)
+
+```
+
+The server-side output of this process is stored in the `list` object `CurationOutput`. It contains the newly created *CuratedDataSet (CDS)* (`list`) as well as a *CurationReport*, an object that contains meta data that resulted from tracing the performed processing steps, for example the 'transformational path' that the raw data values took. To comfortably access the information stored in all server-specific *CurationReports* we can call another function:
+
+```{r}
+#| eval: false
+
+CurationReport <- ds.GetCurationReport(DataSources = CCPConnections)
+
+```
+
+Let's take a look at the resulting object `CurationReport`:
+
+```{r}
+#| eval: false
+
+# Exemplary for the 'Staging' table, get an overview of the attrition this table experienced during the Cutation process:
+View(CurationReport$EntryCounts$Staging)
+
+# We can look at similar data on feature-level...
+View(CurationReport$Transformation$All$EligibilityOverviews$Staging)
+
+# ...or even dive into the level of distinct feature values and their respective transformational paths
+View(CurationReport$Transformation$All$Monitors$Staging)
+
+```
+
+There is no need to dive into this monitoring data every time you carry out the processing. However, it will enable you to make sure that the processing did not induce any artifical biases.
+
+Let's focus back on the *CuratedDataSet* that is now stored in all server-side R sessions.
+Again, we can use the function `ds.CheckDataSet` to get a grasp of the overall data quality:
+
+```{r}
+#| eval: false
+
+CDSTableCheck <- ds.CheckDataSet(DataSources = CCPConnections,
+                                 DataSetName = "CuratedDataSet",
+                                 AssumeCCPDataSet = TRUE)
+
+# Take a look at non-missing rates in exemplary table 'Staging'
+View(CDSTableCheck$NonMissingValueRates$Staging)
+
+```
+
+
+#### Second data transformation: Augmentation
+
+While we could now use these *CDS* tables to perform some sort of analysis, our data is still extremely separated in different tables. To get analysis-ready data we need to establish links between the existing tables in a meaningful way. To take it a step further we can also try to create new features leveraging traditional data science or machine learning methods. This is what the next step *Augmentation* does. Again, we call one big function:
+
+```{r}
+#| eval: false
+
+Messages <- ds.AugmentData(CuratedDataSetName = "CuratedDataSet",
+                           OutputName = "AugmentationOutput",
+                           DataSources = CCPConnections)
+
+```
+The resulting *AugmentedDataSet (ADS)* (`list`) contains the following `data.frames`:
+
+* `Events`
+* `DiseaseCourse`
+* `Therapy`
+* `Diagnosis`
+* `Patient`
+
+Again, we could check out the data completeness of this new data set using the familiar function:
+
+```{r}
+#| eval: false
+
+ADSTableCheck <- ds.CheckDataSet(DataSources = CCPConnections,
+                                 DataSetName = "AugmentedDataSet")
+
+```
+
+To facilitate further processing, let's 'unpack' the `data.frames` from `AugmentedDataSet`:
+
+```{r}
+#| eval: false
+
+# Make tables from Augmented Data Set directly addressable by unpacking them into R server session
+Messages <- ds.UnpackAugmentedDataSet(AugmentedDataSetName = "AugmentedDataSet",
+                                      DataSources = CCPConnections)
+
+```
+
+
+#### Server workspaces and object meta data
+
+Before we jump directly into working with these data, let us briefly look at some methods to learn more about the objects on the server-side *R* sessions. This is important to be able to keep orientation about what's actually going on in the server workspaces and to construct further processing steps.
+
+If we want to get meta data about a particular *R* object we can call `ds.GetObjectMetaData()`:
+
+
+```{r}
+#| eval: false
+
+ObjectMetaData <- ds.GetObjectMetaData(ObjectName = "ADS_Patient",
+                                       DataSources = CCPConnections)
+
+# We can look at the structure of the object
+View(ObjectMetaData$SiteA$Structure)
+
+```
+
+
+```{r}
+#| eval: false
+
+
+
+
+```
+
+
+
+
+
