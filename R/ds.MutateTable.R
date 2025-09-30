@@ -35,13 +35,13 @@ ds.MutateTable <- function(TableName,
   # --- Argument assertions ---
   assert_that(is.string(TableName),
               is.string(MutateExpression),
-              (is.null(GroupBy) || is.string(GroupBy)),
               is.string(OutputName))
+  if (!is.null(GroupBy)) { assert_that(is.string(GroupBy)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
 
   # Encode string in 'MutateExpression' to make it passable through DSI
   MutateExpression <- .encode_tidy_eval(MutateExpression, .get_encode_dictionary())
@@ -58,5 +58,6 @@ ds.MutateTable <- function(TableName,
   AssignmentInfo <- ds.GetObjectStatus(OutputName,
                                        DSConnections = DSConnections)
 
+#-------------------------------------------------------------------------------
   return(AssignmentInfo)
 }

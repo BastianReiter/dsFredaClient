@@ -34,6 +34,7 @@ ds.GetTTEModel <- function(TableName,
                            DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
   require(dplyr)
 
   # --- For Testing Purposes ---
@@ -47,14 +48,24 @@ ds.GetTTEModel <- function(TableName,
   # MinFollowUpTime <- 20
   # DSConnections <- CCPConnections
 
+  # --- Argument Assertions ---
+  assert_that(is.string(TableName),
+              is.string(TimeFeature),
+              is.string(EventFeature),
+              is.string(ModelType),
+              is.count(MinFollowUpTime))
+  if (!is.null(CovariateA)) { assert_that(is.string(CovariateA)) }
+  if (!is.null(CovariateB)) { assert_that(is.string(CovariateB)) }
+  if (!is.null(CovariateC)) { assert_that(is.string(CovariateC)) }
+
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Check if addressed objects (Table and Feature) are eligible
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Check if addressed objects (Table and Feature) are eligible
+#-------------------------------------------------------------------------------
 
   # Get meta data of table object
   TableMetaData <- ds.GetObjectMetaData(ObjectName = TableName,
@@ -64,9 +75,9 @@ ds.GetTTEModel <- function(TableName,
   if (TableMetaData$FirstEligible$Class != "data.frame") { stop("Error: The referred table object does not seem to be a data.frame.", call. = FALSE)}
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Separate returns
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Server returns
+#-------------------------------------------------------------------------------
 
   # ServerReturns: Obtain survival model for each server calling dsCCPhos::GetSurvModelDS()
   ls_ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
@@ -80,18 +91,13 @@ ds.GetTTEModel <- function(TableName,
                                                           CovariateC.S = CovariateC,
                                                           MinFollowUpTime.S = MinFollowUpTime))
 
+#-------------------------------------------------------------------------------
+# Cumulation
+#-------------------------------------------------------------------------------
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Cumulation
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  ServerNames <- names(DSConnections)
-
+  #ServerNames <- names(DSConnections)
 
 
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return statement
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
   return(ls_ServerReturns)
 }

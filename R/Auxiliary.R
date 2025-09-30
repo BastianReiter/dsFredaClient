@@ -124,9 +124,9 @@ PrintSoloMessage <- function(message)
                                                 names(message) == "Warning" ~ "warning",
                                                 names(message) == "Failure" ~ "cross",
                                                 TRUE ~ "none"),
-                      bullet_col = dplyr::case_when(names(message) == "Success" ~ CCPhosColors$Green,
-                                                    names(message) == "Warning" ~ CCPhosColors$Orange,
-                                                    names(message) == "Failure" ~ CCPhosColors$Red,
+                      bullet_col = dplyr::case_when(names(message) == "Success" ~ dsFredaClient::FredaColors$Green,
+                                                    names(message) == "Warning" ~ dsFredaClient::FredaColors$Orange,
+                                                    names(message) == "Failure" ~ dsFredaClient::FredaColors$Red,
                                                     TRUE ~ "black"))
   }
 }

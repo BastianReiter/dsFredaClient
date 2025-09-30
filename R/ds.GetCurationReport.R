@@ -12,6 +12,7 @@
 #' @export
 #'
 #' @author Bastian Reiter
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetCurationReport <- function(DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
@@ -26,9 +27,9 @@ ds.GetCurationReport <- function(DSConnections = NULL)
 
 #-------------------------------------------------------------------------------
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # 1) Get CurationReport objects from servers (as a list of lists)
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# 1) Get CurationReport objects from servers (as a list of lists)
+#-------------------------------------------------------------------------------
 
   CurationReports <- DSI::datashield.aggregate(conns = DSConnections,
                                                expr = call("GetReportingObjectDS",
@@ -39,20 +40,20 @@ ds.GetCurationReport <- function(DSConnections = NULL)
 
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # 2) Cumulation of server-specific reports
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #   a) Entry Counts
-  #   b) Transformation Monitor objects
-  #         i) Detailed monitors
-  #         ii) Eligibility overviews
-  #         iii) Value set overviews
-  #   c) Diagnosis classification
-  #---------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# 2) Cumulation of server-specific reports
+#-------------------------------------------------------------------------------
+#   a) Entry Counts
+#   b) Transformation Monitor objects
+#         i) Detailed monitors
+#         ii) Eligibility overviews
+#         iii) Value set overviews
+#   c) Diagnosis classification
+#-------------------------------------------------------------------------------
 
 
-  # 2 a) Entry Counts
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 2 a) Entry Counts
+#-------------------------------------------------------------------------------
 
   AllServersEntryCounts <- data.frame()
 
@@ -332,11 +333,7 @@ ds.GetCurationReport <- function(DSConnections = NULL)
   names(TransformationMonitorsCumulated) <- names(CurationReports$Transformation[[1]]$ValueSetOverviews)
 
 
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return list
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+#-------------------------------------------------------------------------------
   return(list(EntryCounts = EntryCounts,
               Transformation = c(list(All = list(Monitors = TransformationMonitorsCumulated,
                                                  EligibilityOverviews = EligibilityOverviewsCumulated,

@@ -38,7 +38,7 @@ ds.GetCrossTab <- function(TableName,
   # --- Argument Assertions ---
   assert_that(is.string(TableName),
               is.character(FeatureNames),
-              is.logical(RemoveNA))
+              is.flag(RemoveNA))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -77,9 +77,9 @@ ds.GetCrossTab <- function(TableName,
                                                          FeatureNames.S = FeatureNamesString,
                                                          RemoveNA.S = RemoveNA))
 
-  #-----------------------------------------------------------------------------
-  # Processing of server-specific cross tabs and calculation of cumulated cross tab
-  #-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# Processing of server-specific cross tabs and calculation of cumulated cross tab
+#-------------------------------------------------------------------------------
 
   # Create coherent data.frame from ServerReturns
   CrossTab.Separate <- ServerReturns %>%
@@ -137,9 +137,9 @@ ds.GetCrossTab <- function(TableName,
                     ungroup()
 
 
-  #-----------------------------------------------------------------------------
-  # Calculate Relative Frequencies (Joint and Marginal) for CrossTabs
-  #-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# Calculate Relative Frequencies (Joint and Marginal) for CrossTabs
+#-------------------------------------------------------------------------------
 
   # First calculate the Joint Relative Frequencies for
   CrossTab <- CrossTab %>%
@@ -165,11 +165,11 @@ ds.GetCrossTab <- function(TableName,
                     split(., .$Server)
 
 
-  #-----------------------------------------------------------------------------
-  # Perform cumulated tests of significance
-  #   - In case there are two crossed features, perform Chi-Squared-Test
-  #   - In case there are more than two crossed features, perform Log-Linear Modeling
-  #-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# Perform cumulated tests of significance
+#   - In case there are two crossed features, perform Chi-Squared-Test
+#   - In case there are more than two crossed features, perform Log-Linear Modeling
+#-------------------------------------------------------------------------------
 
   ChiSquaredTest <- NULL
 
@@ -205,7 +205,7 @@ ds.GetCrossTab <- function(TableName,
   # }
 
 
-  #-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
   return(list(CrossTab = CrossTab,
               ChiSquaredTest = ChiSquaredTest))
 }

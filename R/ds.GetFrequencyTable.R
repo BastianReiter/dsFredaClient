@@ -18,6 +18,7 @@
 #' @export
 #'
 #' @author Bastian Reiter
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetFrequencyTable <- function(TableName,
                                  FeatureName,
                                  GroupingFeatureName = NULL,
@@ -25,6 +26,7 @@ ds.GetFrequencyTable <- function(TableName,
                                  DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
   require(dplyr)
   require(purrr)
   require(stringr)
@@ -38,14 +40,21 @@ ds.GetFrequencyTable <- function(TableName,
   # MaxNumberCategories <- 5
   # DSConnections <- CCPConnections
 
+  # --- Argument Assertions ---
+  assert_that(is.string(TableName),
+              is.string(FeatureName),
+              is.count(MaxNumberCategories))
+  if (!is.null(GroupingFeatureName)) { assert_that(is.string(GroupingFeatureName)) }
+
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Check if addressed objects (Table and Feature) are eligible
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#-------------------------------------------------------------------------------
+# Check if addressed objects (Table and Feature) are eligible
+#-------------------------------------------------------------------------------
 
   # Get meta data of table object
   TableMetaData <- ds.GetObjectMetaData(ObjectName = TableName,
@@ -60,11 +69,11 @@ ds.GetFrequencyTable <- function(TableName,
   if (FeatureType %in% c("double", "integer", "numeric")) { stop(paste0("Error: The referred feature '", FeatureName, "' is of class '", FeatureType, "' and therefore not suitable."), call. = FALSE) }
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Separate returns
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Separate Server-specific returns
+#-------------------------------------------------------------------------------
 
-  # ServerReturns: Obtain sample statistics for each server calling dsCCPhos::GetFrequencyTableDS()
+  # Obtain sample statistics for each server calling dsFreda::GetFrequencyTableDS()
   ls_ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
                                               expr = call("GetFrequencyTableDS",
                                                           TableName.S = TableName,
@@ -75,9 +84,9 @@ ds.GetFrequencyTable <- function(TableName,
   # --- TO DO --- : Implement grouping on server and execute functions below on grouped vectors
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Cumulation
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Cumulation
+#-------------------------------------------------------------------------------
 
   ServerNames <- names(DSConnections)
 
@@ -114,9 +123,9 @@ ds.GetFrequencyTable <- function(TableName,
   }
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Restructuring output
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Restructuring output
+#-------------------------------------------------------------------------------
 
   # Select columns containing absolute frequencies and transpose tibble using combination of pivot_longer() and pivot_wider()
   df_AbsoluteFrequencies <- df_FrequencyTable %>%
@@ -142,9 +151,7 @@ ds.GetFrequencyTable <- function(TableName,
                                             values_from = RelativeFrequency)
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return statement
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
   return(list(AbsoluteFrequencies = df_AbsoluteFrequencies,
               RelativeFrequencies = df_RelativeFrequencies))
 }

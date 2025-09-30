@@ -15,30 +15,38 @@
 #' @export
 #'
 #' @author Bastian Reiter
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.ExtractFromList <- function(ListName,
                                ObjectName,
                                AssignedObjectName = NULL,
                                DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
+
+  # --- Argument Assertions ---
+  assert_that(is.string(ListName),
+              is.string(ObjectName))
+  if (!is.null(NewObjectName)) { assert_that(is.string(NewObjectName)) }
+
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-  # Construct the server-side function call
-  ServerCall <- call("ExtractFromListDS",
-                     ListName.S = ListName,
-                     ObjectName.S = ObjectName)
+#-------------------------------------------------------------------------------
 
-  # Execute server-side assign function
+  # Execute server-side ASSIGN function
   DSI::datashield.assign(conns = DSConnections,
                          symbol = ifelse(!is.null(NewObjectName),      # Per default, assign same name to object as it was in the list, but optionally assign new name
                                          NewObjectName,
                                          ObjectName),
-                         value = ServerCall)
+                         value = call("ExtractFromListDS",
+                                      ListName.S = ListName,
+                                      ObjectName.S = ObjectName))
 
   # Call helper function to check if object assignment succeeded
   AssignmentInfo <- ds.GetObjectStatus(ObjectName,
                                        DSConnections = DSConnections)
 
+#-------------------------------------------------------------------------------
   return(AssignmentInfo)
 }

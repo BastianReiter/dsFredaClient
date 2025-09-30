@@ -2,14 +2,18 @@
 #' ds.GetDataSetCheck
 #'
 #' `r lifecycle::badge("stable")` \cr\cr
-#' Check out a data set (\code{list} of \code{data.frames}) on servers and return a coherent summary across servers.
+#' Check out a data set (\code{list} of \code{data.frames}) on servers and return a coherent summary across servers. Options:
+#' \enumerate{
+#'    \item The data set can be inspected naively without passing any additional information about it
+#'    \item Meta data about the data set can be passed in the form of a \code{list} containing the \code{data.frames} 'Meta.Tables' / 'Meta.Features' / 'Meta.Values'
+#'    \item A Module identifier from a list of registered modules can be passed ('CCP' / 'P21' / ...), which leads to meta data being taken from a linked package }
 #'
 #' Linked to server-side AGGREGATE method \code{GetDataSetCheckDS()}
 #'
 #' @param DataSetName \code{string} - Name of Data Set object (list) on server, usually "RawDataSet", "CuratedDataSet" or "AugmentedDataSet"
-#' @param RequiredTableNames \code{character vector} - Names of tables that are expected/required to be in the data set - Default: Names of elements in list evaluated from \code{DataSetName.S}
-#' @param RequiredFeatureNames \code{list} of \code{character vectors} - Features that are expected/required in each table of the data set - Default: Names of features in respective table
-#' @param AssumeCCPDataSet \code{logical} - Whether or not the data set to be checked out is one of the main data sets used in CCPhos - Default: FALSE
+#' @param DataSetMetaData Optional \code{list} of \code{data.frames} 'Meta.Tables' / 'Meta.Features' / 'Meta.Values'
+#' @param Module Optional \code{string} identifying a defined data set (Examples: 'CCP' / 'P21')
+#' @param TransformationStage Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} containing compiled meta data about data set tables:
@@ -18,18 +22,21 @@
 #'                  \item FeatureExistence
 #'                  \item FeatureTypes
 #'                  \item NonMissingValueCounts
-#'                  \item NonMissingValueRates }
+#'                  \item NonMissingValueRates
+#'                  \item EligibleValueCounts
+#'                  \item EligibleValueRates}
 #' @export
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetDataSetCheck <- function(DataSetName,
-                               RequiredTableNames = NULL,
-                               RequiredFeatureNames = NULL,
-                               AssumeCCPDataSet = FALSE,
+                               DataSetMetaData = NULL,
+                               Module = NULL,
+                               TransformationStage = "Raw",
                                DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
   require(dplyr)
   require(purrr)
   require(stringr)
@@ -38,40 +45,32 @@ ds.GetDataSetCheck <- function(DataSetName,
   # --- For Testing Purposes ---
   # DataSetName <- "RawDataSet"
   # AssumeCCPDataSet <- TRUE
-  # RequiredTableNames = NULL
-  # RequiredFeatureNames = NULL
   # DSConnections <- CCPConnections
+
+  # --- Argument Assertions ---
+  assert_that(is.string(DataSetName),
+              is.string(TransformationStage))
+  if (!is.null(DataSetMetaData)) { assert_that(is.list(DataSetMetaData)) }
+  if (!is.null(Module)) { assert_that(is.string(Module)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
 #-------------------------------------------------------------------------------
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Check argument eligibility
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  if (!(is.character(DataSetName)))
-  {
-      stop("Error: Argument 'DataSetName.S' must be a character string.", call. = FALSE)
-  }
-
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Server function call to get list of lists
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+#-------------------------------------------------------------------------------
+# Server function call to get list of lists
+#-------------------------------------------------------------------------------
   DataSetCheck <- DSI::datashield.aggregate(conns = DSConnections,
                                             expr = call("GetDataSetCheckDS",
                                                         DataSetName.S = DataSetName,
-                                                        RequiredTableNames.S = RequiredTableNames,
-                                                        RequiredFeatureNames.S = RequiredFeatureNames,
-                                                        AssumeCCPDataSet.S = AssumeCCPDataSet))
+                                                        DataSetMetaData.S = DataSetMetaData,
+                                                        Module.S = Module,
+                                                        TransformationStage.S = TransformationStage))
 
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Transform into cumulated report objects
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Transform into cumulated report objects
+#-------------------------------------------------------------------------------
 
   # Create data frame containing "traffic light" info about existence/completeness of data set tables
   TableStatus <- DataSetCheck %>%
@@ -139,7 +138,7 @@ ds.GetDataSetCheck <- function(DataSetName,
                           })
 
 
-  # Create list of data frames (one per RDS table) containing feature-specific non-missing value counts
+  # Create list of data.frames (one per RDS table) containing feature-specific non-missing value counts
   NonMissingValueCounts <- DataSetCheck %>%
                               list_transpose() %>%
                               map(function(TableInfo)
@@ -152,24 +151,48 @@ ds.GetDataSetCheck <- function(DataSetName,
                                   })
 
 
-  # Create list of data frames (one per RDS table) containing feature-specific non-missing value rates
+  # Create list of data.frames (one per RDS table) containing feature-specific non-missing value rates
   NonMissingValueRates <- NonMissingValueCounts %>%
                               imap(function(TableInfo, tablename)
-                                  {
+                                   {
                                       TableInfo %>%
                                           left_join(TableRowCounts[[tablename]], by = join_by(ServerName)) %>%      # Get row counts from 'TableCheckOverview'
                                           mutate(across(-c(ServerName, RowCount), ~ .x / RowCount)) %>%
                                           select(-RowCount)
+                                   })
+
+
+  # Create list of data frames (one per RDS table) containing feature-specific eligible value counts
+  EligibleValueCounts <- DataSetCheck %>%
+                              list_transpose() %>%
+                              map(function(TableInfo)
+                                  {
+                                      TableInfo %>%
+                                          map(\(ServerTableInfo) ServerTableInfo$FeatureCheckOverview %>% select(Feature, EligibleValueCount)) %>%
+                                          list_rbind(names_to = "ServerName") %>%
+                                          pivot_wider(names_from = Feature,
+                                                      values_from = EligibleValueCount)
                                   })
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return statement
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Create list of data frames (one per RDS table) containing feature-specific eligible value rates
+  EligibleValueRates <- EligibleValueCounts %>%
+                            imap(function(TableInfo, tablename)
+                                 {
+                                    TableInfo %>%
+                                        left_join(TableRowCounts[[tablename]], by = join_by(ServerName)) %>%      # Get row counts from 'TableCheckOverview'
+                                        mutate(across(-c(ServerName, RowCount), ~ .x / RowCount)) %>%
+                                        select(-RowCount)
+                                 })
+
+
+#-------------------------------------------------------------------------------
   return(list(TableStatus = TableStatus,
               TableRowCounts = TableRowCounts,
               FeatureExistence = FeatureExistence,
               FeatureTypes = FeatureTypes,
               NonMissingValueCounts = NonMissingValueCounts,
-              NonMissingValueRates = NonMissingValueRates))
+              NonMissingValueRates = NonMissingValueRates,
+              EligibleValueCounts = EligibleValueCounts,
+              EligibleValueRates = EligibleValueRates))
 }

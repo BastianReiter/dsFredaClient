@@ -6,7 +6,7 @@
 \usage{
 ds.DrawSample(
   RawDataSetName = "RawDataSet",
-  SampleSize = "100",
+  SampleSize = 100,
   SampleName = "RDSSample",
   DSConnections = NULL
 )
@@ -14,7 +14,7 @@ ds.DrawSample(
 \arguments{
 \item{RawDataSetName}{\code{string} - Name of a \code{list} object on server}
 
-\item{SampleSize}{\code{string} - Number of patients per Server}
+\item{SampleSize}{\code{integer} - Number of patients per Server}
 
 \item{SampleName}{\code{string} - Option to assign subset of 'RawDataSet' a different object name on servers}
 

@@ -7,7 +7,8 @@
 #' Linked to server-side AGGREGATE method \code{GetTableCheckDS()}
 #'
 #' @param TableName \code{string} - Name of \code{data.frame} or \code{tibble}
-#' @param RequiredFeatureNames \code{character vector} - Optional names of required features - Default: \code{names()} applied to Table evaluated from \code{TableName}
+#' @param RequiredFeatureNames Optional \code{character} - Names of required features - Default: \code{names()} applied to Table evaluated from \code{TableName}
+#' @param EligibleValueSets Optional \code{list} of \code{character vectors} containing sets of eligible values for corresponding features
 #' @param GetTemplate \code{logical} - If set to \code{TRUE}, the function returns a template incorporating required feature names without actually checking an existing table
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment. Default: \code{FALSE}
 #'
@@ -16,17 +17,21 @@
 #'                  \item FeatureExistence
 #'                  \item FeatureTypes
 #'                  \item NonMissingValueCounts
-#'                  \item NonMissingValueRates }
+#'                  \item NonMissingValueRates
+#'                  \item EligibleValueCounts
+#'                  \item EligibleValueRates }
 #' @export
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetTableCheck <- function(TableName,
                              RequiredFeatureNames = NULL,
+                             EligibleValueSets = NULL,
                              GetTemplate = FALSE,
                              DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
   require(dplyr)
   require(purrr)
   require(stringr)
@@ -38,39 +43,35 @@ ds.GetTableCheck <- function(TableName,
   # GetTemplate <- FALSE
   # DSConnections <- CCPConnections
 
+  # --- Argument Assertions ---
+  assert_that(is.string(TableName),
+              is.flag(GetTemplate))
+  if (!is.null(RequiredFeatureNames)) { assert_that(is.character(RequiredFeatureNames)) }
+  if (!is.null(EligibleValueSets)) { assert_that(is.list(EligibleValueSets))}
+
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Check argument eligibility
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  if (!(is.character(TableName)))
-  {
-      stop("Error: Argument 'TableName' must be a character string.", call. = FALSE)
-  }
-
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Server function call to get list of lists
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Server function call to get list of lists
+#-------------------------------------------------------------------------------
 
   TableCheck <- DSI::datashield.aggregate(conns = DSConnections,
                                           expr = call("GetTableCheckDS",
                                                       TableName.S = TableName,
                                                       RequiredFeatureNames.S = RequiredFeatureNames,
+                                                      EligibleValueSets.S = EligibleValueSets,
                                                       GetTemplate.S = GetTemplate))
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Transform into cumulative report objects
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Transform into cumulative report objects
+#-------------------------------------------------------------------------------
 
   # Transpose list for easier handling
   TableCheck <- TableCheck %>%
                     list_transpose()
-
 
   # Create overview data.frame containing whole-table parameters
   TableCheckOverview <- tibble(ServerName = names(DSConnections),
@@ -80,7 +81,6 @@ ds.GetTableCheck <- function(TableName,
                             rowwise() %>%
                                 mutate(MissingFeatures = paste0(TableCheck$MissingFeatures[[ServerName]], collapse = ", ")) %>%
                             ungroup()
-
 
   # Summarize server-specific 'FeatureCheck' tables for an additional cumulative table
   FeatureCheckOverview.All <- TableCheck$FeatureCheckOverview %>%
@@ -99,14 +99,18 @@ ds.GetTableCheck <- function(TableName,
                                                 NonMissingValueCount.Sum = sum(NonMissingValueCount, na.rm = TRUE),
                                                 NonMissingValueRate = ifelse(!is.na(NonMissingValueCount.Sum) & NonMissingValueCount.Sum > 0,
                                                                              sum(NonMissingValueCount * NonMissingValueRate, na.rm = TRUE) / NonMissingValueCount.Sum,
-                                                                             0)) %>%
+                                                                             0),
+                                                EligibleValueCount.Sum = sum(EligibleValueCount, na.rm = TRUE),
+                                                EligibleValueRate = ifelse(!is.na(EligibleValueCount.Sum) & EligibleValueCount.Sum > 0,
+                                                                           sum(EligibleValueCount * EligibleValueRate, na.rm = TRUE) / EligibleValueCount.Sum,
+                                                                           0)) %>%
                                   ungroup() %>%
-                                  rename(NonMissingValueCount = "NonMissingValueCount.Sum")
+                                  rename(c(NonMissingValueCount = "NonMissingValueCount.Sum",
+                                           EligibleValueCount = "EligibleValueCount.Sum"))
 
   # Add cumulative table to list of server-specific 'FeatureCheck' tables
   FeatureCheckOverview <- c(list(All = FeatureCheckOverview.All),
                             TableCheck$FeatureCheckOverview)
-
 
   # Create additional tabular views of different feature-specific aspects
   FeatureExistence <- FeatureCheckOverview %>%
@@ -133,14 +137,25 @@ ds.GetTableCheck <- function(TableName,
                               pivot_wider(names_from = Feature,
                                           values_from = NonMissingValueRate)
 
+  EligibleValueCounts <- FeatureCheckOverview %>%
+                              map(\(FeatureCheckTable) FeatureCheckTable %>% select(Feature, EligibleValueCount)) %>%
+                              list_rbind(names_to = "ServerName") %>%
+                              pivot_wider(names_from = Feature,
+                                          values_from = EligibleValueCount)
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return statement
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  EligibleValueRates <- FeatureCheckOverview %>%
+                              map(\(FeatureCheckTable) FeatureCheckTable %>% select(Feature, EligibleValueRate)) %>%
+                              list_rbind(names_to = "ServerName") %>%
+                              pivot_wider(names_from = Feature,
+                                          values_from = EligibleValueRate)
+
+#-------------------------------------------------------------------------------
   return(list(TableCheckOverview = TableCheckOverview,
               FeatureCheckOverview = FeatureCheckOverview,
               FeatureExistence = FeatureExistence,
               FeatureTypes = FeatureTypes,
               NonMissingValueCounts = NonMissingValueCounts,
-              NonMissingValueRates = NonMissingValueRates))
+              NonMissingValueRates = NonMissingValueRates,
+              EligibleValueCounts = EligibleValueCounts,
+              EligibleValueRates = EligibleValueRates))
 }

@@ -15,17 +15,24 @@
 #' @export
 #'
 #' @author Bastian Reiter
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 ds.DrawSample <- function(RawDataSetName = "RawDataSet",
                           SampleSize = 100,
                           SampleName = "RDSSample",
                           DSConnections = NULL)
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 {
+  require(assertthat)
+
+  # --- Argument Assertions ---
+  assert_that(is.string(RawDataSetName),
+              is.count(SampleSize),
+              is.string(SampleName))
+
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 
   # Execute server-side assign function
   DSI::datashield.assign(conns = DSConnections,

@@ -20,6 +20,7 @@ ds.GetFeatureInfo <- function(TableName,
                               DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
   require(dsBaseClient)
   require(dplyr)
   require(purrr)
@@ -28,6 +29,10 @@ ds.GetFeatureInfo <- function(TableName,
   # TableName <- "CDS_Staging"
   # FeatureName <- "TNM_T"
   # DSConnections <- CCPConnections
+
+  # --- Argument Assertions ---
+  assert_that(is.string(TableName),
+              is.string(FeatureName))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -42,7 +47,7 @@ ds.GetFeatureInfo <- function(TableName,
   if (TableMetaData$FirstEligible$Class != "data.frame") { stop("Error: The referred table object does not seem to be a data.frame.", call. = FALSE)}
 
 
-  # ServerReturns: Obtain feature properties for each server calling dsCCPhos::GetFeatureInfoDS()
+  # ServerReturns: Obtain feature properties for each server calling dsFreda::GetFeatureInfoDS()
   ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
                                              expr = call("GetFeatureInfoDS",
                                                          TableName.S = TableName,
@@ -67,9 +72,7 @@ ds.GetFeatureInfo <- function(TableName,
                                 N.Missing = sum(SeparateProperties$N.Missing),
                                 MissingProportion = N.Missing / N.Total)
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Glue cumulated and separate feature meta data together and return tibble
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
   return(bind_rows(CumulatedProperties,
                    SeparateProperties))
 }

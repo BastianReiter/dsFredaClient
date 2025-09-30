@@ -6,22 +6,21 @@
 \usage{
 ds.GetDataSetCheck(
   DataSetName,
-  RequiredTableNames = NULL,
-  RequiredFeatureNames = NULL,
-  AssumeCCPDataSet = FALSE,
+  DataSetMetaData = NULL,
+  TransformationStage = "Raw",
   DSConnections = NULL
 )
 }
 \arguments{
 \item{DataSetName}{\code{string} - Name of Data Set object (list) on server, usually "RawDataSet", "CuratedDataSet" or "AugmentedDataSet"}
 
+\item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
+
 \item{RequiredTableNames}{\code{character vector} - Names of tables that are expected/required to be in the data set - Default: Names of elements in list evaluated from \code{DataSetName.S}}
 
 \item{RequiredFeatureNames}{\code{list} of \code{character vectors} - Features that are expected/required in each table of the data set - Default: Names of features in respective table}
 
 \item{AssumeCCPDataSet}{\code{logical} - Whether or not the data set to be checked out is one of the main data sets used in CCPhos - Default: FALSE}
-
-\item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 }
 \value{
 A \code{list} containing compiled meta data about data set tables:

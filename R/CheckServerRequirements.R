@@ -7,7 +7,7 @@
 #' @param ServerSpecifications \code{data.frame} - Same \code{data.frame} used for login. Used here only for acquisition of server-specific project names (in case they are differing). - Default: \code{NULL} for virtual project
 #' @param RequiredPackages A \code{character vector} naming required packages
 #' @param RequiredFunctions A named \code{character vector} containing names of required functions. Their type ('aggregate' or 'assign') is defined by the correspondent element names.
-#' @param RequiredOpalTableNames \code{character vector} - The expected names of the Opal data base tables.
+#' @param RequiredOpalTableNames Optional \code{character} vector - The expected names of the Opal data base tables.
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} of \code{data.frames} containing gathered info and messages
@@ -17,14 +17,14 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CheckServerRequirements <- function(ServerSpecifications = NULL,
                                     RequiredPackages = c("dsBase",
-                                                         "dsCCPhos",
+                                                         "dsFreda",
                                                          "dsTidyverse"),
                                     RequiredFunctions = c(aggregate = "GetReportingObjectDS",
                                                           assign = "AugmentDataDS",
                                                           assign = "CurateDataDS",
                                                           assign = "ExtractFromListDS",
                                                           assign = "DrawSampleDS"),
-                                    RequiredOpalTableNames = dsCCPhosClient::Meta_Tables$TableName_Raw,
+                                    RequiredOpalTableNames = NULL,
                                     DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
@@ -34,7 +34,7 @@ CheckServerRequirements <- function(ServerSpecifications = NULL,
 
   # --- For Testing Purposes ---
   # DSConnections <- CCPConnections
-  # RequiredPackages = c("dsBase", "dsCCPhos")
+  # RequiredPackages = c("dsBase", "dsFreda")
   # RequiredFunctions = c(aggregate = "GetReportingObjectDS",
   #                       assign = "AugmentDataDS",
   #                       assign = "CurateDataDS",
@@ -48,7 +48,7 @@ CheckServerRequirements <- function(ServerSpecifications = NULL,
   # Initiate output messaging objects
   Messages <- list()
   Messages$PackageAvailability <- c(Topic = "Package availability")
-  Messages$VersionOfdsCCPhos <- c(Topic = "Version of dsCCPhos")
+  Messages$VersionOfdsFreda <- c(Topic = "Version of dsFreda")
   Messages$FunctionAvailability <- c(Topic = "Function availability")
   Messages$TableAvailability <- c(Topic = "Opal DB table availability")
 
@@ -111,53 +111,53 @@ CheckServerRequirements <- function(ServerSpecifications = NULL,
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Available version of dsCCPhos
+# Available version of dsFreda
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  # Get version number of dsCCPhos on all servers and check for equality
-  VersionOfdsCCPhos <- as_tibble(DSI::datashield.pkg_status(conns = DSConnections)$version_status,
-                                 rownames = "PackageName") %>%
-                          filter(PackageName == "dsCCPhos") %>%
+  # Get version number of dsFreda on all servers and check for equality
+  VersionOfdsFreda <- as_tibble(DSI::datashield.pkg_status(conns = DSConnections)$version_status,
+                                rownames = "PackageName") %>%
+                          filter(PackageName == "dsFreda") %>%
                           select(-PackageName)
 
-  if (nrow(VersionOfdsCCPhos > 0))
+  if (nrow(VersionOfdsFreda > 0))
   {
-      IsEqualEverywhere <- apply(VersionOfdsCCPhos, 1, function(Values) { all(Values == Values[1]) })
+      IsEqualEverywhere <- apply(VersionOfdsFreda, 1, function(Values) { all(Values == Values[1]) })
       MessageOverall <- NULL
       MessagesDetail <- NULL
 
       if (IsEqualEverywhere == TRUE)
       {
-          MessageOverall <- MakeFunctionMessage(Text = paste0("Version of dsCCPhos is equal on all servers (Ver. ", VersionOfdsCCPhos[1, 1], ")!"),
+          MessageOverall <- MakeFunctionMessage(Text = paste0("Version of dsFreda is equal on all servers (Ver. ", VersionOfdsFreda[1, 1], ")!"),
                                                 IsClassSuccess = TRUE)
       }
       else
       {
-          MessagesOverall <- MakeFunctionMessage(Text = paste0("Version of dsCCPhos varies between servers!"),
+          MessagesOverall <- MakeFunctionMessage(Text = paste0("Version of dsFreda varies between servers!"),
                                                  IsClassWarning = TRUE)
 
-          for (i in 1:ncol(VersionOfdsCCPhos))
+          for (i in 1:ncol(VersionOfdsFreda))
           {
-              MessagesDetail <- c(Messages$VersionOfdsCCPhos,
-                                  MakeFunctionMessage(Text = paste0(names(VersionOfdsCCPhos)[i], ": Ver. ", VersionOfdsCCPhos[, i]),
+              MessagesDetail <- c(Messages$VersionOfdsFreda,
+                                  MakeFunctionMessage(Text = paste0(names(VersionOfdsFreda)[i], ": Ver. ", VersionOfdsFreda[, i]),
                                                       IsClassInfo = TRUE))
           }
       }
 
-      Messages$VersionOfdsCCPhos <- c(Messages$VersionOfdsCCPhos,
+      Messages$VersionOfdsFreda <- c(Messages$VersionOfdsFreda,
                                       MessageOverall,
                                       MessagesDetail)
   }
 
   # Transform / Transpose data frame into more handy return object
-  VersionOfdsCCPhos <- VersionOfdsCCPhos %>%
+  VersionOfdsFreda <- VersionOfdsFreda %>%
                             pivot_longer(everything(),
                                          names_to = "ServerName",
-                                         values_to = "dsCCPhosVersion")
+                                         values_to = "dsFredaVersion")
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# CCPhos disclosure settings
+# Freda disclosure settings
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   # ---
@@ -226,56 +226,61 @@ CheckServerRequirements <- function(ServerSpecifications = NULL,
 # Availability of Opal data base tables on servers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  # Get info on Opal table availability with dsCCPhosClient::GetServerOpalDBInfo()
-  RequiredOpalTableAvailability <- GetServerOpalInfo(ServerSpecifications,
-                                                     RequiredTableNames = RequiredOpalTableNames,
-                                                     DSConnections)
+  RequiredOpalTableAvailability <- NULL
 
-  # Compile output message concerning one table each and add it to Messages
-  for (i in 1:nrow(RequiredOpalTableAvailability))
+  if (!is.null(RequiredOpalTableNames))
   {
-      Row <- RequiredOpalTableAvailability[i, ]
+      # Get info on Opal table availability with dsFredaClient::GetServerOpalDBInfo()
+      RequiredOpalTableAvailability <- GetServerOpalInfo(ServerSpecifications,
+                                                         RequiredTableNames = RequiredOpalTableNames,
+                                                         DSConnections)
 
-      # Note: It's important to use 'dplyr::if_else()' instead of 'ifelse' here, otherwise the return won't be a named vector
-      Message <- if_else(Row$IsAvailableEverywhere == TRUE,
-                         MakeFunctionMessage(Text = paste0("Opal data base table '",
-                                                           Row$TableName,
-                                                           "' is available on all servers!"),
-                                             IsClassSuccess = TRUE),
-                         MakeFunctionMessage(Text = paste0("Opal data base table '",
-                                                           Row$TableName,
-                                                           "' is not available at ",
-                                                           Row$NotAvailableAt),
-                                             IsClassWarning = TRUE))
+      # Compile output message concerning one table each and add it to Messages
+      for (i in 1:nrow(RequiredOpalTableAvailability))
+      {
+          Row <- RequiredOpalTableAvailability[i, ]
 
-      Messages$TableAvailability <- c(Messages$TableAvailability,
-                                      Message)
+          # Note: It's important to use 'dplyr::if_else()' instead of 'ifelse' here, otherwise the return won't be a named vector
+          Message <- if_else(Row$IsAvailableEverywhere == TRUE,
+                             MakeFunctionMessage(Text = paste0("Opal data base table '",
+                                                               Row$TableName,
+                                                               "' is available on all servers!"),
+                                                 IsClassSuccess = TRUE),
+                             MakeFunctionMessage(Text = paste0("Opal data base table '",
+                                                               Row$TableName,
+                                                               "' is not available at ",
+                                                               Row$NotAvailableAt),
+                                                 IsClassWarning = TRUE))
+
+          Messages$TableAvailability <- c(Messages$TableAvailability,
+                                          Message)
+      }
+
+      # Transform / Transpose data frame into more handy return object
+      RequiredOpalTableAvailability <- RequiredOpalTableAvailability %>%
+                                          select(-IsAvailableEverywhere,
+                                                 -NotAvailableAt) %>%
+                                          pivot_longer(!TableName,
+                                                       names_to = "ServerName",
+                                                       values_to = "IsAvailable") %>%
+                                          pivot_wider(names_from = TableName,
+                                                      values_from = IsAvailable) %>%
+                                          mutate(CheckOpalTableAvailability = case_when(if_all(-ServerName, ~ .x == TRUE) ~ "green",
+                                                                                        TRUE ~ "red"))
   }
 
-  # Transform / Transpose data frame into more handy return object
-  RequiredOpalTableAvailability <- RequiredOpalTableAvailability %>%
-                                      select(-IsAvailableEverywhere,
-                                             -NotAvailableAt) %>%
-                                      pivot_longer(!TableName,
-                                                   names_to = "ServerName",
-                                                   values_to = "IsAvailable") %>%
-                                      pivot_wider(names_from = TableName,
-                                                  values_from = IsAvailable) %>%
-                                      mutate(CheckOpalTableAvailability = case_when(if_all(-ServerName, ~ .x == TRUE) ~ "green",
-                                                                                    TRUE ~ "red"))
 
 
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Print messages and return list object
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Print messages and invisibly return list object
+#-------------------------------------------------------------------------------
 
   # Print messages on console
   PrintMessages(Messages)
 
   # Invisibly return list containing data frames of gathered info and messages
   invisible(list(PackageAvailability = RequiredPackageAvailability,
-                 VersionOfdsCCPhos = VersionOfdsCCPhos,
+                 VersionOfdsFreda = VersionOfdsFreda,
                  FunctionAvailability = RequiredFunctionAvailability,
                  OpalTableAvailability = RequiredOpalTableAvailability,
                  Messages = Messages))

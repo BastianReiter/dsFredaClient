@@ -13,6 +13,7 @@
 #' @export
 #'
 #' @author Bastian Reiter
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 DisplayTimeSeries <- function(TimeSeriesData,
                               TimePointFeature,
                               ValueFeature,
@@ -20,30 +21,40 @@ DisplayTimeSeries <- function(TimeSeriesData,
                               IncludeMissingTimePoints = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-    require(dplyr)
-    require(tidyr)
+  require(assertthat)
+  require(dplyr)
+  require(tidyr)
 
+  # --- Argument Assertions ---
+  assert_that(is.data.frame(TimeSeriesData),
+              is.string(TimePointFeature) | is.symbol(TimePointFeature),
+              is.string(ValueFeature) | is.symbol(ValueFeature),
+              is.flag(IncludeMissingTimePoints))
+  if (!is.null(GroupingFeature)) { assert_that(is.string(GroupingFeature) | is.symbol(GroupingFeature)) }
 
-    TimeSeriesData <- TimeSeriesData %>%
-                          select({{ GroupingFeature }},
-                                 {{ TimePointFeature }},
-                                 {{ ValueFeature }})
+#-------------------------------------------------------------------------------
 
-    TimeSeriesTable <- TimeSeriesData %>%
-                          pivot_wider(names_from = {{ TimePointFeature }},
-                                      values_from = {{ ValueFeature }})
+  TimeSeriesData <- TimeSeriesData %>%
+                        select({{ GroupingFeature }},
+                               {{ TimePointFeature }},
+                               {{ ValueFeature }})
 
-    if (IncludeMissingTimePoints == TRUE)
-    {
-        AvailableYears <- as.integer(names(TimeSeriesTable)[-1])
-        TimeSpan <- min(AvailableYears):max(AvailableYears)
-        MissingYears <- TimeSpan[!(TimeSpan %in% AvailableYears)]
+  TimeSeriesTable <- TimeSeriesData %>%
+                        pivot_wider(names_from = {{ TimePointFeature }},
+                                    values_from = {{ ValueFeature }})
 
-        TimeSeriesTable <- TimeSeriesTable %>%
-                                mutate(!!! setNames(rep(list(NA), length(MissingYears)), MissingYears)) %>%      # Add empty columns with missing years as column names
-                                select({{ GroupingFeature }},
-                                       all_of(as.character(TimeSpan)))
-    }
+  if (IncludeMissingTimePoints == TRUE)
+  {
+      AvailableYears <- as.integer(names(TimeSeriesTable)[-1])
+      TimeSpan <- min(AvailableYears):max(AvailableYears)
+      MissingYears <- TimeSpan[!(TimeSpan %in% AvailableYears)]
 
-    return(TimeSeriesTable)
+      TimeSeriesTable <- TimeSeriesTable %>%
+                              mutate(!!! setNames(rep(list(NA), length(MissingYears)), MissingYears)) %>%      # Add empty columns with missing years as column names
+                              select({{ GroupingFeature }},
+                                     all_of(as.character(TimeSpan)))
+  }
+
+#-------------------------------------------------------------------------------
+  return(TimeSeriesTable)
 }

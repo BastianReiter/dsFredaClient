@@ -24,6 +24,7 @@ ds.GetSampleStatistics <- function(TableName,
                                    DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
   require(dsBaseClient)
   require(dplyr)
   require(purrr)
@@ -35,14 +36,20 @@ ds.GetSampleStatistics <- function(TableName,
   # RemoveMissings <- TRUE
   # DSConnections <- CCPConnections
 
+  # --- Argument Assertions ---
+  assert_that(is.string(TableName),
+              is.string(MetricFeatureName),
+              is.flag(RemoveMissings))
+  if (!is.null(GroupingFeatureName)) { assert_that(is.string(GroupingFeatureName)) }
+
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Check if addressed objects (Table and Feature) are eligible
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Check if addressed objects (Table and Feature) are eligible
+#-------------------------------------------------------------------------------
 
   # Get meta data of table object
   TableMetaData <- ds.GetObjectMetaData(ObjectName = TableName,
@@ -58,11 +65,11 @@ ds.GetSampleStatistics <- function(TableName,
   if (!(FeatureType %in% c("double", "integer", "numeric"))) { stop(paste0("Error: The referred feature '", MetricFeatureName, "' is of class '", FeatureType, "' and therefore not suitable."), call. = FALSE) }
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Separate returns
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Server returns
+#-------------------------------------------------------------------------------
 
-  # ServerReturns: Obtain sample statistics for each server calling dsCCPhos::GetSampleStatisticsDS()
+  # ServerReturns: Obtain sample statistics for each server calling dsFreda::GetSampleStatisticsDS()
   ls_ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
                                               expr = call("GetSampleStatisticsDS",
                                                           TableName.S = TableName,
@@ -78,9 +85,9 @@ ds.GetSampleStatistics <- function(TableName,
                                 list_rbind(names_to = "Server")
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Cumulation
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# Cumulation
+#-------------------------------------------------------------------------------
 
   # Making use of dsBaseClient::ds.meadSdGp() to obtain CUMULATED parametric statistics
   ls_CumulatedStatistics_Parametric <- ds.meanSdGp(x = paste0(TableName, "$", MetricFeatureName),
@@ -106,9 +113,7 @@ ds.GetSampleStatistics <- function(TableName,
                                    SEM = ls_CumulatedStatistics_Parametric$SEM_gp_study[1, "COMBINE"])
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Glue cumulated and separate statistics together and return tibble
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
   return(bind_rows(df_CumulatedStatistics,
                    df_SeparateStatistics))
 }

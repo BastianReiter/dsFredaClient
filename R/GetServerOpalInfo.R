@@ -5,7 +5,7 @@
 #' Check if tables are available in server Opal data bases.
 #'
 #' @param ServerSpecifications \code{data.frame} - Same data frame used for login. Used here only for akquisition of server-specific project names (in case they are differing). - Default: NULL for virtual project
-#' @param RequiredTableNames \code{character vector} - The table names expected/required in server Opal data base
+#' @param RequiredTableNames \code{character} - The table names expected/required in server Opal data base
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{tibble}
@@ -18,17 +18,22 @@ GetServerOpalInfo <- function(ServerSpecifications = NULL,
                               DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
   require(dplyr)
   require(DSI)
 
-  # --- For testing purposes ---
+  # --- For Testing Purposes ---
   # ServerSpecifications = NULL
   # DSConnections = CCPConnections
+
+  # --- Argument Assertions ---
+  assert_that(is.character(RequiredTableNames))
+  if (!is.null(ServerSpecifications)) { assert_that(is.data.frame(ServerSpecifications)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
 
   # Get server names (sorted alphabetically)
   ServerNames <- sort(names(DSConnections))
@@ -55,12 +60,12 @@ GetServerOpalInfo <- function(ServerSpecifications = NULL,
                                     pull()
       }
 
-      # In case project is virtual, server Opal table names are just raw CCP table names
+      # In case project is virtual, server Opal table names are just raw table names
       ServerTableNames <- RequiredTableNames
 
       if (ServerProjectName != "Virtual")
       {
-          # Create vector with server-specific table names (raw CCP table names concatenated with server-specific project name)
+          # Create vector with server-specific table names (raw table names concatenated with server-specific project name)
           ServerTableNames <- paste0(ServerProjectName, ".", RequiredTableNames)
       }
 
@@ -78,5 +83,6 @@ GetServerOpalInfo <- function(ServerSpecifications = NULL,
                                            .after = TableName) %>%
                                     ungroup()
 
+#-------------------------------------------------------------------------------
   return(RequiredTableAvailability)
 }

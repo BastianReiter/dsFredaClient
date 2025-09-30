@@ -35,18 +35,18 @@ ds.FilterTable <- function(TableName,
   # --- Argument assertions ---
   assert_that(is.string(TableName),
               is.string(FilterExpression),
-              (is.null(GroupBy) || is.string(GroupBy)),
               is.string(OutputName))
+  if (!is.null(GroupBy)) { assert_that(is.string(GroupBy)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
 
   # Encode string in 'FilterExpression' to make it passable through DSI
   FilterExpression <- .encode_tidy_eval(FilterExpression, .get_encode_dictionary())
 
-  # Execute server-side assign function
+  # Execute server-side ASSIGN function
   DSI::datashield.assign(conns = DSConnections,
                          symbol = OutputName,
                          value = call("FilterTableDS",
@@ -58,5 +58,6 @@ ds.FilterTable <- function(TableName,
   AssignmentInfo <- ds.GetObjectStatus(OutputName,
                                        DSConnections = DSConnections)
 
+#-------------------------------------------------------------------------------
   return(AssignmentInfo)
 }
