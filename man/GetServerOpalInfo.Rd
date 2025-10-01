@@ -13,7 +13,7 @@ GetServerOpalInfo(
 \arguments{
 \item{ServerSpecifications}{\code{data.frame} - Same data frame used for login. Used here only for akquisition of server-specific project names (in case they are differing). - Default: NULL for virtual project}
 
-\item{RequiredTableNames}{\code{character vector} - The table names expected/required in server Opal data base}
+\item{RequiredTableNames}{\code{character} - The table names expected/required in server Opal data base}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 }

@@ -4,14 +4,21 @@
 \alias{GetEligibleValues}
 \title{GetEligibleValues}
 \usage{
-GetEligibleValues(TableName, FeatureName, Stage = "Curated")
+GetEligibleValues(
+  TableName,
+  FeatureName,
+  ValuesMetaData,
+  TransformationStage = "Curated"
+)
 }
 \arguments{
 \item{TableName}{\code{string} - Name of the table containing the feature of concern}
 
 \item{FeatureName}{\code{string} - Name of feature}
 
-\item{Stage}{\code{string} - Either 'Curated' (Default) or 'Raw'. Both stages might have different sets of eligible values.}
+\item{ValuesMetaData}{\code{data.frame} - 'Meta.Values'}
+
+\item{TransformationStage}{\code{string} - Either 'Curated' (Default) or 'Raw'. Both stages might have different sets of eligible values.}
 }
 \value{
 \code{vector} of eligible values
