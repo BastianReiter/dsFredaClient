@@ -6,20 +6,20 @@
 \usage{
 ds.GetDataSetCheck(
   DataSetName,
-  RequiredTableNames = NULL,
-  RequiredFeatureNames = NULL,
-  AssumeCCPDataSet = FALSE,
+  DataSetMetaData = NULL,
+  Module = NULL,
+  TransformationStage = "Raw",
   DSConnections = NULL
 )
 }
 \arguments{
 \item{DataSetName}{\code{string} - Name of Data Set object (list) on server, usually "RawDataSet", "CuratedDataSet" or "AugmentedDataSet"}
 
-\item{RequiredTableNames}{\code{character vector} - Names of tables that are expected/required to be in the data set - Default: Names of elements in list evaluated from \code{DataSetName.S}}
+\item{DataSetMetaData}{Optional \code{list} of \code{data.frames} 'Meta.Tables' / 'Meta.Features' / 'Meta.Values'}
 
-\item{RequiredFeatureNames}{\code{list} of \code{character vectors} - Features that are expected/required in each table of the data set - Default: Names of features in respective table}
+\item{Module}{Optional \code{string} identifying a defined data set (Examples: 'CCP' / 'P21')}
 
-\item{AssumeCCPDataSet}{\code{logical} - Whether or not the data set to be checked out is one of the main data sets used in CCPhos - Default: FALSE}
+\item{TransformationStage}{Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 }
@@ -30,11 +30,17 @@ A \code{list} containing compiled meta data about data set tables:
 \item FeatureExistence
 \item FeatureTypes
 \item NonMissingValueCounts
-\item NonMissingValueRates }
+\item NonMissingValueRates
+\item EligibleValueCounts
+\item EligibleValueRates}
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}} \cr\cr
-Check out a data set (\code{list} of \code{data.frames}) on servers and return a coherent summary across servers.
+Check out a data set (\code{list} of \code{data.frames}) on servers and return a coherent summary across servers. Options:
+\enumerate{
+\item The data set can be inspected naively without passing any additional information about it
+\item Meta data about the data set can be passed in the form of a \code{list} containing the \code{data.frames} 'Meta.Tables' / 'Meta.Features' / 'Meta.Values'
+\item A Module identifier from a list of registered modules can be passed ('CCP' / 'P21' / ...), which leads to meta data being taken from a linked package }
 }
 \details{
 Linked to server-side AGGREGATE method \code{GetDataSetCheckDS()}

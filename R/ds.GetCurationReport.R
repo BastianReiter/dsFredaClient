@@ -12,6 +12,7 @@
 #' @export
 #'
 #' @author Bastian Reiter
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetCurationReport <- function(DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
@@ -26,9 +27,9 @@ ds.GetCurationReport <- function(DSConnections = NULL)
 
 #-------------------------------------------------------------------------------
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # 1) Get CurationReport objects from servers (as a list of lists)
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
+# 1) Get CurationReport objects from servers (as a list of lists)
+#-------------------------------------------------------------------------------
 
   CurationReports <- DSI::datashield.aggregate(conns = DSConnections,
                                                expr = call("GetReportingObjectDS",
@@ -39,20 +40,20 @@ ds.GetCurationReport <- function(DSConnections = NULL)
 
 
 
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # 2) Cumulation of server-specific reports
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #   a) Entry Counts
-  #   b) Transformation Monitor objects
-  #         i) Detailed monitors
-  #         ii) Eligibility overviews
-  #         iii) Value set overviews
-  #   c) Diagnosis classification
-  #---------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+# 2) Cumulation of server-specific reports
+#-------------------------------------------------------------------------------
+#   a) Entry Counts
+#   b) Transformation Monitor objects
+#         i) Detailed monitors
+#         ii) Eligibility overviews
+#         iii) Value set overviews
+#   c) Diagnosis classification
+#-------------------------------------------------------------------------------
 
 
-  # 2 a) Entry Counts
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# 2 a) Entry Counts
+#-------------------------------------------------------------------------------
 
   AllServersEntryCounts <- data.frame()
 
@@ -189,65 +190,65 @@ ds.GetCurationReport <- function(DSConnections = NULL)
                                   filter(IsOccurring == TRUE) %>%
                                   distinct(pick(TemporaryServerID,      # This makes sure that per Server exactly one (and only one) 'instance' of a particular value is counted
                                                 Feature,
-                                                Value_Raw,
-                                                Count_Raw)) %>%
+                                                Value.Raw,
+                                                Count.Raw)) %>%
                                   group_by(Feature,
-                                           Value_Raw) %>%
-                                  summarize(Count_Raw = sum(Count_Raw, na.rm = TRUE))
+                                           Value.Raw) %>%
+                                  summarize(Count.Raw = sum(Count.Raw, na.rm = TRUE))
 
           # Get summarized counts of harmonized values
           SummaryHarmonizedValues <- AllServersMonitor %>%
                                           distinct(pick(TemporaryServerID,
                                                         Feature,
-                                                        Value_Harmonized,
-                                                        Count_Harmonized)) %>%
+                                                        Value.Harmonized,
+                                                        Count.Harmonized)) %>%
                                           group_by(Feature,
-                                                   Value_Harmonized) %>%
-                                          summarize(Count_Harmonized = sum(Count_Harmonized, na.rm = TRUE))
+                                                   Value.Harmonized) %>%
+                                          summarize(Count.Harmonized = sum(Count.Harmonized, na.rm = TRUE))
 
           # Get summarized counts of recoded values
           SummaryRecodedValues <- AllServersMonitor %>%
                                       distinct(pick(TemporaryServerID,
                                                     Feature,
-                                                    Value_Recoded,
-                                                    Count_Recoded)) %>%
+                                                    Value.Recoded,
+                                                    Count.Recoded)) %>%
                                       group_by(Feature,
-                                               Value_Recoded) %>%
-                                      summarize(Count_Recoded = sum(Count_Recoded, na.rm = TRUE))
+                                               Value.Recoded) %>%
+                                      summarize(Count.Recoded = sum(Count.Recoded, na.rm = TRUE))
 
           # Get summarized counts of final values
           SummaryFinalValues <- AllServersMonitor %>%
                                     distinct(pick(TemporaryServerID,
                                                   Feature,
-                                                  Value_Final,
-                                                  Count_Final)) %>%
+                                                  Value.Final,
+                                                  Count.Final)) %>%
                                     group_by(Feature,
-                                             Value_Final) %>%
-                                    summarize(Count_Final = sum(Count_Final, na.rm = TRUE))
+                                             Value.Final) %>%
+                                    summarize(Count.Final = sum(Count.Final, na.rm = TRUE))
 
 
           AllServersMonitor <- AllServersMonitor %>%
                                   select(-TemporaryServerID,
-                                         -Count_Raw,
-                                         -Count_Harmonized,
-                                         -Count_Recoded,
-                                         -Count_Final) %>%
+                                         -Count.Raw,
+                                         -Count.Harmonized,
+                                         -Count.Recoded,
+                                         -Count.Final) %>%
                                   distinct() %>%
                                   #--- Delete remnant values marked as non-occurring that actually occur on some Server ---
-                                  group_by(Feature, Value_Raw) %>%
+                                  group_by(Feature, Value.Raw) %>%
                                       arrange(desc(IsOccurring), .by_group = TRUE) %>%
                                       slice_head() %>%
                                   ungroup() %>%
                                   #--- Add cumulated value counts of different transformation stages ---
-                                  left_join(SummaryRawValues, by = join_by(Feature, Value_Raw)) %>%
-                                  left_join(SummaryHarmonizedValues, by = join_by(Feature, Value_Harmonized)) %>%
-                                  left_join(SummaryRecodedValues, by = join_by(Feature, Value_Recoded)) %>%
-                                  left_join(SummaryFinalValues, by = join_by(Feature, Value_Final)) %>%
+                                  left_join(SummaryRawValues, by = join_by(Feature, Value.Raw)) %>%
+                                  left_join(SummaryHarmonizedValues, by = join_by(Feature, Value.Harmonized)) %>%
+                                  left_join(SummaryRecodedValues, by = join_by(Feature, Value.Recoded)) %>%
+                                  left_join(SummaryFinalValues, by = join_by(Feature, Value.Final)) %>%
                                   arrange(Feature,
                                           desc(IsOccurring),
                                           desc(IsEligible_Raw),
                                           desc(IsEligible_Harmonized),
-                                          Value_Raw)
+                                          Value.Raw)
       }
 
       TransformationMonitorsCumulated <- c(TransformationMonitorsCumulated,
@@ -281,42 +282,42 @@ ds.GetCurationReport <- function(DSConnections = NULL)
       if (nrow(AllServersValueSetOverview_Raw) > 0)
       {
           AllServersValueSetOverview_Raw <- AllServersValueSetOverview_Raw %>%
-                                                group_by(Feature, Value_Raw, IsOccurring, IsEligible_Raw) %>%
-                                                    summarize(Count_Raw = sum(Count_Raw, na.rm = TRUE)) %>%
+                                                group_by(Feature, Value.Raw, IsOccurring, IsEligible_Raw) %>%
+                                                    summarize(Count.Raw = sum(Count.Raw, na.rm = TRUE)) %>%
                                                     arrange(desc(IsOccurring), .by_group = TRUE) %>%
                                                     slice_head() %>%      # Remove / Replace values marked as non-occurring
                                                 group_by(Feature) %>%
-                                                    mutate(Proportion_Raw = Count_Raw / sum(Count_Raw, na.rm = TRUE)) %>%
+                                                    mutate(Proportion_Raw = Count.Raw / sum(Count.Raw, na.rm = TRUE)) %>%
                                                 ungroup()
       }
 
       if (nrow(AllServersValueSetOverview_Harmonized) > 0)
       {
           AllServersValueSetOverview_Harmonized <- AllServersValueSetOverview_Harmonized %>%
-                                                        group_by(Feature, Value_Harmonized, IsEligible_Harmonized) %>%
-                                                            summarize(Count_Harmonized = sum(Count_Harmonized, na.rm = TRUE)) %>%
+                                                        group_by(Feature, Value.Harmonized, IsEligible_Harmonized) %>%
+                                                            summarize(Count.Harmonized = sum(Count.Harmonized, na.rm = TRUE)) %>%
                                                         group_by(Feature) %>%
-                                                            mutate(Proportion_Harmonized = Count_Harmonized / sum(Count_Harmonized, na.rm = TRUE)) %>%
+                                                            mutate(Proportion_Harmonized = Count.Harmonized / sum(Count.Harmonized, na.rm = TRUE)) %>%
                                                         ungroup()
       }
 
       if (nrow(AllServersValueSetOverview_Recoded) > 0)
       {
           AllServersValueSetOverview_Recoded <- AllServersValueSetOverview_Recoded %>%
-                                                    group_by(Feature, Value_Recoded, IsEligible_Recoded) %>%
-                                                        summarize(Count_Recoded = sum(Count_Recoded, na.rm = TRUE)) %>%
+                                                    group_by(Feature, Value.Recoded, IsEligible_Recoded) %>%
+                                                        summarize(Count.Recoded = sum(Count.Recoded, na.rm = TRUE)) %>%
                                                     group_by(Feature) %>%
-                                                        mutate(Proportion_Recoded = Count_Recoded / sum(Count_Recoded, na.rm = TRUE)) %>%
+                                                        mutate(Proportion_Recoded = Count.Recoded / sum(Count.Recoded, na.rm = TRUE)) %>%
                                                     ungroup()
       }
 
       if (nrow(AllServersValueSetOverview_Final) > 0)
       {
           AllServersValueSetOverview_Final <- AllServersValueSetOverview_Final %>%
-                                                  group_by(Feature, Value_Final, IsEligible_Final) %>%
-                                                      summarize(Count_Final = sum(Count_Final, na.rm = TRUE)) %>%
+                                                  group_by(Feature, Value.Final, IsEligible_Final) %>%
+                                                      summarize(Count.Final = sum(Count.Final, na.rm = TRUE)) %>%
                                                   group_by(Feature) %>%
-                                                      mutate(Proportion_Final = Count_Final / sum(Count_Final, na.rm = TRUE)) %>%
+                                                      mutate(Proportion_Final = Count.Final / sum(Count.Final, na.rm = TRUE)) %>%
                                                   ungroup()
       }
 
@@ -332,11 +333,7 @@ ds.GetCurationReport <- function(DSConnections = NULL)
   names(TransformationMonitorsCumulated) <- names(CurationReports$Transformation[[1]]$ValueSetOverviews)
 
 
-
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Return list
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+#-------------------------------------------------------------------------------
   return(list(EntryCounts = EntryCounts,
               Transformation = c(list(All = list(Monitors = TransformationMonitorsCumulated,
                                                  EligibilityOverviews = EligibilityOverviewsCumulated,

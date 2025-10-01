@@ -89,7 +89,8 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
   }
 
 
-  # Summarize server-specific overviews in 'Overview.All'
+# Summarize server-specific overviews in 'Overview.All'
+#-------------------------------------------------------------------------------
   Overview.All <- Overview %>%
                       list_rbind() %>%
                       group_by(Object) %>%
@@ -116,8 +117,8 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                 Overview)
 
 
-  # Object details
-  #-----------------------------------------------------------------------------
+# Object details
+#-------------------------------------------------------------------------------
 
   # For easier handling
   ObjectDetails <- ObjectDetails %>%
@@ -168,12 +169,12 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                       list_transpose()
 
 
-  # Get eligible value sets from meta data
-  #-----------------------------------------------------------------------------
+# Get eligible value sets from meta data
+#-------------------------------------------------------------------------------
   EligibleValues <- tibble(Object = UniqueObjectNames) %>%
-                        mutate(TableWithoutPrefix = str_replace(Object, "^(RDS_|CDS_|ADS_)", ""),
-                               Stage = case_when(str_starts(Object, "RDS_") ~ "Raw",
-                                                 str_starts(Object, "(CDS_|ADS_)") ~ "Curated",
+                        mutate(TableWithoutPrefix = str_replace(Object, "^(RDS.|CDS.|ADS.)", ""),
+                               Stage = case_when(str_starts(Object, "RDS.") ~ "Raw",
+                                                 str_starts(Object, "(CDS.|ADS.)") ~ "Curated",
                                                  .default = NA)) %>%
                         left_join(dsCCPhosClient::Meta_Values, by = join_by(TableWithoutPrefix == Table), relationship = "many-to-many") %>%
                         left_join(select(dsCCPhosClient::Meta_Features, TableName_Curated, FeatureName_Curated, FeatureName_Raw), by = join_by(TableWithoutPrefix == TableName_Curated, Feature == FeatureName_Curated)) %>%
@@ -195,8 +196,7 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                         map(\(PerObject) split(PerObject, PerObject$Feature))
 
 
-  # Return list
-  #-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
   return(list(Overview = Overview,
               ObjectDetails = ObjectDetails,
               EligibleValues = EligibleValues))

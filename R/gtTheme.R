@@ -1,5 +1,5 @@
 
-#' gtTheme_CCP
+#' gtTheme
 #'
 #' Custom gt theme
 #'
@@ -16,7 +16,7 @@
 #'
 #' @examples
 #' @author Bastian Reiter
-gtTheme_CCP <- function(gtObject,
+gtTheme <- function(gtObject,
                         ShowNAs = FALSE,
                         TableWidth = NULL,
                         TableAlign = "center",
@@ -36,24 +36,24 @@ gtTheme_CCP <- function(gtObject,
                                 table.font.size = BaseFontSize,
                                 heading.align = "center",
                                 table.border.top.width = NULL,
-                                column_labels.background.color = CCPhosColors$PrimaryLight,
+                                column_labels.background.color = FredaColors$PrimaryLight,
                                 column_labels.border.top.width = NULL,
                                 column_labels.border.bottom.width = 3,
-                                column_labels.border.bottom.color = CCPhosColors$Primary,
-                                row_group.background.color = CCPhosColors$LightGrey) %>%
+                                column_labels.border.bottom.color = FredaColors$Primary,
+                                row_group.background.color = FredaColors$LightGrey) %>%
                     #--- Style column label text ---
                     tab_style(locations = cells_column_labels(),
                               style = paste0("vertical-align: middle;
                                               text-transform: uppercase;
                                               font-weight: bold;
-                                              color: ", CCPhosColors$Primary)) %>%
+                                              color: ", FredaColors$Primary)) %>%
                     #--- Format column label text (Replace "_" with " ")
                     text_replace(locations = cells_column_labels(),
                                  pattern = "[_]",
                                  replacement = " ") %>%
                     #--- Style row group label ---
                     tab_style(locations = cells_row_groups(),
-                              style = paste0("font-weight: bold; color: ", CCPhosColors$Primary)) %>%
+                              style = paste0("font-weight: bold; color: ", FredaColors$Primary)) %>%
                     { if (ShowNAs == FALSE)
                     { sub_missing(., missing_text = "") }
                       else {.}

@@ -7,6 +7,7 @@
 ds.GetTableCheck(
   TableName,
   RequiredFeatureNames = NULL,
+  EligibleValueSets = NULL,
   GetTemplate = FALSE,
   DSConnections = NULL
 )
@@ -14,7 +15,9 @@ ds.GetTableCheck(
 \arguments{
 \item{TableName}{\code{string} - Name of \code{data.frame} or \code{tibble}}
 
-\item{RequiredFeatureNames}{\code{character vector} - Optional names of required features - Default: \code{names()} applied to Table evaluated from \code{TableName}}
+\item{RequiredFeatureNames}{Optional \code{character} - Names of required features - Default: \code{names()} applied to Table evaluated from \code{TableName}}
+
+\item{EligibleValueSets}{Optional \code{list} of \code{character vectors} containing sets of eligible values for corresponding features}
 
 \item{GetTemplate}{\code{logical} - If set to \code{TRUE}, the function returns a template incorporating required feature names without actually checking an existing table}
 
@@ -26,7 +29,9 @@ A \code{list} containing compiled meta data about table:
 \item FeatureExistence
 \item FeatureTypes
 \item NonMissingValueCounts
-\item NonMissingValueRates }
+\item NonMissingValueRates
+\item EligibleValueCounts
+\item EligibleValueRates }
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}} \cr\cr

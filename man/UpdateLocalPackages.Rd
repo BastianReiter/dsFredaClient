@@ -10,6 +10,6 @@ UpdateLocalPackages()
 \item{Text}{\code{list} List of of named vectors}
 }
 \description{
-Re-Install server and client part of CCPhos during local development
+Re-Install server and client part of Freda during local development
 }
 \keyword{internal}

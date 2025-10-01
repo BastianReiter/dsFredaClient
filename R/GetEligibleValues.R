@@ -5,7 +5,8 @@
 #'
 #' @param TableName \code{string} - Name of the table containing the feature of concern
 #' @param FeatureName \code{string} - Name of feature
-#' @param Stage \code{string} - Either 'Curated' (Default) or 'Raw'. Both stages might have different sets of eligible values.
+#' @param ValuesMetaData \code{data.frame} - 'Meta.Values'
+#' @param TransformationStage \code{string} - Either 'Curated' (Default) or 'Raw'. Both stages might have different sets of eligible values.
 #'
 #' @return \code{vector} of eligible values
 #'
@@ -15,23 +16,33 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 GetEligibleValues <- function(TableName,
                               FeatureName,
-                              Stage = "Curated")
+                              ValuesMetaData,
+                              TransformationStage = "Curated")
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
   require(dplyr)
 
   # --- For Testing Purposes ---
   # TableName = "Surgery"
   # FeatureName = "Intention"
-  # Stage = "Curated"
+  # ValuesMetaData = dsCCPhos::Meta.Values
+  # TransformationStage = "Curated"
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # --- Argument Assertions ---
+  assert_that(is.string(TableName),
+              is.string(FeatureName),
+              is.data.frame(ValuesMetaData),
+              is.string(TransformationStage))
 
-  EligibleValues <- dsCCPhosClient::Meta_Values %>%
+#-------------------------------------------------------------------------------
+
+  EligibleValues <- ValuesMetaData %>%
                         filter(Table == TableName,
                                Feature == FeatureName) %>%
-                        { if (Stage == "Raw") { pull(., Value_Raw) }
-                          else { pull(., Value_Curated) } }
+                        { if (TransformationStage == "Raw") { pull(., Value.Raw) }
+                          else { pull(., Value.Curated) } }
 
+#-------------------------------------------------------------------------------
   return(EligibleValues)
 }

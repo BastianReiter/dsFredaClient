@@ -18,11 +18,15 @@ ds.GetObjectMetaData <- function(ObjectName,
                                  DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
   require(purrr)
 
   # --- For Testing Purposes ---
   # ObjectName <- "RDS_Diagnosis"
   # DSConnections <- CCPConnections
+
+  # --- Argument Assertions ---
+  assert_that(is.string(ObjectName))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -44,5 +48,6 @@ ds.GetObjectMetaData <- function(ObjectName,
   # Add to output list: Meta data from any (first eligible) server that hosts the object in question
   ObjectMetaData$FirstEligible <- if(!is.null(EligibleServers)) { ObjectMetaData[[first(EligibleServers)]] } else { NULL }
 
+#-------------------------------------------------------------------------------
   return(ObjectMetaData)
 }

@@ -29,6 +29,8 @@ ds.JoinTables <- function(TableNameA,
                           DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  require(assertthat)
+
   # --- For Testing Purposes ---
   # TableNameA <- "ADS_Patient"
   # TableNameB <- "ADS_Diagnosis"
@@ -37,26 +39,31 @@ ds.JoinTables <- function(TableNameA,
   # OutputName <- "PatientAnalysis"
   # DSConnections <- CCPConnections
 
+  # --- Argument Assertions ---
+  assert_that(is.string(TableNameA),
+              is.string(TableNameB),
+              is.string(ByStatement),
+              is.string(JoinType),
+              is.string(OutputName))
+
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
 
-  # Construct the server-side function call
-  ServerCall <- call("JoinTablesDS",
-                     TableNameA.S = TableNameA,
-                     TableNameB.S = TableNameB,
-                     ByStatement.S = ByStatement,
-                     JoinType.S = JoinType)
-
-  # Execute server-side assign function
+  # Execute server-side ASSIGN function
   DSI::datashield.assign(conns = DSConnections,
                          symbol = OutputName,
-                         value = ServerCall)
+                         value = call("JoinTablesDS",
+                                      TableNameA.S = TableNameA,
+                                      TableNameB.S = TableNameB,
+                                      ByStatement.S = ByStatement,
+                                      JoinType.S = JoinType))
 
   # Call helper function to check if object assignment succeeded
   AssignmentInfo <- ds.GetObjectStatus(OutputName,
                                        DSConnections = DSConnections)
 
+#-------------------------------------------------------------------------------
   return(AssignmentInfo)
 }
