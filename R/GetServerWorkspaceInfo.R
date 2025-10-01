@@ -164,9 +164,8 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                           })
 
   # Re-consolidate in 'ObjectDetails'
-  ObjectDetails <- c(NonTableDetails,
-                     TableDetails) %>%
-                      list_transpose()
+  ObjectDetails <- c(NonTableDetails, TableDetails) %>%
+                        list_transpose()
 
 
 # Get eligible value sets from meta data
@@ -176,16 +175,15 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                                Stage = case_when(str_starts(Object, "RDS.") ~ "Raw",
                                                  str_starts(Object, "(CDS.|ADS.)") ~ "Curated",
                                                  .default = NA)) %>%
-                        left_join(dsCCPhosClient::Meta_Values, by = join_by(TableWithoutPrefix == Table), relationship = "many-to-many") %>%
-                        left_join(select(dsCCPhosClient::Meta_Features, TableName_Curated, FeatureName_Curated, FeatureName_Raw), by = join_by(TableWithoutPrefix == TableName_Curated, Feature == FeatureName_Curated)) %>%
-                        mutate(Feature = case_when(Stage == "Raw" ~ FeatureName_Raw,
-                                                   Stage == "Curated" ~ Feature,
+                        left_join(dsCCPhosClient::Meta.Values, by = join_by(TableWithoutPrefix == Table), relationship = "many-to-many") %>%
+                        mutate(Feature = case_when(Stage == "Raw" ~ FeatureName.Raw,
+                                                   Stage == "Curated" ~ FeatureName.Curated,
                                                    .default = NA),
-                               Value = case_when(Stage == "Raw" ~ Value_Raw,
-                                                 Stage == "Curated" ~ Value_Curated,
+                               Value = case_when(Stage == "Raw" ~ Value.Raw,
+                                                 Stage == "Curated" ~ Value.Curated,
                                                  .default = NA),
-                               Label = case_when(Stage == "Raw" ~ Label_Raw,
-                                                 Stage == "Curated" ~ Label_Curated,
+                               Label = case_when(Stage == "Raw" ~ Label.Raw,
+                                                 Stage == "Curated" ~ Label.Curated,
                                                  .default = NA)) %>%
                         filter(!is.na(Feature) & !is.na(Value)) %>%
                         select(Object,
