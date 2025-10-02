@@ -1,6 +1,6 @@
 Package: dsFredaClient
 Title: Federated Refinement, Exploration and Data Augmentation
-Version: 0.2.03
+Version: 0.2.04
 Authors@R: 
     person("Bastian", "Reiter", , "b.reiter@med.uni-frankfurt.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-1088-0502"))
@@ -14,21 +14,21 @@ Imports:
     assertthat,
     cli,
     dplyr,
-    dsBaseClient (>= 6.3.0),
-    dsTidyverseClient,
+    dsBaseClient,
     DSI,
     DSOpal,
     httr,
     purrr,
+    stringr,
     tibble,
     tidyr,
     assertthat
-Suggests: 
-    CCPhosApp (>= 0.1.1),
+Suggests:
     dsBase,
     dsFreda,
-    dsTidyverse,
     DSLite,
+    dsTidyverse,
+    dsTidyverseClient,
     ggplot2,
     gt,
     quarto,
@@ -39,7 +39,6 @@ Suggests:
 Depends: 
     R (>= 4.3.0)
 LazyData: true
-Remotes: 
-    BastianReiter/CCPhosApp,
+Remotes:
     BastianReiter/dsFreda,
     datashield/dsBaseClient
