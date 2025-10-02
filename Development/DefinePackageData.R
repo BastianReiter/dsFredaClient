@@ -51,28 +51,28 @@ use_data(FredaColors, overwrite = TRUE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-Objects <- c("Meta.Tables",
-             "Meta.Features",
-             "Meta.Values",
-             "Proc.EventFeatures",
-             "Proc.TableNormalization",
-             "Set.FeatureObligations",
-             "Set.FeatureTracking",
-             "Set.DataHarmonization",
-             "Set.TransformativeExpressions",
-             "Set.Dictionary",
-             "Set.FuzzyStringMatching")
-
-for (objectname in Objects)
-{
-    Object <- eval(parse(text = paste0("dsCCPhos::", objectname)))
-
-    assign(x = objectname,
-           value = Object)
-
-    # Save data in .rda-file and make it part of the package
-    do.call(use_data, list(as.name(objectname), overwrite = TRUE))
-}
+# Objects <- c("Meta.Tables",
+#              "Meta.Features",
+#              "Meta.Values",
+#              "Proc.EventFeatures",
+#              "Proc.TableNormalization",
+#              "Set.FeatureObligations",
+#              "Set.FeatureTracking",
+#              "Set.DataHarmonization",
+#              "Set.TransformativeExpressions",
+#              "Set.Dictionary",
+#              "Set.FuzzyStringMatching")
+#
+# for (objectname in Objects)
+# {
+#     Object <- eval(parse(text = paste0("dsCCPhos::", objectname)))
+#
+#     assign(x = objectname,
+#            value = Object)
+#
+#     # Save data in .rda-file and make it part of the package
+#     do.call(use_data, list(as.name(objectname), overwrite = TRUE))
+# }
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
