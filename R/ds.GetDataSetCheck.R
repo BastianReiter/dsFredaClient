@@ -13,7 +13,7 @@
 #' @param DataSetName \code{string} - Name of Data Set object (list) on server, usually "RawDataSet", "CuratedDataSet" or "AugmentedDataSet"
 #' @param DataSetMetaData Optional \code{list} of \code{data.frames} 'Meta.Tables' / 'Meta.Features' / 'Meta.Values'
 #' @param Module Optional \code{string} identifying a defined data set (Examples: 'CCP' / 'P21')
-#' @param TransformationStage Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'
+#' @param Stage Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} containing compiled meta data about data set tables:
@@ -32,7 +32,7 @@
 ds.GetDataSetCheck <- function(DataSetName,
                                DataSetMetaData = NULL,
                                Module = NULL,
-                               TransformationStage = "Raw",
+                               Stage = "Raw",
                                DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
@@ -49,7 +49,7 @@ ds.GetDataSetCheck <- function(DataSetName,
 
   # --- Argument Assertions ---
   assert_that(is.string(DataSetName),
-              is.string(TransformationStage))
+              is.string(Stage))
   if (!is.null(DataSetMetaData)) { assert_that(is.list(DataSetMetaData)) }
   if (!is.null(Module)) { assert_that(is.string(Module)) }
 
@@ -66,7 +66,7 @@ ds.GetDataSetCheck <- function(DataSetName,
                                                         DataSetName.S = DataSetName,
                                                         DataSetMetaData.S = DataSetMetaData,
                                                         Module.S = Module,
-                                                        TransformationStage.S = TransformationStage))
+                                                        Stage.S = Stage))
 
 #-------------------------------------------------------------------------------
 # Transform into cumulated report objects
