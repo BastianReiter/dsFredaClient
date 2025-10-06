@@ -31,7 +31,7 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetDataSetCheck <- function(DataSetName,
                                DataSetMetaData = NULL,
-                               Module = NULL,
+                               Module = "CCP",
                                Stage = "Raw",
                                DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,10 +44,12 @@ ds.GetDataSetCheck <- function(DataSetName,
 
   # --- For Testing Purposes ---
   # DataSetName <- "RawDataSet"
-  # AssumeCCPDataSet <- TRUE
+  # DataSetMetaData <- NULL
+  # Module <- "CCP"
+  # Stage <- "Raw"
   # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(DataSetName),
               is.string(Stage))
   if (!is.null(DataSetMetaData)) { assert_that(is.list(DataSetMetaData)) }
