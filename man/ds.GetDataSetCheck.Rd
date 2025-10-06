@@ -7,8 +7,8 @@
 ds.GetDataSetCheck(
   DataSetName,
   DataSetMetaData = NULL,
-  Module = NULL,
-  TransformationStage = "Raw",
+  Module = "CCP",
+  Stage = "Raw",
   DSConnections = NULL
 )
 }
@@ -19,7 +19,7 @@ ds.GetDataSetCheck(
 
 \item{Module}{Optional \code{string} identifying a defined data set (Examples: 'CCP' / 'P21')}
 
-\item{TransformationStage}{Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'}
+\item{Stage}{Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 }
