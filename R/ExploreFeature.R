@@ -10,6 +10,7 @@
 #' @return \code{list}
 #'            \itemize{ \item FeatureInfo
 #'                      \item Statistics }
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -20,10 +21,7 @@ ExploreFeature <- function(TableName,
                            ...)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dplyr)
-
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FeatureName))
 

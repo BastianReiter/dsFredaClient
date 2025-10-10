@@ -34,6 +34,8 @@ MakeBoxPlot(
 
 \item{ThemeArguments}{Pass custom theme arguments}
 
+\item{FillPalette}{\code{character vector}}
+
 \item{...}{}
 }
 \value{

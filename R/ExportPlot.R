@@ -37,24 +37,22 @@ ExportPlot <- function(Plot,
                        ShowAxisLabels_y = TRUE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-    require(ggplot2)
+  if (FileName == "default") { FileName = deparse(substitute(Plot)) }
 
-    if (FileName == "default") { FileName = deparse(substitute(Plot)) }
+  FileName <- paste0(FileName, ".", FileFormat)
 
-    FileName <- paste0(FileName, ".", FileFormat)
+  if (ShowAxisTitle_x == FALSE) { Plot <- Plot + ggplot2::theme(axis.title.x = element_blank()) }
+  if (ShowAxisTitle_y == FALSE) { Plot <- Plot + ggplot2::theme(axis.title.y = element_blank()) }
+  if (ShowAxisLabels_x == FALSE) { Plot <- Plot + ggplot2::theme(axis.text.x = element_blank()) }
+  if (ShowAxisLabels_y == FALSE) { Plot <- Plot + ggplot2::theme(axis.text.y = element_blank()) }
 
-    if (ShowAxisTitle_x == FALSE) { Plot <- Plot + ggplot2::theme(axis.title.x = element_blank()) }
-    if (ShowAxisTitle_y == FALSE) { Plot <- Plot + ggplot2::theme(axis.title.y = element_blank()) }
-    if (ShowAxisLabels_x == FALSE) { Plot <- Plot + ggplot2::theme(axis.text.x = element_blank()) }
-    if (ShowAxisLabels_y == FALSE) { Plot <- Plot + ggplot2::theme(axis.text.y = element_blank()) }
+  if (is.null(LegendPosition) == FALSE) { Plot <- Plot + ggplot2::theme(legend.position = LegendPosition) }
 
-    if (is.null(LegendPosition) == FALSE) { Plot <- Plot + ggplot2::theme(legend.position = LegendPosition) }
-
-    ggplot2::ggsave(plot = Plot,
-                    filename = FileName,
-                    path = Directory,
-                    width = Width,
-                    height = Height,
-                    units = Unit,
-                    dpi = DPI)
+  ggplot2::ggsave(plot = Plot,
+                  filename = FileName,
+                  path = Directory,
+                  width = Width,
+                  height = Height,
+                  units = Unit,
+                  dpi = DPI)
 }

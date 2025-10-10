@@ -1,11 +1,11 @@
 
-#' GetServerOpalInfo
+#' GetServerResourcesInfo
 #'
 #' `r lifecycle::badge("stable")` \cr\cr
 #' Check if tables are available in server Opal data bases.
 #'
 #' @param ServerSpecifications \code{data.frame} - Same data frame used for login. Used here only for akquisition of server-specific project names (in case they are differing). - Default: NULL for virtual project
-#' @param RequiredTableNames \code{character} - The table names expected/required in server Opal data base
+#' @param RequiredResourceNames \code{character} - The resource names expected/required to be on servers
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{tibble}
@@ -14,17 +14,17 @@
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GetServerOpalInfo <- function(ServerSpecifications = NULL,
-                              RequiredTableNames,
-                              DSConnections = NULL)
+GetServerResourcesInfo <- function(ServerSpecifications = NULL,
+                                   RequiredResourceNames,
+                                   DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
   # ServerSpecifications = NULL
   # DSConnections = CCPConnections
 
-  # --- Argument Validation ---
-  assert_that(is.character(RequiredTableNames))
+  # --- Argument Assertions ---
+  assert_that(is.character(RequiredResourceNames))
   if (!is.null(ServerSpecifications)) { assert_that(is.data.frame(ServerSpecifications)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed

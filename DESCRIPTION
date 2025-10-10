@@ -1,6 +1,6 @@
 Package: dsFredaClient
 Title: Federated Refinement, Exploration and Data Augmentation
-Version: 0.2.04
+Version: 0.2.05
 Authors@R: 
     person("Bastian", "Reiter", , "b.reiter@med.uni-frankfurt.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-1088-0502"))
@@ -18,17 +18,19 @@ Imports:
     DSI,
     DSOpal,
     httr,
+    lifecycle,
+    magrittr,
     purrr,
     stringr,
     tibble,
-    tidyr,
-    assertthat
+    tidyr
 Suggests:
     dsBase,
     dsFreda,
     DSLite,
     dsTidyverse,
     dsTidyverseClient,
+    ggpattern,
     ggplot2,
     gt,
     quarto,

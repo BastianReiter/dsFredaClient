@@ -20,16 +20,13 @@ GetEligibleValues <- function(TableName,
                               TransformationStage = "Curated")
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dplyr)
-
   # --- For Testing Purposes ---
   # TableName = "Surgery"
   # FeatureName = "Intention"
   # ValuesMetaData = dsCCPhos::Meta.Values
   # TransformationStage = "Curated"
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FeatureName),
               is.data.frame(ValuesMetaData),

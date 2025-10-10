@@ -20,6 +20,7 @@
 #'                  \item NonMissingValueRates
 #'                  \item EligibleValueCounts
 #'                  \item EligibleValueRates }
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -31,19 +32,13 @@ ds.GetTableCheck <- function(TableName,
                              DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dplyr)
-  require(purrr)
-  require(stringr)
-  require(tidyr)
-
   # --- For Testing Purposes ---
   # TableName <- "CDS_Staging"
   # RequiredFeatureNames <- filter(dsCCPhos::Meta_Features, TableName_Curated == "Staging")$FeatureName_Curated
   # GetTemplate <- FALSE
   # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.flag(GetTemplate))
   if (!is.null(RequiredFeatureNames)) { assert_that(is.character(RequiredFeatureNames)) }

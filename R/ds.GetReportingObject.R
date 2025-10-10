@@ -18,9 +18,7 @@ ds.GetReportingObject <- function(ObjectName,
                                   DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(ObjectName))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed

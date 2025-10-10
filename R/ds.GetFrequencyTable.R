@@ -15,6 +15,7 @@
 #' @return A \code{list} containing:
 #'         \itemize{\item AbsoluteFrequencies (\code{tibble}: Absolute value frequencies)
 #'                  \item RelativeFrequencies (\code{tibble}: Relative value frequencies)}
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -26,13 +27,6 @@ ds.GetFrequencyTable <- function(TableName,
                                  DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dplyr)
-  require(purrr)
-  require(stringr)
-  require(tibble)
-  require(tidyr)
-
   # --- For Testing Purposes ---
   # TableName <- "ADS_Patients"
   # FeatureName <- "TNM_T"
@@ -40,7 +34,7 @@ ds.GetFrequencyTable <- function(TableName,
   # MaxNumberCategories <- 5
   # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FeatureName),
               is.count(MaxNumberCategories))
@@ -49,8 +43,7 @@ ds.GetFrequencyTable <- function(TableName,
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+#-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
 # Check if addressed objects (Table and Feature) are eligible
@@ -75,10 +68,10 @@ ds.GetFrequencyTable <- function(TableName,
 
   # Obtain sample statistics for each server calling dsFreda::GetFrequencyTableDS()
   ls_ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
-                                              expr = call("GetFrequencyTableDS",
-                                                          TableName.S = TableName,
-                                                          FeatureName.S = FeatureName,
-                                                          GroupingFeatureName.S = GroupingFeatureName))
+                                                expr = call("GetFrequencyTableDS",
+                                                            TableName.S = TableName,
+                                                            FeatureName.S = FeatureName,
+                                                            GroupingFeatureName.S = GroupingFeatureName))
 
 
   # --- TO DO --- : Implement grouping on server and execute functions below on grouped vectors
@@ -94,13 +87,13 @@ ds.GetFrequencyTable <- function(TableName,
   df_FrequencyTable <- ls_ServerReturns %>%
                             list_rbind(names_to = "Server") %>%
                             pivot_wider(names_from = Server,
-                                        names_glue = "{Server}_{.value}",
+                                        names_glue = "{Server}.{.value}",
                                         names_vary = "slowest",
                                         values_from = c(AbsoluteFrequency, RelativeFrequency)) %>%
-                            mutate(All_AbsoluteFrequency = rowSums(pick(paste0(ServerNames, "_AbsoluteFrequency")), na.rm = TRUE),
-                                   All_RelativeFrequency = All_AbsoluteFrequency / sum(All_AbsoluteFrequency),
+                            mutate(All.AbsoluteFrequency = rowSums(pick(paste0(ServerNames, ".AbsoluteFrequency")), na.rm = TRUE),
+                                   All.RelativeFrequency = All.AbsoluteFrequency / sum(All.AbsoluteFrequency),
                                    .after = Value) %>%
-                            arrange(desc(All_AbsoluteFrequency))
+                            arrange(desc(All.AbsoluteFrequency))
 
   # If the number of unique values exceeds 'MaxNumberCategories', cumulate less frequent categories under 'Other' category
   if (!is.null(MaxNumberCategories))
@@ -131,7 +124,7 @@ ds.GetFrequencyTable <- function(TableName,
   df_AbsoluteFrequencies <- df_FrequencyTable %>%
                                 select(Value,
                                        contains("AbsoluteFrequency")) %>%
-                                rename_with(.fn = \(colnames) str_remove(colnames, "_AbsoluteFrequency"),
+                                rename_with(.fn = \(colnames) str_remove(colnames, ".AbsoluteFrequency"),
                                             .cols = contains("AbsoluteFrequency")) %>%
                                 pivot_longer(cols = -Value,
                                              names_to = "Server") %>%
@@ -142,7 +135,7 @@ ds.GetFrequencyTable <- function(TableName,
   df_RelativeFrequencies <- df_FrequencyTable %>%
                                 select(Value,
                                        contains("RelativeFrequency")) %>%
-                                rename_with(.fn = \(colnames) str_remove(colnames, "_RelativeFrequency"),
+                                rename_with(.fn = \(colnames) str_remove(colnames, ".RelativeFrequency"),
                                             .cols = contains("RelativeFrequency")) %>%
                                 pivot_longer(cols = -Value,
                                              names_to = "Server",

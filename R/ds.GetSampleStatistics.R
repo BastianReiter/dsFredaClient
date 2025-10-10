@@ -13,6 +13,7 @@
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{tibble} containing parametric and non-parametric sample statistics
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -24,11 +25,6 @@ ds.GetSampleStatistics <- function(TableName,
                                    DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dsBaseClient)
-  require(dplyr)
-  require(purrr)
-
   # --- For Testing Purposes ---
   # TableName <- "ADS_Patients"
   # MetricFeatureName <- "TNM_T"
@@ -36,7 +32,7 @@ ds.GetSampleStatistics <- function(TableName,
   # RemoveMissings <- TRUE
   # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(MetricFeatureName),
               is.flag(RemoveMissings))
@@ -71,11 +67,11 @@ ds.GetSampleStatistics <- function(TableName,
 
   # ServerReturns: Obtain sample statistics for each server calling dsFreda::GetSampleStatisticsDS()
   ls_ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
-                                              expr = call("GetSampleStatisticsDS",
-                                                          TableName.S = TableName,
-                                                          MetricFeatureName.S = MetricFeatureName,
-                                                          GroupingFeatureName.S = GroupingFeatureName,
-                                                          RemoveMissings.S = RemoveMissings))
+                                                expr = call("GetSampleStatisticsDS",
+                                                            TableName.S = TableName,
+                                                            MetricFeatureName.S = MetricFeatureName,
+                                                            GroupingFeatureName.S = GroupingFeatureName,
+                                                            RemoveMissings.S = RemoveMissings))
 
   # --- TO DO --- : Implement grouping on server and execute functions below on grouped vectors
 
@@ -90,14 +86,14 @@ ds.GetSampleStatistics <- function(TableName,
 #-------------------------------------------------------------------------------
 
   # Making use of dsBaseClient::ds.meadSdGp() to obtain CUMULATED parametric statistics
-  ls_CumulatedStatistics_Parametric <- ds.meanSdGp(x = paste0(TableName, "$", MetricFeatureName),
-                                                   y = "1",
-                                                   datasources = DSConnections)
+  ls_CumulatedStatistics_Parametric <- dsBaseClient::ds.meanSdGp(x = paste0(TableName, "$", MetricFeatureName),
+                                                                 y = "1",
+                                                                 datasources = DSConnections)
 
   # Making use of dsBaseClient::ds.quantileMean() to obtain CUMULATED non-parametric statistics
-  vc_CumulatedStatistics_Nonparametric <- ds.quantileMean(x = paste0(TableName, "$", MetricFeatureName),
-                                                          type = "combine",
-                                                          datasources = DSConnections)
+  vc_CumulatedStatistics_Nonparametric <- dsBaseClient::ds.quantileMean(x = paste0(TableName, "$", MetricFeatureName),
+                                                                        type = "combine",
+                                                                        datasources = DSConnections)
 
   # Compiling cumulated statistics
   df_CumulatedStatistics <- tibble(Server = "All",

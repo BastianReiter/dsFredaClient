@@ -11,10 +11,11 @@
 #' @param Decimals Number of decimals of y axis number format
 #' @param ggTheme Pass custom theme
 #' @param ThemeArguments Pass custom theme arguments
-#' @param FillPalette
+#' @param FillPalette \code{character vector}
 #' @param ...
 #'
 #' @return a \code{ggplot} object
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -31,63 +32,58 @@ MakeBoxPlot <- function(SampleStatistics,
                         ...)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dplyr)
-  require(ggplot2)
-  require(scales)
-
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
 
 
-  #--- Process plot data -----------------------------------------------------
+#--- Process plot data ---------------------------------------------------------
 
-  df_PlotData <- data.frame(x = SampleStatistics$Server,
-                            ymin = SampleStatistics$q5,
-                            lower = SampleStatistics$Q1,
-                            middle = SampleStatistics$Median,
-                            upper = SampleStatistics$Q3,
-                            ymax = SampleStatistics$q95,
-                            mean = SampleStatistics$Mean)
+  PlotData <- data.frame(x = SampleStatistics$Server,
+                         ymin = SampleStatistics$q5,
+                         lower = SampleStatistics$Q1,
+                         middle = SampleStatistics$Median,
+                         upper = SampleStatistics$Q3,
+                         ymax = SampleStatistics$q95,
+                         mean = SampleStatistics$Mean)
 
 
-  #--- Plot ------------------------------------------------------------------
+#--- Plot ----------------------------------------------------------------------
 
   # Create boxplot using ggplot2
-  Plot <- ggplot(data = df_PlotData,
-                 aes(x = x,
-                     ymin = ymin,
-                     lower = lower,
-                     middle = middle,
-                     upper = upper,
-                     ymax = ymax,
-                     fill = x)) +
-              do.call(ggTheme, c(list(...),
-                                 list(SizeFactorTickLabels_x = 1.3),      # Increase x axis tick label text size by default
-                                 ThemeArguments)) +      # Pass additional optional arguments
-              geom_boxplot(stat = "identity",      # Important for drawing boxplot with own computations
-                           width = 0.4,
-                           alpha = 0.7,
-                           outlier.shape = NA,
-                           show.legend = FALSE) +
-              geom_point(aes(y = mean),
-                         color = CCPhosColors$Accent,
-                         size = 3,
-                         shape = 19,
-                         show.legend = FALSE) +
-              labs(x = AxisTitle_x,
-                   y = AxisTitle_y) +
+  Plot <- ggplot2::ggplot(data = PlotData,
+                          mapping = ggplot2::aes(x = x,
+                                                 ymin = ymin,
+                                                 lower = lower,
+                                                 middle = middle,
+                                                 upper = upper,
+                                                 ymax = ymax,
+                                                 fill = x)) +
+              do.call(dsFredaClient::ggTheme, c(list(...),
+                                                list(SizeFactorTickLabels_x = 1.3),      # Increase x axis tick label text size by default
+                                                ThemeArguments)) +      # Pass additional optional arguments
+              ggplot2::geom_boxplot(stat = "identity",      # Important for drawing boxplot with own computations
+                                    width = 0.4,
+                                    alpha = 0.7,
+                                    outlier.shape = NA,
+                                    show.legend = FALSE) +
+              ggplot2::geom_point(aes(y = mean),
+                                  color = CCPhosColors$Accent,
+                                  size = 3,
+                                  shape = 19,
+                                  show.legend = FALSE) +
+              ggplot2::labs(x = AxisTitle_x,
+                            y = AxisTitle_y) +
               #--- Option: If no axis title, delete space for label --------------
               {
-                if (AxisTitle_x == "") { theme(axis.title.x = element_blank()) }
+                if (AxisTitle_x == "") { ggplot2::theme(axis.title.x = ggplot2::element_blank()) }
               } + {
-                if (AxisTitle_y == "") { theme(axis.title.y = element_blank()) }
+                if (AxisTitle_y == "") { ggplot2::theme(axis.title.y = ggplot2::element_blank()) }
               } +
-              scale_x_discrete(labels = label_wrap(TickLabelWidth_x)) +      # Set width of x axis tick mark labels, after which linebreak should occur
-              scale_y_continuous(labels = function(value) round(value, Decimals)) +
+              ggplot2::scale_x_discrete(labels = scales::label_wrap(TickLabelWidth_x)) +      # Set width of x axis tick mark labels, after which linebreak should occur
+              ggplot2::scale_y_continuous(labels = function(value) round(value, Decimals)) +
               ylim(AxisLimits_y[1], AxisLimits_y[2]) +      # Set y axis limits
               {
-                if (!is.null(FillPalette)) { scale_fill_manual(values = FillPalette) }      # Set custom fill color palette}
-                else { scale_color_brewer(name = "Paired") }
+                if (!is.null(FillPalette)) { ggplot2::scale_fill_manual(values = FillPalette) }      # Set custom fill color palette}
+                else { ggplot2::scale_color_brewer(name = "Paired") }
               }
 
 #-------------------------------------------------------------------------------

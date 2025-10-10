@@ -7,6 +7,7 @@
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A (modified) \code{list} of \code{DSConnection} objects
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -18,7 +19,7 @@ ModifyConnections <- function(ServersToBeRemoved = NULL,
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#-------------------------------------------------------------------------------
 
   # Remove DSConnection list elements according to 'ServersToBeRemoved' vector
   ModifiedDSConnections <- DSConnections[names(DSConnections) %in% ServersToBeRemoved == FALSE]

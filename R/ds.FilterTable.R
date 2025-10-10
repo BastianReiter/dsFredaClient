@@ -12,6 +12,7 @@
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} of messages about object assignment for monitoring purposes
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -23,8 +24,6 @@ ds.FilterTable <- function(TableName,
                            DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-
   # --- For Testing Purposes ---
   # TableName <- "CDS_Patient"
   # FilterExpression <- "LastVitalStatus == 'Alive' & str_starts(Gender, 'Ma')"
@@ -32,7 +31,7 @@ ds.FilterTable <- function(TableName,
   # OutputName <- "Test"
   # DSConnections <- CCPConnections
 
-  # --- Argument assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FilterExpression),
               is.string(OutputName))
