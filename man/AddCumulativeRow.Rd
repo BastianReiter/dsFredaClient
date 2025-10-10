@@ -6,6 +6,11 @@
 \usage{
 AddCumulativeRow(DataFrame, StringInNonNumericColumns = "All")
 }
+\arguments{
+\item{DataFrame}{\code{data.frame}}
+
+\item{StringInNonNumericColumns}{\code{string} - Default: "All"}
+}
 \description{
 Adds a cumulative row to a tibble/data.frame
 }

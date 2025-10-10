@@ -9,7 +9,8 @@
 #'
 #' Adds a cumulative row to a tibble/data.frame
 #'
-#' @param
+#' @param DataFrame \code{data.frame}
+#' @param StringInNonNumericColumns \code{string} - Default: "All"
 #' @keywords internal
 #' @export
 AddCumulativeRow <- function(DataFrame,
@@ -42,12 +43,10 @@ AddCumulativeRow <- function(DataFrame,
 #' @export
 CheckDSConnections <- function(DSConnections)
 {
-  require(DSI)
-
   # If no DataSHIELD connections are specified, assign them programmatically
   if (is.null(DSConnections))
   {
-      DSConnections <- datashield.connections_find()
+      DSConnections <- DSI::datashield.connections_find()
   }
 
   # If 'DSConnections' is not valid, throw an error message
@@ -107,10 +106,6 @@ MakeFunctionMessage <- function(Text,
 PrintSoloMessage <- function(message)
 #-------------------------------------------------------------------------------
 {
-  require(cli)
-  require(dplyr)
-  require(stringr)
-
   if (names(message) == "Topic")
   {
       # Print topic string in bold letters (formatted with ANSI code \033...) and with horizontal line underneath
@@ -143,8 +138,6 @@ PrintSoloMessage <- function(message)
 PrintMessages <- function(Messages)
 #-------------------------------------------------------------------------------
 {
-  require(purrr)
-
   purrr::walk(.x = Messages,
               .f = function(Subvector)      # List of messages contains named vectors that serve as 'topic-specific messages'
                    {
@@ -159,6 +152,27 @@ PrintMessages <- function(Messages)
                    })
 }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Serialize
+#'
+#'
+#'
+#' @return A list containing the encoding key, with 'input' specifying the characters to be encoded
+#' and 'output' specifying their corresponding encoded values.
+#' @keywords internal
+#' @export
+#' @noRd
+Serialize <- function()
+{
+  encode_list <- list(input = c("(", ")", "\"", ",", " ", "!", "&", "|", "'", "=", "+", "-", "*", "/", "^", ">", "<", "~", "\n"),
+                      output = c("$LB$", "$RB$", "$QUOTE$", "$COMMA$", "$SPACE$", "$EXCL$", "$AND$", "$OR$",
+                                 "$APO$", "$EQU$", "$ADD$", "$SUB$", "$MULT$", "$DIVIDE$", "$POWER$", "$GT$", "$LT$", "$TILDE$", "$LINE$"))
+
+  return(encode_list)
+}
+
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

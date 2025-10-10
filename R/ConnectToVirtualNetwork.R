@@ -11,6 +11,7 @@
 #' @param WorkingDirectory \code{string} - Optional custom working directory for virtual servers - Default: Hidden folder in R session's temporary directory (see \code{?DSLite::newDSLiteServer()})
 #'
 #' @return A \code{list} of \code{DSConnection}-objects
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -23,12 +24,6 @@ ConnectToVirtualNetwork <- function(TestData,
                                     WorkingDirectory = file.path(tempdir(), ".dslite"))
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dplyr)
-  require(DSLite)
-  require(DSI)
-  require(DSOpal)
-
   #--- For Testing Purposes ---
   # TestData <- TestData
   # NumberOfServers <- 3
@@ -37,6 +32,8 @@ ConnectToVirtualNetwork <- function(TestData,
   # Resources <- list(TestResource = resourcer::newResource(name = "TestResource",
   #                                                         url = "file:///Development/Test/TestResource.csv",
   #                                                         format = "csv"))
+
+  # --- Argument Validation ---
 
 #-------------------------------------------------------------------------------
 
@@ -130,12 +127,12 @@ ConnectToVirtualNetwork <- function(TestData,
       # 2) Build virtual server in global environment
       #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       assign(x = paste0("Server_", ServerNames[i]),
-             value = newDSLiteServer(tables = ServerTestData,
-                                     resources = Resources,
-                                     config = DSLite::defaultDSConfiguration(include = c("dsBase",
-                                                                                         "resourcer",
-                                                                                         "dsCCPhos",
-                                                                                         AddedDsPackages)),
+             value = DSLite::newDSLiteServer(tables = ServerTestData,
+                                             resources = Resources,
+                                             config = DSLite::defaultDSConfiguration(include = c("dsBase",
+                                                                                                 "resourcer",
+                                                                                                 "dsCCPhos",
+                                                                                                 AddedDsPackages)),
                                      home = WorkingDirectory),
              envir = .GlobalEnv)
 

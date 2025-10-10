@@ -10,6 +10,7 @@
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} of messages about object assignment for monitoring purposes
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -19,9 +20,7 @@ ds.MakeList <- function(ObjectNames,
                         DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-
-  # --- Argument assertions ---
+  # --- Argument Validation ---
   assert_that(is.character(ObjectNames),
               is.string(OutputName))
 

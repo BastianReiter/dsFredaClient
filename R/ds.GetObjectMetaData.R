@@ -10,6 +10,7 @@
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} of server returns
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -18,14 +19,11 @@ ds.GetObjectMetaData <- function(ObjectName,
                                  DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(purrr)
-
   # --- For Testing Purposes ---
   # ObjectName <- "RDS_Diagnosis"
   # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(ObjectName))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed

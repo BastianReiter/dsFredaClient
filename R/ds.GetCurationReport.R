@@ -9,6 +9,7 @@
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} of Curation Reports
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -16,9 +17,6 @@
 ds.GetCurationReport <- function(DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(dplyr)
-  require(purrr)
-
   # --- For Testing Purposes ---
   # DSConnections <- CCPConnections
 

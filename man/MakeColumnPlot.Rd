@@ -26,10 +26,10 @@ MakeColumnPlot(
   AxisTitle_y = "",
   TickLabelWidth_x = 10,
   Decimals = 0,
-  ggTheme = function(...) dsCCPhosClient::ggTheme_CCP(...),
+  ggTheme = function(...) dsFredaClient::ggTheme(...),
   ThemeArguments = list(),
   FillPalette = NULL,
-  ColorPrimary = dsCCPhosClient::CCPhosColors$Primary,
+  ColorPrimary = dsFredaClient::FredaColors$Primary,
   AlphaPalette = NULL,
   ColumnWidth = 0.95,
   ...
@@ -60,25 +60,43 @@ MakeColumnPlot(
 
 \item{FacetMapping}{Optional: "fill" / "alpha" / "pattern" / "none" (default)}
 
-\item{FacetArguments}{A list}
+\item{FacetArguments}{\code{list}}
 
 \item{AxisType_y}{Optional: "absolute" (default) / "proportional"}
+
+\item{CoordFlip}{\code{logical}}
 
 \item{LegendPosition}{Optional: "top" / "bottom" / "left" / "none"}
 
 \item{LegendShowFillGuide}{Optional logical: Show / hide legend guide of fill mapping}
 
-\item{ThemeArguments}{Pass custom theme arguments as list object}
+\item{AxisTitle_x}{\code{string}}
+
+\item{AxisTitle_y}{\code{string}}
+
+\item{TickLabelWidth_x}{\code{integer scalar}}
+
+\item{Decimals}{\code{integer scalar}}
+
+\item{ggTheme}{\code{ggplot2::theme()} function object}
+
+\item{ThemeArguments}{Optional \code{list} - Pass custom theme arguments as list object}
 
 \item{FillPalette}{Custom color palette passed into function environment}
+
+\item{ColorPrimary}{\code{string}}
+
+\item{AlphaPalette}{\code{integer vector}}
+
+\item{ColumnWidth}{\code{numeric} scalar}
 
 \item{...}{Anonymous additional arguments}
 }
 \value{
-A ggplot2 object
+A \code{ggplot} object
 }
 \description{
-MakeColumn_Plot
+Creates a \code{ggplot2::ggplot} object
 }
 \author{
 Bastian Reiter

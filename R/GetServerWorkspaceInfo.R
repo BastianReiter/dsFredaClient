@@ -7,6 +7,7 @@
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} containing overview and details of server-side workspace objects
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -14,13 +15,6 @@
 GetServerWorkspaceInfo <- function(DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(dplyr)
-  require(dsBaseClient)
-  require(DSI)
-  require(purrr)
-  require(stringr)
-  require(tidyr)
-
   # --- For Testing Purposes ---
   # DSConnections <- CCPConnections
 
@@ -67,7 +61,7 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                                                                      DSConnections = DSConnections[servername])
                               return(ObjectMetaData[[servername]])
                           }) %>%
-                      setNames(ExistingObjects$Object)
+                      stats::setNames(ExistingObjects$Object)
 
       # Add some meta data to 'ServerOverview'
       ServerOverview <- ServerOverview %>%
@@ -190,8 +184,8 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                                Feature,
                                Value,
                                Label) %>%
-                        split(., .$Object) %>%
-                        map(\(PerObject) split(PerObject, PerObject$Feature))
+                        base::split(., .$Object) %>%
+                        map(\(PerObject) base::split(PerObject, PerObject$Feature))
 
 
 #-------------------------------------------------------------------------------

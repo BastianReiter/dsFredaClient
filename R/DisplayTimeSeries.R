@@ -10,6 +10,7 @@
 #' @param IncludeMissingTimePoints \code{logical} - Indicates whether discrete time points (e.g. years) with no data should be displayed in the time series - Default: \code{FALSE}
 #'
 #' @return A \code{data.frame} displaying time series data in horizontal form
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -21,11 +22,7 @@ DisplayTimeSeries <- function(TimeSeriesData,
                               IncludeMissingTimePoints = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dplyr)
-  require(tidyr)
-
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.data.frame(TimeSeriesData),
               is.string(TimePointFeature) | is.symbol(TimePointFeature),
               is.string(ValueFeature) | is.symbol(ValueFeature),

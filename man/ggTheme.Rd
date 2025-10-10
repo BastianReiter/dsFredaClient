@@ -7,6 +7,7 @@
 ggTheme(
   ...,
   BaseSize = 11,
+  Fontname = "sans",
   LegendPosition = "right",
   SizeFactorPlotTitle = 1.67,
   SizeFactorPlotSubtitle = 1.33,
@@ -19,7 +20,11 @@ ggTheme(
 )
 }
 \arguments{
+\item{...}{\code{list} of arguments}
+
 \item{BaseSize}{Font size that relatively determines all other sizes}
+
+\item{Fontname}{The name of the font to be used - Default: "sans" / If package 'sysfonts' is installed, the Google font 'Karla' is chosen}
 
 \item{LegendPosition}{Legend position ("none", "left", "right", "bottom", "top", or two-element numeric vector)}
 
@@ -38,6 +43,9 @@ ggTheme(
 \item{SizeFactorLegendLabels}{Determines font size of legend labels}
 
 \item{SizeFactorFacetLabels}{Determines font size of facet labels}
+}
+\value{
+A \code{ggplot2::theme} object
 }
 \description{
 Custom ggplot2 theme, based on ggplot2::theme_classic()

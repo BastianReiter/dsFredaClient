@@ -13,6 +13,7 @@
 #' @return A \code{list}
 #'            \itemize{ \item CrossTab (\code{list}),
 #'                      \item ChiSquaredTest (\code{list}) }
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -23,19 +24,13 @@ ds.GetCrossTab <- function(TableName,
                            DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(DSI)
-  require(purrr)
-  require(stringr)
-  require(tidyr)
-
   # --- For Testing Purposes ---
   # TableName <- "ADS_Patient"
   # FeatureNames <- c("Sex", "CountDiagnoses")
   # RemoveNA = FALSE
   # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.character(FeatureNames),
               is.flag(RemoveNA))
@@ -47,7 +42,8 @@ ds.GetCrossTab <- function(TableName,
 
   # Get (maximum) number of unique values for selected features and multiply them to calculate the projected number of value combinations
   ProjectedCombinations <- sapply(FeatureNames, function(featurename)
-                                                { ds.GetFeatureInfo(TableName = TableName,
+                                                {
+                                                  ds.GetFeatureInfo(TableName = TableName,
                                                                     FeatureName = featurename) %>%
                                                       pull(CountUniqueValues) %>%
                                                       max(na.rm = TRUE)
@@ -162,7 +158,7 @@ ds.GetCrossTab <- function(TableName,
 
   # Split coherent data.frame into list of data.frames
   CrossTab <- CrossTab %>%
-                    split(., .$Server)
+                  split(., .$Server)
 
 
 #-------------------------------------------------------------------------------
@@ -186,12 +182,12 @@ ds.GetCrossTab <- function(TableName,
                           filter(if_all(all_of(FeatureNames), ~ !is.na(.)))
 
       # Get object of class 'table' (chisq.test() needs a 'table' as argument)
-      TableObject <- xtabs(formula = reformulate(termlabels = FeatureNames,
-                                                 response = "JointCount"),
-                           data = PrepareTable)
+      TableObject <- stats::xtabs(formula = reformulate(termlabels = FeatureNames,
+                                                        response = "JointCount"),
+                                  data = PrepareTable)
 
       # Perform Chi-Squared-Test
-      ChiSq.Cumulated <- chisq.test(x = TableObject)
+      ChiSq.Cumulated <- stats::chisq.test(x = TableObject)
 
       # Bind cumulated Chi Squared test result with list of server-specific p-values
       ChiSquaredTest <- c(list(All = ChiSq.Cumulated,

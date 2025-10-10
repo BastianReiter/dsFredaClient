@@ -10,6 +10,7 @@
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return \code{list} of messages
+#'
 #' @export
 #'
 #' @author Bastian Reiter
@@ -18,13 +19,11 @@ ds.GetObjectStatus <- function(ObjectName,
                                DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-
   # --- For Testing Purposes ---
   # ObjectName <- "RDS_GeneralCondition"
   # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(ObjectName))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed

@@ -36,12 +36,6 @@ ds.GetDataSetCheck <- function(DataSetName,
                                DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dplyr)
-  require(purrr)
-  require(stringr)
-  require(tidyr)
-
   # --- For Testing Purposes ---
   # DataSetName <- "RawDataSet"
   # DataSetMetaData <- NULL

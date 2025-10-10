@@ -23,8 +23,6 @@ ds.MutateTable <- function(TableName,
                            DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-
   # --- For Testing Purposes ---
   # TableName <- "CDS_Patient"
   # MutateExpression <- "LastVitalStatus == 'Alive' & str_starts(Gender, 'Ma')"
@@ -32,7 +30,7 @@ ds.MutateTable <- function(TableName,
   # OutputName <- "Test"
   # DSConnections <- CCPConnections
 
-  # --- Argument assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(MutateExpression),
               is.string(OutputName))

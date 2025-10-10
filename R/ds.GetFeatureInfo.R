@@ -11,6 +11,7 @@
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{tibble} containing separate and cumulated feature properties about feature type and sample size.
+
 #' @export
 #'
 #' @author Bastian Reiter
@@ -20,17 +21,12 @@ ds.GetFeatureInfo <- function(TableName,
                               DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dsBaseClient)
-  require(dplyr)
-  require(purrr)
-
   # --- For Testing Purposes ---
   # TableName <- "CDS_Staging"
   # FeatureName <- "TNM_T"
   # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FeatureName))
 

@@ -6,6 +6,7 @@
 \usage{
 gtTheme(
   gtObject,
+  Fontname = "sans",
   ShowNAs = FALSE,
   TableWidth = NULL,
   TableAlign = "center",
@@ -16,9 +17,15 @@ gtTheme(
 \arguments{
 \item{gtObject}{A gt table object}
 
+\item{Fontname}{The name of the font to be used - Default: "sans" / If package \code{sysfonts} is installed, the Google font 'Karla' is chosen}
+
 \item{ShowNAs}{logical; whether NA values should be printed}
 
-\item{...}{}
+\item{TableWidth}{\code{numeric}}
+
+\item{TableAlign}{\code{string} - One of "center" / "left" / "right"}
+
+\item{...}{\code{list} of arguments}
 }
 \value{
 A (modified) gt table object

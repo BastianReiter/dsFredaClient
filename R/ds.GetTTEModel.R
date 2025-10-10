@@ -21,6 +21,7 @@
 #' @return A \code{list} of Time-to-Event models
 #'
 #' @export
+#'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetTTEModel <- function(TableName,
@@ -34,9 +35,6 @@ ds.GetTTEModel <- function(TableName,
                            DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
-  require(assertthat)
-  require(dplyr)
-
   # --- For Testing Purposes ---
   # TableName <- "ADS_Patients"
   # TimeFeature <- "TimeFollowUp"
@@ -48,7 +46,7 @@ ds.GetTTEModel <- function(TableName,
   # MinFollowUpTime <- 20
   # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
+  # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(TimeFeature),
               is.string(EventFeature),
