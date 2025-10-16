@@ -6,7 +6,9 @@
 \usage{
 ds.GetDataSetCheck(
   DataSetName,
-  DataSetMetaData = NULL,
+  RequiredTableNames = NULL,
+  RequiredFeatureNames = NULL,
+  EligibleValueSets = NULL,
   Module = "CCP",
   Stage = "Raw",
   DSConnections = NULL
@@ -15,7 +17,11 @@ ds.GetDataSetCheck(
 \arguments{
 \item{DataSetName}{\code{string} - Name of Data Set object (list) on server, usually "RawDataSet", "CuratedDataSet" or "AugmentedDataSet"}
 
-\item{DataSetMetaData}{Optional \code{list} of \code{data.frames} 'Meta.Tables' / 'Meta.Features' / 'Meta.Values'}
+\item{RequiredTableNames}{Optional \code{character vector} - Names of required tables}
+
+\item{RequiredFeatureNames}{Optional \code{list} of \code{character vectors} - Names of required features - Default: \code{names(Table)}}
+
+\item{EligibleValueSets}{Optional \code{list} of \code{character vectors} containing sets of eligible values for corresponding feature.}
 
 \item{Module}{Optional \code{string} identifying a defined data set (Examples: 'CCP' / 'P21')}
 
@@ -36,10 +42,10 @@ A \code{list} containing compiled meta data about data set tables:
 }
 \description{
 \ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}} \cr\cr
-Check out a data set (\code{list} of \code{data.frames}) on servers and return a coherent summary across servers. Options:
+Checks out a data set (\code{list} of \code{data.frames}) on servers and return a coherent summary across servers. Options:
 \enumerate{
 \item The data set can be inspected naively without passing any additional information about it
-\item Meta data about the data set can be passed in the form of a \code{list} containing the \code{data.frames} 'Meta.Tables' / 'Meta.Features' / 'Meta.Values'
+\item Meta data like required table and feature names as well as eligible value sets can be passed explicitly
 \item A Module identifier from a list of registered modules can be passed ('CCP' / 'P21' / ...), which leads to meta data being taken from a linked package }
 }
 \details{

@@ -2,16 +2,18 @@
 #' ds.GetDataSetCheck
 #'
 #' `r lifecycle::badge("stable")` \cr\cr
-#' Check out a data set (\code{list} of \code{data.frames}) on servers and return a coherent summary across servers. Options:
+#' Checks out a data set (\code{list} of \code{data.frames}) on servers and return a coherent summary across servers. Options:
 #' \enumerate{
 #'    \item The data set can be inspected naively without passing any additional information about it
-#'    \item Meta data about the data set can be passed in the form of a \code{list} containing the \code{data.frames} 'Meta.Tables' / 'Meta.Features' / 'Meta.Values'
+#'    \item Meta data like required table and feature names as well as eligible value sets can be passed explicitly
 #'    \item A Module identifier from a list of registered modules can be passed ('CCP' / 'P21' / ...), which leads to meta data being taken from a linked package }
 #'
 #' Linked to server-side AGGREGATE method \code{GetDataSetCheckDS()}
 #'
 #' @param DataSetName \code{string} - Name of Data Set object (list) on server, usually "RawDataSet", "CuratedDataSet" or "AugmentedDataSet"
-#' @param DataSetMetaData Optional \code{list} of \code{data.frames} 'Meta.Tables' / 'Meta.Features' / 'Meta.Values'
+#' @param RequiredTableNames Optional \code{character vector} - Names of required tables
+#' @param RequiredFeatureNames Optional \code{list} of \code{character vectors} - Names of required features - Default: \code{names(Table)}
+#' @param EligibleValueSets Optional \code{list} of \code{character vectors} containing sets of eligible values for corresponding feature.
 #' @param Module Optional \code{string} identifying a defined data set (Examples: 'CCP' / 'P21')
 #' @param Stage Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
@@ -30,7 +32,9 @@
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetDataSetCheck <- function(DataSetName,
-                               DataSetMetaData = NULL,
+                               RequiredTableNames = NULL,
+                               RequiredFeatureNames = NULL,
+                               EligibleValueSets = NULL,
                                Module = "CCP",
                                Stage = "Raw",
                                DSConnections = NULL)
@@ -38,16 +42,17 @@ ds.GetDataSetCheck <- function(DataSetName,
 {
   # --- For Testing Purposes ---
   # DataSetName <- "RawDataSet"
-  # DataSetMetaData <- NULL
   # Module <- "CCP"
   # Stage <- "Raw"
   # DSConnections <- CCPConnections
 
   # --- Argument Validation ---
-  assert_that(is.string(DataSetName),
-              is.string(Stage))
-  if (!is.null(DataSetMetaData)) { assert_that(is.list(DataSetMetaData)) }
-  if (!is.null(Module)) { assert_that(is.string(Module)) }
+  assert_that(is.string(DataSetName))
+  if (!is.null(RequiredTableNames)) { assert_that(is.character(RequiredTableNames)) }
+  if (!is.null(RequiredFeatureNames)) { assert_that(is.list(RequiredFeatureNames)) }
+  if (!is.null(EligibleValueSets)) { assert_that(is.list(EligibleValueSets)) }
+  if (!is.null(Module)) { assert_that(is.string(Module), Module %in% names(dsFredaClient::Meta.Modules),
+                                      is.string(Stage), Stage %in% c("Raw", "Curated", "Augmented")) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -60,7 +65,9 @@ ds.GetDataSetCheck <- function(DataSetName,
   DataSetCheck <- DSI::datashield.aggregate(conns = DSConnections,
                                             expr = call("GetDataSetCheckDS",
                                                         DataSetName.S = DataSetName,
-                                                        DataSetMetaData.S = DataSetMetaData,
+                                                        RequiredTableNames.S = RequiredTableNames,
+                                                        RequiredFeatureNames.S = RequiredFeatureNames,
+                                                        EligibleValueSets.S = EligibleValueSets,
                                                         Module.S = Module,
                                                         Stage.S = Stage))
 

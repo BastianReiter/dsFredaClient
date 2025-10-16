@@ -56,14 +56,14 @@ library(dplyr)
 
 # Set up central roxygen "script"
 #-------------------------------------------------------------------------------
-# use_package_doc()
+use_package_doc()
 
 # Use the %>%-operator in this package (not enough to import dplyr)
 #-------------------------------------------------------------------------------
-# use_pipe(export = FALSE)
+use_pipe(export = FALSE)
 
 # Use specific functions from external packages
 #-------------------------------------------------------------------------------
-#
+use_import_from("ggplot2", "%+replace%")
 
 
