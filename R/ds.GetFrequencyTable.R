@@ -28,8 +28,8 @@ ds.GetFrequencyTable <- function(TableName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableName <- "ADS_Patients"
-  # FeatureName <- "TNM_T"
+  # TableName <- "ADS.Patient"
+  # FeatureName <- "CausesOfDeath"
   # GroupingFeatureName <- NULL
   # MaxNumberCategories <- 5
   # DSConnections <- CCPConnections
@@ -90,7 +90,7 @@ ds.GetFrequencyTable <- function(TableName,
                                         names_glue = "{Server}.{.value}",
                                         names_vary = "slowest",
                                         values_from = c(AbsoluteFrequency, RelativeFrequency)) %>%
-                            mutate(All.AbsoluteFrequency = rowSums(pick(paste0(ServerNames, ".AbsoluteFrequency")), na.rm = TRUE),
+                            mutate(All.AbsoluteFrequency = rowSums(pick(ends_with(".AbsoluteFrequency")), na.rm = TRUE),
                                    All.RelativeFrequency = All.AbsoluteFrequency / sum(All.AbsoluteFrequency),
                                    .after = Value) %>%
                             arrange(desc(All.AbsoluteFrequency))

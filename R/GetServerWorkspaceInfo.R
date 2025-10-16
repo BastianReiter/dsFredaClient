@@ -1,7 +1,7 @@
 
 #' GetServerWorkspaceInfo
 #'
-#' `r lifecycle::badge("stable")` \cr\cr
+#' `r lifecycle::badge("experimental")` \cr\cr
 #' Check which objects live in server-side R sessions and collect meta data about them.
 #'
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
@@ -164,26 +164,45 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
 
 # Get eligible value sets from meta data
 #-------------------------------------------------------------------------------
-  EligibleValues <- tibble(Object = UniqueObjectNames) %>%
+  EligibleValues <- Overview.All %>%
+                        filter(Class == "data.frame") %>%
+                        select(Object) %>%
                         mutate(TableWithoutPrefix = str_replace(Object, "^(RDS.|CDS.|ADS.)", ""),
                                Stage = case_when(str_starts(Object, "RDS.") ~ "Raw",
-                                                 str_starts(Object, "(CDS.|ADS.)") ~ "Curated",
-                                                 .default = NA)) %>%
-                        left_join(dsCCPhosClient::Meta.Values, by = join_by(TableWithoutPrefix == Table), relationship = "many-to-many") %>%
-                        mutate(Feature = case_when(Stage == "Raw" ~ FeatureName.Raw,
-                                                   Stage == "Curated" ~ FeatureName.Curated,
-                                                   .default = NA),
-                               Value = case_when(Stage == "Raw" ~ Value.Raw,
-                                                 Stage == "Curated" ~ Value.Curated,
-                                                 .default = NA),
-                               Label = case_when(Stage == "Raw" ~ Label.Raw,
-                                                 Stage == "Curated" ~ Label.Curated,
-                                                 .default = NA)) %>%
-                        filter(!is.na(Feature) & !is.na(Value)) %>%
-                        select(Object,
-                               Feature,
-                               Value,
-                               Label) %>%
+                                                 str_starts(Object, "CDS.") ~ "Curated",
+                                                 str_starts(Object, "ADS.") ~ "Augmented",
+                                                 .default = NA))
+
+  EligibleValues.RDS.CDS <- EligibleValues %>%
+                                filter(Stage %in% c("Raw", "Curated")) %>%
+                                left_join(dsCCPhosClient::Meta.Values, by = join_by(TableWithoutPrefix == Table), relationship = "many-to-many") %>%
+                                mutate(Feature = case_when(Stage == "Raw" ~ FeatureName.Raw,
+                                                           Stage == "Curated" ~ FeatureName.Curated,
+                                                           .default = NA),
+                                       Value = case_when(Stage == "Raw" ~ Value.Raw,
+                                                         Stage == "Curated" ~ Value.Curated,
+                                                         .default = NA),
+                                       Label = case_when(Stage == "Raw" ~ Label.Raw,
+                                                         Stage == "Curated" ~ Label.Curated,
+                                                         .default = NA)) %>%
+                                filter(!is.na(Feature) & !is.na(Value)) %>%
+                                select(Object,
+                                       Feature,
+                                       Value,
+                                       Label)
+
+  EligibleValues.ADS <- EligibleValues %>%
+                            filter(Stage == "Augmented") %>%
+                            left_join(dsCCPhosClient::Meta.ADS, by = join_by(TableWithoutPrefix == TableName), relationship = "many-to-many") %>%
+                            rename("Feature" = "FeatureName") %>%
+                            filter(!is.na(Value)) %>%
+                            select(Object,
+                                   Feature,
+                                   Value,
+                                   Label)
+
+  EligibleValues <- EligibleValues.RDS.CDS %>%
+                        bind_rows(EligibleValues.ADS) %>%
                         base::split(., .$Object) %>%
                         map(\(PerObject) base::split(PerObject, PerObject$Feature))
 
