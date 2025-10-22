@@ -4,9 +4,11 @@
 \alias{ds.GetCurationReport}
 \title{ds.GetCurationReport}
 \usage{
-ds.GetCurationReport(DSConnections = NULL)
+ds.GetCurationReport(Module = NULL, DSConnections = NULL)
 }
 \arguments{
+\item{Module}{Optional \code{string} identifying a defined data set and the corresponding meta data (Examples: 'CCP' / 'P21')}
+
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 }
 \value{

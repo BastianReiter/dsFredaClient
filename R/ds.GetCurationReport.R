@@ -6,6 +6,7 @@
 #'
 #' Linked to server-side \code{AGGREGATE} method \code{GetReportingObjectDS()}
 #'
+#' @param Module Optional \code{string} identifying a defined data set and the corresponding meta data (Examples: 'CCP' / 'P21')
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} of Curation Reports
@@ -14,11 +15,15 @@
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ds.GetCurationReport <- function(DSConnections = NULL)
+ds.GetCurationReport <- function(Module = NULL,
+                                 DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
   # DSConnections <- CCPConnections
+
+  # --- Argument Validation ---
+  if (!is.null(Module)) { assert_that(is.string(Module)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -31,7 +36,7 @@ ds.GetCurationReport <- function(DSConnections = NULL)
 
   CurationReports <- DSI::datashield.aggregate(conns = DSConnections,
                                                expr = call("GetReportingObjectDS",
-                                                           ObjectName.S = "CurationReport"))
+                                                           ObjectName.S = paste0(Module, "CurationReport")))
 
   # Turn returned list 'inside-out' using purrr::list_transpose() for easier processing
   CurationReports <- CurationReports %>% list_transpose()

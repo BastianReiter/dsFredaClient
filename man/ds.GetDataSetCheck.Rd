@@ -23,7 +23,7 @@ ds.GetDataSetCheck(
 
 \item{EligibleValueSets}{Optional \code{list} of \code{character vectors} containing sets of eligible values for corresponding feature.}
 
-\item{Module}{Optional \code{string} identifying a defined data set (Examples: 'CCP' / 'P21')}
+\item{Module}{Optional \code{string} identifying a defined data set and the corresponding meta data (Examples: 'CCP' / 'P21')}
 
 \item{Stage}{Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'}
 

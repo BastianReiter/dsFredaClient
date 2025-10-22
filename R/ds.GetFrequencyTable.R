@@ -107,7 +107,7 @@ ds.GetFrequencyTable <- function(TableName,
                                     slice_tail(n = nrow(df_FrequencyTable) - MaxNumberCategories) %>%
                                     select(-Value) %>%
                                     colSums(na.rm = TRUE) %>%
-                                    as_tibble_row() %>%
+                                    tibble::as_tibble_row() %>%
                                     mutate(Value = "Other")
 
          df_FrequencyTable <- bind_rows(FrequenciesKeep,
