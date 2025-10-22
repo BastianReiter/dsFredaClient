@@ -1,85 +1,120 @@
 
 #' GetServerResourcesInfo
 #'
-#' `r lifecycle::badge("stable")` \cr\cr
+#' `r lifecycle::badge("experimental")` \cr\cr
 #' Check if tables are available in server Opal data bases.
 #'
-#' @param ServerSpecifications \code{data.frame} - Same data frame used for login. Used here only for akquisition of server-specific project names (in case they are differing). - Default: NULL for virtual project
-#' @param RequiredResourceNames \code{character} - The resource names expected/required to be on servers
+#' @param ServerSpecifications Optional \code{data.frame} - Same data frame used for login. Used here only for akquisition of server-specific project names (in case they are differing). - Default: NULL for virtual project
+#' @param ResourceNames.Required Optional \code{character} - The resource names expected/required to be on servers. If none are passed all available resources are assumed to be required.
+#' @param ResourceNames.Dictionary Optional \code{list} of named \code{character vectors} - To enable server-specific mapping of deviating to required resource names. Names of list elements must match server names. For rules that should be applied on all servers, choose form \code{list(All = c('LookupName' = 'RequiredName'))}.
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
-#' @return A \code{tibble}
+#' @return A \code{list}:
+#'            \itemize{ \item Resources.Available (\code{tibble})
+#'                      \item Resources.Required (\code{tibble})
+#'                      \item Summary (\code{tibble}) }
 #'
 #' @export
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 GetServerResourcesInfo <- function(ServerSpecifications = NULL,
-                                   RequiredResourceNames,
+                                   ResourceNames.Required = NULL,
+                                   ResourceNames.Dictionary = NULL,
                                    DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # ServerSpecifications = NULL
-  # DSConnections = CCPConnections
+  # ServerSpecifications <- NULL
+  # ServerSpecifications <- read.csv(file = "SiteSpecs_Test.csv")
+  # ResourceNames.Required <- dsFredaP21Client::Meta.Tables$TableName.Raw
+  # ResourceNames.Dictionary <- NULL
+  # ResourceNames.Dictionary <- list(All = c("FAB" = "fab", "ICD" = "ice"),
+  #                                  ServerA = c("FAB" = "fabeee"))
+  # DSConnections <- CCPConnections
 
-  # --- Argument Assertions ---
-  assert_that(is.character(RequiredResourceNames))
+  # --- Argument Validation ---
   if (!is.null(ServerSpecifications)) { assert_that(is.data.frame(ServerSpecifications)) }
+  if (!is.null(ResourceNames.Required)) { assert_that(is.character(ResourceNames.Required)) }
+  if (!is.null(ResourceNames.Dictionary)) { assert_that(is.list(ResourceNames.Dictionary)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
-  DSConnections <- CheckDSConnections(DSConnections)
+  DSConnections <- dsFredaClient::CheckDSConnections(DSConnections)
 
 #-------------------------------------------------------------------------------
 
   # Get server names (sorted alphabetically)
   ServerNames <- sort(names(DSConnections))
 
-  # Get overview of available tables on servers
-  TableAvailability <- DSI::datashield.tables(conns = DSConnections)
+  # Create 'ServerSpecifications' tibble for virtual setting
+  if (is.null(ServerSpecifications)) { ServerSpecifications <- tibble(ServerName = ServerNames,
+                                                                      URL = "Virtual",
+                                                                      ProjectName = "Virtual",
+                                                                      Token = NA) }
 
-  # Initiate data frame containing info about table availability
-  RequiredTableAvailability <- tibble(TableName = RequiredTableNames)
-
-  for (i in 1:length(ServerNames))
+  # Create tibble containing server-specific resource name mapping based on optionally passed dictionaries
+  if (!is.null(ResourceNames.Dictionary))
   {
-      # When connecting to virtual servers 'ServerSpecifications' can be NULL or project name can be 'Virtual' (e.g. in CCPhosApp)
-      if (is.null(ServerSpecifications))
-      {
-          ServerProjectName <- "Virtual"
-      }
-      else
-      {
-          # Get server-specific project name
-          ServerProjectName <- ServerSpecifications %>%
-                                    filter(ServerName == ServerNames[i]) %>%
-                                    select(ProjectName) %>%
-                                    pull()
-      }
+      ResourceNames.Dictionary <- ResourceNames.Dictionary %>%
+                                      map(\(Vector) tibble::enframe(Vector, name = "Lookup", value = "ResourceName.Generic")) %>%
+                                      list_rbind(names_to = "Server") %>%
+                                      mutate(IsPrimary = ifelse(Server == "All", FALSE, TRUE),
+                                             Server = ifelse(Server == "All", list(ServerNames), Server)) %>%
+                                      unnest(Server) %>%
+                                      arrange(Server, Lookup, desc(IsPrimary)) %>%      # This makes sure that server-specific lookups overrule generic lookups stated in list element "All"
+                                      distinct(Server, Lookup, .keep_all = TRUE) %>%
+                                      select(-IsPrimary)
 
-      # In case project is virtual, server Opal table names are just raw table names
-      ServerTableNames <- RequiredTableNames
+  } else {
 
-      if (ServerProjectName != "Virtual")
-      {
-          # Create vector with server-specific table names (raw table names concatenated with server-specific project name)
-          ServerTableNames <- paste0(ServerProjectName, ".", RequiredTableNames)
-      }
-
-      # For every server, check if raw data tables with server-specific correspondent names are existent in 'TableAvailability'
-      RequiredTableAvailability <- RequiredTableAvailability %>%
-                                        mutate(!!ServerNames[i] := ServerTableNames %in% TableAvailability[[ServerNames[i]]])
+      ResourceNames.Dictionary <- tibble(Server = ServerNames,
+                                         Lookup = NA,
+                                         ResourceName.Generic = NA)
   }
 
-  RequiredTableAvailability <- RequiredTableAvailability %>%
-                                    rowwise() %>%
-                                    mutate(IsAvailableEverywhere = all(c_across(all_of(ServerNames)) == TRUE),
-                                           NotAvailableAt = ifelse(IsAvailableEverywhere == FALSE,
-                                                                   paste0(ServerNames[c_across(all_of(ServerNames)) == FALSE], collapse = ", "),
-                                                                   NA),
-                                           .after = TableName) %>%
-                                    ungroup()
+  # Get overview of available (not necessarily required) resources on servers and their name processing
+  Resources.Available <- DSI::datashield.resources(conns = DSConnections) %>%
+                              tibble::enframe(name = "Server", value = "ResourceName") %>%
+                              unnest(ResourceName) %>%
+                              left_join(select(ServerSpecifications, c(ServerName, ProjectName)),
+                                        by = join_by(Server == ServerName)) %>%
+                              mutate(ResourceName.Stripped = str_remove(ResourceName, pattern = paste0(ProjectName, "."))) %>%
+                              left_join(ResourceNames.Dictionary,
+                                        by = join_by(Server, ResourceName.Stripped == Lookup)) %>%
+                              mutate(ResourceName.Generic = coalesce(ResourceName.Generic, ResourceName.Stripped),
+                                     IsAvailable = TRUE,
+                                     IsRequired = ifelse(is.null(ResourceNames.Required),
+                                                         TRUE,
+                                                         ResourceName.Generic %in% ResourceNames.Required))
+
+  # If no ResourceNames.Required are passed, just take all available (generic) resource names
+  if (is.null(ResourceNames.Required)) { ResourceNames.Required <- unique(Resource.Available$ResourceName.Generic) }
+
+  # Create data.frame containing info about required resource availability
+  Resources.Required <- crossing(Server = ServerNames,      # Get all combinations of server names and required resource names
+                                 ResourceName.Generic = ResourceNames.Required) %>%
+                            left_join(Resources.Available, by = join_by(Server, ResourceName.Generic)) %>%
+                            mutate(IsAvailable = replace_na(IsAvailable, FALSE),
+                                   IsRequired = TRUE)
+
+  # Create data.frame summarizing availability of required resources on all servers
+  Summary <- Resources.Required %>%
+                 select(Server,
+                        ResourceName.Generic,
+                        IsAvailable) %>%
+                 rename(c("ResourceName" = "ResourceName.Generic")) %>%
+                 pivot_wider(names_from = Server,
+                             values_from = IsAvailable) %>%
+                 rowwise() %>%
+                 mutate(IsAvailableEverywhere = all(c_across(all_of(ServerNames)) == TRUE),
+                        NotAvailableAt = ifelse(IsAvailableEverywhere == FALSE,
+                                                paste0(ServerNames[c_across(all_of(ServerNames)) == FALSE], collapse = ", "),
+                                                NA),
+                        .after = ResourceName) %>%
+                 ungroup()
 
 #-------------------------------------------------------------------------------
-  return(RequiredTableAvailability)
+  return(list(Resources.Available = Resources.Available,
+              Resources.Required = Resources.Required,
+              Summary = Summary))
 }

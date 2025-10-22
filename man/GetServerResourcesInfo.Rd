@@ -6,22 +6,28 @@
 \usage{
 GetServerResourcesInfo(
   ServerSpecifications = NULL,
-  RequiredResourceNames,
+  ResourceNames.Required = NULL,
+  ResourceNames.Dictionary = NULL,
   DSConnections = NULL
 )
 }
 \arguments{
-\item{ServerSpecifications}{\code{data.frame} - Same data frame used for login. Used here only for akquisition of server-specific project names (in case they are differing). - Default: NULL for virtual project}
+\item{ServerSpecifications}{Optional \code{data.frame} - Same data frame used for login. Used here only for akquisition of server-specific project names (in case they are differing). - Default: NULL for virtual project}
 
-\item{RequiredResourceNames}{\code{character} - The resource names expected/required to be on servers}
+\item{ResourceNames.Required}{Optional \code{character} - The resource names expected/required to be on servers. If none are passed all available resources are assumed to be required.}
+
+\item{ResourceNames.Dictionary}{Optional \code{list} of named \code{character vectors} - To enable server-specific mapping of deviating to required resource names. Names of list elements must match server names. For rules that should be applied on all servers, choose form \code{list(All = c('LookupName' = 'RequiredName'))}.}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 }
 \value{
-A \code{tibble}
+A \code{list}:
+\itemize{ \item Resources.Available (\code{tibble})
+\item Resources.Required (\code{tibble})
+\item Summary (\code{tibble}) }
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}} \cr\cr
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} \cr\cr
 Check if tables are available in server Opal data bases.
 }
 \author{

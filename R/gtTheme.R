@@ -48,24 +48,24 @@ gtTheme <- function(gtObject,
                                   table.font.size = BaseFontSize,
                                   heading.align = "center",
                                   table.border.top.width = NULL,
-                                  column_labels.background.color = FredaColors$PrimaryLight,
+                                  column_labels.background.color = dsFredaClient::FredaColors$PrimaryLight,
                                   column_labels.border.top.width = NULL,
                                   column_labels.border.bottom.width = 3,
-                                  column_labels.border.bottom.color = FredaColors$Primary,
-                                  row_group.background.color = FredaColors$LightGrey) %>%
+                                  column_labels.border.bottom.color = dsFredaClient::FredaColors$Primary,
+                                  row_group.background.color = dsFredaClient::FredaColors$LightGrey) %>%
                   #--- Style column label text ---
-                  gt::tab_style(locations = cells_column_labels(),
+                  gt::tab_style(locations = gt::cells_column_labels(),
                                 style = paste0("vertical-align: middle;
                                                 text-transform: uppercase;
                                                 font-weight: bold;
-                                                color: ", FredaColors$Primary)) %>%
+                                                color: ", dsFredaClient::FredaColors$Primary)) %>%
                   #--- Format column label text (Replace "_" with " ")
-                  gt::text_replace(locations = cells_column_labels(),
+                  gt::text_replace(locations = gt::cells_column_labels(),
                                    pattern = "[_]",
                                    replacement = " ") %>%
                   #--- Style row group label ---
-                  gt::tab_style(locations = cells_row_groups(),
-                                style = paste0("font-weight: bold; color: ", FredaColors$Primary)) %>%
+                  gt::tab_style(locations = gt::cells_row_groups(),
+                                style = paste0("font-weight: bold; color: ", dsFredaClient::FredaColors$Primary)) %>%
                   { if (ShowNAs == FALSE)
                   { gt::sub_missing(., missing_text = "") }
                     else {.}
