@@ -7,11 +7,11 @@
 ds.PrepareRawData(
   RawDataSetName,
   Module,
+  RDSTableNames,
   FeatureNameDictionary = list(),
   AddIDFeature = list(Do = TRUE, IDFeatureName = "ID", OverwriteExistingIDFeature =
     FALSE),
   CompleteCharacterConversion = FALSE,
-  RDSTableNames,
   OutputName = "RDSPreparationOutput",
   RunAssignmentChecks = FALSE,
   DSConnections = NULL
@@ -22,6 +22,8 @@ ds.PrepareRawData(
 
 \item{Module}{\code{string} identifying a defined data set and the corresponding meta data needed for feature name harmonization (Examples: 'CCP' / 'P21')}
 
+\item{RDSTableNames}{\code{character vector} - Names of RDS tables}
+
 \item{FeatureNameDictionary}{Optional \code{list} containing dictionary data for feature name harmonization (Form: \code{list(Department = c(FAB = "Fachabteilung"))})}
 
 \item{AddIDFeature}{\code{list} containing parameters about adding an ID feature to tables:
@@ -30,8 +32,6 @@ ds.PrepareRawData(
 \item OverwriteExistingIDFeature (\code{logical}) - Whether to overwrite an existing feature with the same name }}
 
 \item{CompleteCharacterConversion}{\code{logical} - Indicating whether to convert all features in data set tables to character type}
-
-\item{RDSTableNames}{\code{character vector} - Names of RDS tables}
 
 \item{OutputName}{\code{character scalar} - Name of output object to be assigned on server - Default: 'RDSPreparationOutput'}
 

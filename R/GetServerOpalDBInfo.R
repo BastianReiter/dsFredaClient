@@ -79,10 +79,7 @@ GetServerOpalDBInfo <- function(ServerSpecifications = NULL,
                               left_join(OpalTableNames.Dictionary,
                                         by = join_by(Server, OpalTableName.Stripped == Lookup)) %>%
                               mutate(OpalTableName.Generic = coalesce(OpalTableName.Generic, OpalTableName.Stripped),
-                                     IsAvailable = TRUE,
-                                     IsRequired = ifelse(is.null(OpalTableNames.Required),
-                                                         TRUE,
-                                                         OpalTableName.Generic %in% OpalTableNames.Required))
+                                     IsAvailable = TRUE)
 
   # If no OpalTableNames.Required are passed, just take all available (generic) Opal table names
   if (is.null(OpalTableNames.Required)) { OpalTableNames.Required <- unique(OpalTables.Available$OpalTableName.Generic) }

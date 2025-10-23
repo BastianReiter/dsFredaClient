@@ -83,6 +83,7 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
   }
 
 
+#-------------------------------------------------------------------------------
 # Summarize server-specific overviews in 'Overview.All'
 #-------------------------------------------------------------------------------
   Overview.All <- Overview %>%
@@ -111,6 +112,7 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                 Overview)
 
 
+#-------------------------------------------------------------------------------
 # Object details
 #-------------------------------------------------------------------------------
 
@@ -162,6 +164,7 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                         list_transpose()
 
 
+#-------------------------------------------------------------------------------
 # Get eligible value sets from meta data
 #-------------------------------------------------------------------------------
   EligibleValues <- Overview.All %>%

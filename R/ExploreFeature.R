@@ -43,47 +43,48 @@ ExploreFeature <- function(TableName,
 # Get feature meta data (total and effective/valid sample size)
 #-------------------------------------------------------------------------------
 
-  df_FeatureInfo <- ds.GetFeatureInfo(TableName = TableName,
-                                      FeatureName = FeatureName,
-                                      DSConnections = DSConnections)
+  FeatureInfo <- ds.GetFeatureInfo(TableName = TableName,
+                                   FeatureName = FeatureName,
+                                   DSConnections = DSConnections)
+
+  # Get data type of feature in question
+  FeatureType <- filter(FeatureInfo, Server == "All")$DataType
 
 
 #-------------------------------------------------------------------------------
 # Get statistics depending on feature data type
 #-------------------------------------------------------------------------------
 
-  # Initiate df_Statistics
-  df_Statistics <- tibble()
+  # Initiate Statistics
+  Statistics <- tibble()
 
-  # Get data type of feature in question
-  FeatureType <- filter(df_FeatureInfo, Server == "All")$DataType
-
-
-  if (FeatureType == "numeric")
+  if (FeatureType %in% c("numeric", "integer", "double"))
   {
-      df_Statistics <- ds.GetSampleStatistics(TableName = TableName,
-                                              MetricFeatureName = FeatureName,
-                                              DSConnections = DSConnections,
-                                              ...)
+      Statistics <- ds.GetSampleStatistics(TableName = TableName,
+                                           MetricFeatureName = FeatureName,
+                                           DSConnections = DSConnections,
+                                           ...)
   }
 
   if (FeatureType %in% c("character", "logical"))
   {
-      df_Statistics <- ds.GetFrequencyTable(TableName = TableName,
-                                            FeatureName = FeatureName,
-                                            DSConnections = DSConnections,
-                                            ...)
+      Statistics <- ds.GetFrequencyTable(TableName = TableName,
+                                         FeatureName = FeatureName,
+                                         DSConnections = DSConnections,
+                                         ...)
   }
 
   if (FeatureType == "Date")
   {
-      df_Statistics <- ds.GetSampleStatistics(TableName = TableName,
-                                              MetricFeatureName = FeatureName,
-                                              DSConnections = DSConnections,
-                                              ...)
+      # TO DO: Implement sample statistics for date features
+
+      # Statistics <- ds.GetSampleStatistics(TableName = TableName,
+      #                                      MetricFeatureName = FeatureName,
+      #                                      DSConnections = DSConnections,
+      #                                      ...)
   }
 
 #-------------------------------------------------------------------------------
-  return(list(FeatureInfo = df_FeatureInfo,
-              Statistics = df_Statistics))
+  return(list(FeatureInfo = FeatureInfo,
+              Statistics = Statistics))
 }
