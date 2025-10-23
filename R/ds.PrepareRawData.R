@@ -10,6 +10,7 @@
 #'
 #' @param RawDataSetName \code{string} - Name of Raw Data Set object (list) on server
 #' @param Module \code{string} identifying a defined data set and the corresponding meta data needed for feature name harmonization (Examples: 'CCP' / 'P21')
+#' @param RDSTableNames \code{character vector} - Names of RDS tables
 #' @param FeatureNameDictionary Optional \code{list} containing dictionary data for feature name harmonization (Form: \code{list(Department = c(FAB = "Fachabteilung"))})
 #' @param AddIDFeature \code{list} containing parameters about adding an ID feature to tables:
 #'                            \itemize{ \item Do (\code{logical}) - Whether to add an ID feature (running number)
@@ -17,7 +18,6 @@
 #'                                      \item OverwriteExistingIDFeature (\code{logical}) - Whether to overwrite an existing feature with the same name }
 #' @param CompleteCharacterConversion \code{logical} - Indicating whether to convert all features in data set tables to character type
 #' @param OutputName \code{character scalar} - Name of output object to be assigned on server - Default: 'RDSPreparationOutput'
-#' @param RDSTableNames \code{character vector} - Names of RDS tables
 #' @param RunAssignmentChecks \code{logical} Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{FALSE}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
@@ -29,12 +29,12 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.PrepareRawData <- function(RawDataSetName,
                               Module,
+                              RDSTableNames,
                               FeatureNameDictionary = list(),
                               AddIDFeature = list(Do = TRUE,
                                                   IDFeatureName = "ID",
                                                   OverwriteExistingIDFeature = FALSE),
                               CompleteCharacterConversion = FALSE,
-                              RDSTableNames,
                               OutputName = "RDSPreparationOutput",
                               RunAssignmentChecks = FALSE,
                               DSConnections = NULL)
@@ -54,13 +54,13 @@ ds.PrepareRawData <- function(RawDataSetName,
   # --- Argument Validation ---
   assert_that(is.string(RawDataSetName),
               is.string(Module),
+              is.character(RDSTableNames),
               is.list(FeatureNameDictionary),
               is.list(AddIDFeature),
               is.flag(AddIDFeature$Do),
               is.string(AddIDFeature$IDFeatureName),
               is.flag(AddIDFeature$OverwriteExistingIDFeature),
               is.flag(CompleteCharacterConversion),
-              is.character(RDSTableNames),
               is.string(OutputName),
               is.flag(RunAssignmentChecks))
 
