@@ -82,10 +82,7 @@ GetServerResourcesInfo <- function(ServerSpecifications = NULL,
                               left_join(ResourceNames.Dictionary,
                                         by = join_by(Server, ResourceName.Stripped == Lookup)) %>%
                               mutate(ResourceName.Generic = coalesce(ResourceName.Generic, ResourceName.Stripped),
-                                     IsAvailable = TRUE,
-                                     IsRequired = ifelse(is.null(ResourceNames.Required),
-                                                         TRUE,
-                                                         ResourceName.Generic %in% ResourceNames.Required))
+                                     IsAvailable = TRUE)
 
   # If no ResourceNames.Required are passed, just take all available (generic) resource names
   if (is.null(ResourceNames.Required)) { ResourceNames.Required <- unique(Resource.Available$ResourceName.Generic) }
