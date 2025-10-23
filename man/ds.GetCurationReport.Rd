@@ -4,7 +4,7 @@
 \alias{ds.GetCurationReport}
 \title{ds.GetCurationReport}
 \usage{
-ds.GetCurationReport(Module = NULL, DSConnections = NULL)
+ds.GetCurationReport(Module = "CCP", DSConnections = NULL)
 }
 \arguments{
 \item{Module}{Optional \code{string} identifying a defined data set and the corresponding meta data (Examples: 'CCP' / 'P21')}
