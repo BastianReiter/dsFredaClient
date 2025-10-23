@@ -9,9 +9,10 @@ ds.PrepareRawData(
   Module,
   RDSTableNames,
   FeatureNameDictionary = list(),
-  AddIDFeature = list(Do = TRUE, IDFeatureName = "ID", OverwriteExistingIDFeature =
+  AddIDFeature = list(Do = FALSE, IDFeatureName = "ID", OverwriteExistingIDFeature =
     FALSE),
   CompleteCharacterConversion = FALSE,
+  CurateFeatureNames = FALSE,
   OutputName = "RDSPreparationOutput",
   RunAssignmentChecks = FALSE,
   DSConnections = NULL
@@ -32,6 +33,8 @@ ds.PrepareRawData(
 \item OverwriteExistingIDFeature (\code{logical}) - Whether to overwrite an existing feature with the same name }}
 
 \item{CompleteCharacterConversion}{\code{logical} - Indicating whether to convert all features in data set tables to character type}
+
+\item{CurateFeatureNames}{\code{logical} - Indicating whether (after primary harmonization) feature names should be recoded from 'raw' to 'curated' feature names according to Module-specific meta data}
 
 \item{OutputName}{\code{character scalar} - Name of output object to be assigned on server - Default: 'RDSPreparationOutput'}
 

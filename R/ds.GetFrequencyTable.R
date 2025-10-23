@@ -29,7 +29,7 @@ ds.GetFrequencyTable <- function(TableName,
 {
   # --- For Testing Purposes ---
   # TableName <- "ADS.Patient"
-  # FeatureName <- "CausesOfDeath"
+  # FeatureName <- TestFeat[1]
   # GroupingFeatureName <- NULL
   # MaxNumberCategories <- 5
   # DSConnections <- CCPConnections
@@ -67,11 +67,11 @@ ds.GetFrequencyTable <- function(TableName,
 #-------------------------------------------------------------------------------
 
   # Obtain sample statistics for each server calling dsFreda::GetFrequencyTableDS()
-  ls_ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
-                                                expr = call("GetFrequencyTableDS",
-                                                            TableName.S = TableName,
-                                                            FeatureName.S = FeatureName,
-                                                            GroupingFeatureName.S = GroupingFeatureName))
+  ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
+                                             expr = call("GetFrequencyTableDS",
+                                                         TableName.S = TableName,
+                                                         FeatureName.S = FeatureName,
+                                                         GroupingFeatureName.S = GroupingFeatureName))
 
 
   # --- TO DO --- : Implement grouping on server and execute functions below on grouped vectors
@@ -84,34 +84,40 @@ ds.GetFrequencyTable <- function(TableName,
   ServerNames <- names(DSConnections)
 
   # Convert Server returns into tibble containing separate frequency tables
-  df_FrequencyTable <- ls_ServerReturns %>%
-                            list_rbind(names_to = "Server") %>%
-                            pivot_wider(names_from = Server,
-                                        names_glue = "{Server}.{.value}",
-                                        names_vary = "slowest",
-                                        values_from = c(AbsoluteFrequency, RelativeFrequency)) %>%
-                            mutate(All.AbsoluteFrequency = rowSums(pick(ends_with(".AbsoluteFrequency")), na.rm = TRUE),
-                                   All.RelativeFrequency = All.AbsoluteFrequency / sum(All.AbsoluteFrequency),
-                                   .after = Value) %>%
-                            arrange(desc(All.AbsoluteFrequency))
+  FrequencyTable <- ServerReturns %>%
+                        list_rbind(names_to = "Server")
+
+  # Stop function and return NULL if there are only empty server returns
+  if (length(FrequencyTable) == 0 || nrow(FrequencyTable) == 0) { return(NULL) }
+
+  # ...else continue
+  FrequencyTable <- FrequencyTable %>%
+                        pivot_wider(names_from = Server,
+                                    names_glue = "{Server}.{.value}",
+                                    names_vary = "slowest",
+                                    values_from = c(AbsoluteFrequency, RelativeFrequency)) %>%
+                        mutate(All.AbsoluteFrequency = rowSums(pick(ends_with(".AbsoluteFrequency")), na.rm = TRUE),
+                               All.RelativeFrequency = All.AbsoluteFrequency / sum(All.AbsoluteFrequency),
+                               .after = Value) %>%
+                        arrange(desc(All.AbsoluteFrequency))
 
   # If the number of unique values exceeds 'MaxNumberCategories', cumulate less frequent categories under 'Other' category
   if (!is.null(MaxNumberCategories))
   {
-    if (nrow(df_FrequencyTable) > MaxNumberCategories)
+    if (nrow(FrequencyTable) > MaxNumberCategories)
     {
-         FrequenciesKeep <- df_FrequencyTable %>%
+         FrequenciesKeep <- FrequencyTable %>%
                                 slice_head(n = MaxNumberCategories)
 
-         FrequenciesCumulate <- df_FrequencyTable %>%
-                                    slice_tail(n = nrow(df_FrequencyTable) - MaxNumberCategories) %>%
+         FrequenciesCumulate <- FrequencyTable %>%
+                                    slice_tail(n = nrow(FrequencyTable) - MaxNumberCategories) %>%
                                     select(-Value) %>%
                                     colSums(na.rm = TRUE) %>%
                                     tibble::as_tibble_row() %>%
                                     mutate(Value = "Other")
 
-         df_FrequencyTable <- bind_rows(FrequenciesKeep,
-                                        FrequenciesCumulate)
+         FrequencyTable <- bind_rows(FrequenciesKeep,
+                                     FrequenciesCumulate)
     }
   }
 
@@ -121,30 +127,30 @@ ds.GetFrequencyTable <- function(TableName,
 #-------------------------------------------------------------------------------
 
   # Select columns containing absolute frequencies and transpose tibble using combination of pivot_longer() and pivot_wider()
-  df_AbsoluteFrequencies <- df_FrequencyTable %>%
-                                select(Value,
-                                       contains("AbsoluteFrequency")) %>%
-                                rename_with(.fn = \(colnames) str_remove(colnames, ".AbsoluteFrequency"),
-                                            .cols = contains("AbsoluteFrequency")) %>%
-                                pivot_longer(cols = -Value,
-                                             names_to = "Server") %>%
-                                pivot_wider(names_from = Value,
-                                            values_from = value)
+  AbsoluteFrequencies <- FrequencyTable %>%
+                              select(Value,
+                                     contains("AbsoluteFrequency")) %>%
+                              rename_with(.fn = \(colnames) str_remove(colnames, ".AbsoluteFrequency"),
+                                          .cols = contains("AbsoluteFrequency")) %>%
+                              pivot_longer(cols = -Value,
+                                           names_to = "Server") %>%
+                              pivot_wider(names_from = Value,
+                                          values_from = value)
 
   # Select columns containing relative frequencies and transpose tibble using combination of pivot_longer() and pivot_wider()
-  df_RelativeFrequencies <- df_FrequencyTable %>%
-                                select(Value,
-                                       contains("RelativeFrequency")) %>%
-                                rename_with(.fn = \(colnames) str_remove(colnames, ".RelativeFrequency"),
-                                            .cols = contains("RelativeFrequency")) %>%
-                                pivot_longer(cols = -Value,
-                                             names_to = "Server",
-                                             values_to = "RelativeFrequency") %>%
-                                pivot_wider(names_from = Value,
-                                            values_from = RelativeFrequency)
+  RelativeFrequencies <- FrequencyTable %>%
+                              select(Value,
+                                     contains("RelativeFrequency")) %>%
+                              rename_with(.fn = \(colnames) str_remove(colnames, ".RelativeFrequency"),
+                                          .cols = contains("RelativeFrequency")) %>%
+                              pivot_longer(cols = -Value,
+                                           names_to = "Server",
+                                           values_to = "RelativeFrequency") %>%
+                              pivot_wider(names_from = Value,
+                                          values_from = RelativeFrequency)
 
 
 #-------------------------------------------------------------------------------
-  return(list(AbsoluteFrequencies = df_AbsoluteFrequencies,
-              RelativeFrequencies = df_RelativeFrequencies))
+  return(list(AbsoluteFrequencies = AbsoluteFrequencies,
+              RelativeFrequencies = RelativeFrequencies))
 }

@@ -15,7 +15,7 @@
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ds.GetCurationReport <- function(Module = NULL,
+ds.GetCurationReport <- function(Module = "CCP",
                                  DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
@@ -36,7 +36,7 @@ ds.GetCurationReport <- function(Module = NULL,
 
   CurationReports <- DSI::datashield.aggregate(conns = DSConnections,
                                                expr = call("GetReportingObjectDS",
-                                                           ObjectName.S = paste0(Module, "CurationReport")))
+                                                           ObjectName.S = paste0(Module, ".CurationReport")))
 
   # Turn returned list 'inside-out' using purrr::list_transpose() for easier processing
   CurationReports <- CurationReports %>% list_transpose()

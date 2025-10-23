@@ -26,8 +26,8 @@ ds.GetSampleStatistics <- function(TableName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableName <- "ADS_Patients"
-  # MetricFeatureName <- "TNM_T"
+  # TableName <- "CCP.RDS.Diagnosis"
+  # MetricFeatureName <- "ICDOTopographyVersion"
   # GroupingFeatureName <- NULL
   # RemoveMissings <- TRUE
   # DSConnections <- CCPConnections
@@ -66,19 +66,22 @@ ds.GetSampleStatistics <- function(TableName,
 #-------------------------------------------------------------------------------
 
   # ServerReturns: Obtain sample statistics for each server calling dsFreda::GetSampleStatisticsDS()
-  ls_ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
-                                                expr = call("GetSampleStatisticsDS",
-                                                            TableName.S = TableName,
-                                                            MetricFeatureName.S = MetricFeatureName,
-                                                            GroupingFeatureName.S = GroupingFeatureName,
-                                                            RemoveMissings.S = RemoveMissings))
+  ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
+                                             expr = call("GetSampleStatisticsDS",
+                                                         TableName.S = TableName,
+                                                         MetricFeatureName.S = MetricFeatureName,
+                                                         GroupingFeatureName.S = GroupingFeatureName,
+                                                         RemoveMissings.S = RemoveMissings))
 
   # --- TO DO --- : Implement grouping on server and execute functions below on grouped vectors
 
 
   # Convert Server returns into tibble containing separate statistics
-  df_SeparateStatistics <- ls_ServerReturns %>%
-                                list_rbind(names_to = "Server")
+  SeparateStatistics <- ServerReturns %>%
+                            list_rbind(names_to = "Server")
+
+  # If 'ServerReturns' are empty return NULL
+  if (length(SeparateStatistics) == 0 || nrow(SeparateStatistics) == 0) { return(NULL) }
 
 
 #-------------------------------------------------------------------------------
@@ -86,9 +89,9 @@ ds.GetSampleStatistics <- function(TableName,
 #-------------------------------------------------------------------------------
 
   # Making use of dsBaseClient::ds.meadSdGp() to obtain CUMULATED parametric statistics
-  ls_CumulatedStatistics_Parametric <- dsBaseClient::ds.meanSdGp(x = paste0(TableName, "$", MetricFeatureName),
-                                                                 y = "1",
-                                                                 datasources = DSConnections)
+  CumulatedStatistics_Parametric <- dsBaseClient::ds.meanSdGp(x = paste0(TableName, "$", MetricFeatureName),      # Fails for irregular feature names like 'xyz-abc'. Using TableName[['FeatureName']] not possible due to DataSHIELD R parser
+                                                              y = "1",
+                                                              datasources = DSConnections)
 
   # Making use of dsBaseClient::ds.quantileMean() to obtain CUMULATED non-parametric statistics
   vc_CumulatedStatistics_Nonparametric <- dsBaseClient::ds.quantileMean(x = paste0(TableName, "$", MetricFeatureName),
@@ -96,20 +99,20 @@ ds.GetSampleStatistics <- function(TableName,
                                                                         datasources = DSConnections)
 
   # Compiling cumulated statistics
-  df_CumulatedStatistics <- tibble(Server = "All",
-                                   N = ls_CumulatedStatistics_Parametric$Nvalid_gp_study[1, "COMBINE"],
-                                   q5 = vc_CumulatedStatistics_Nonparametric["5%"],
-                                   Q1 = vc_CumulatedStatistics_Nonparametric["25%"],
-                                   Median = vc_CumulatedStatistics_Nonparametric["50%"],
-                                   Q3 = vc_CumulatedStatistics_Nonparametric["75%"],
-                                   q95 = vc_CumulatedStatistics_Nonparametric["95%"],
-                                   MAD = NA,
-                                   Mean = ls_CumulatedStatistics_Parametric$Mean_gp_study[1, "COMBINE"],
-                                   SD = ls_CumulatedStatistics_Parametric$StDev_gp_study[1, "COMBINE"],
-                                   SEM = ls_CumulatedStatistics_Parametric$SEM_gp_study[1, "COMBINE"])
+  CumulatedStatistics <- tibble(Server = "All",
+                                N = ifelse(is.list(CumulatedStatistics_Parametric), CumulatedStatistics_Parametric$Nvalid_gp_study[1, "COMBINE"], NA),
+                                q5 = vc_CumulatedStatistics_Nonparametric["5%"],
+                                Q1 = vc_CumulatedStatistics_Nonparametric["25%"],
+                                Median = vc_CumulatedStatistics_Nonparametric["50%"],
+                                Q3 = vc_CumulatedStatistics_Nonparametric["75%"],
+                                q95 = vc_CumulatedStatistics_Nonparametric["95%"],
+                                MAD = NA,
+                                Mean = ifelse(is.list(CumulatedStatistics_Parametric), CumulatedStatistics_Parametric$Mean_gp_study[1, "COMBINE"], NA),
+                                SD = ifelse(is.list(CumulatedStatistics_Parametric), CumulatedStatistics_Parametric$StDev_gp_study[1, "COMBINE"], NA),
+                                SEM = ifelse(is.list(CumulatedStatistics_Parametric), CumulatedStatistics_Parametric$SEM_gp_study[1, "COMBINE"], NA))
 
 
 #-------------------------------------------------------------------------------
-  return(bind_rows(df_CumulatedStatistics,
-                   df_SeparateStatistics))
+  return(bind_rows(CumulatedStatistics,
+                   SeparateStatistics))
 }
