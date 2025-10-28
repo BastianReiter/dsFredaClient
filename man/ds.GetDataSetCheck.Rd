@@ -10,7 +10,7 @@ ds.GetDataSetCheck(
   RequiredFeatureNames = NULL,
   EligibleValueSets = NULL,
   Module = "CCP",
-  Stage = "Raw",
+  Stage,
   DSConnections = NULL
 )
 }

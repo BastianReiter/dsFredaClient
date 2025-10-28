@@ -12,6 +12,8 @@
 #' @param Module \code{string} identifying a defined data set and the corresponding meta data needed for feature name harmonization (Examples: 'CCP' / 'P21')
 #' @param RDSTableNames \code{character vector} - Names of RDS tables
 #' @param FeatureNameDictionary Optional \code{list} containing dictionary data for feature name harmonization (Form: \code{list(Department = c(FAB = "Fachabteilung"))})
+#' @param RunFuzzyStringMatching \code{logical} - Whether to use fuzzy string matching to harmonize raw feature names
+#' @param FSMSettings \code{list} of parameters for Fuzzy String Matching ('PreferredMethod', 'Tolerance')
 #' @param AddIDFeature \code{list} containing parameters about adding an ID feature to tables:
 #'                            \itemize{ \item Do (\code{logical}) - Whether to add an ID feature (running number)
 #'                                      \item IDFeatureName (\code{string})
@@ -32,6 +34,9 @@ ds.PrepareRawData <- function(RawDataSetName,
                               Module,
                               RDSTableNames,
                               FeatureNameDictionary = list(),
+                              RunFuzzyStringMatching = FALSE,
+                              FSMSettings = list(PreferredMethod = "jw",
+                                                 Tolerance = 0.2),
                               AddIDFeature = list(Do = FALSE,
                                                   IDFeatureName = "ID",
                                                   OverwriteExistingIDFeature = FALSE),
@@ -58,6 +63,8 @@ ds.PrepareRawData <- function(RawDataSetName,
               is.string(Module),
               is.character(RDSTableNames),
               is.list(FeatureNameDictionary),
+              is.flag(RunFuzzyStringMatching),
+              is.list(FSMSettings),
               is.list(AddIDFeature),
               is.flag(AddIDFeature$Do),
               is.flag(CompleteCharacterConversion),
@@ -79,6 +86,8 @@ ds.PrepareRawData <- function(RawDataSetName,
                                       RawDataSetName.S = RawDataSetName,
                                       Module.S = Module,
                                       FeatureNameDictionary.S = FeatureNameDictionary,
+                                      RunFuzzyStringMatching.S = RunFuzzyStringMatching,
+                                      FSMSettings.S = FSMSettings,
                                       AddIDFeature.S = AddIDFeature,
                                       CompleteCharacterConversion.S = CompleteCharacterConversion,
                                       CurateFeatureNames.S = CurateFeatureNames))
@@ -100,7 +109,7 @@ ds.PrepareRawData <- function(RawDataSetName,
   {
       # Execute server-side list extraction
       DSI::datashield.assign(conns = DSConnections,
-                             symbol = ObjectNames[i],
+                             symbol = unname(ObjectNames[i]),
                              value = call("ExtractFromListDS",
                                            ListName.S = OutputName,
                                            ObjectName.S = names(ObjectNames)[i]))
@@ -109,7 +118,7 @@ ds.PrepareRawData <- function(RawDataSetName,
       {
           # Call helper function to check if object assignment succeeded
           Messages$Assignment <- c(Messages$Assignment,
-                                   ds.GetObjectStatus(ObjectName = ObjectNames[i],
+                                   ds.GetObjectStatus(ObjectName = unname(ObjectNames[i]),
                                                       DSConnections = DSConnections))
       }
   }

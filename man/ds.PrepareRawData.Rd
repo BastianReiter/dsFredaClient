@@ -9,6 +9,8 @@ ds.PrepareRawData(
   Module,
   RDSTableNames,
   FeatureNameDictionary = list(),
+  RunFuzzyStringMatching = FALSE,
+  FSMSettings = list(PreferredMethod = "jw", Tolerance = 0.2),
   AddIDFeature = list(Do = FALSE, IDFeatureName = "ID", OverwriteExistingIDFeature =
     FALSE),
   CompleteCharacterConversion = FALSE,
@@ -26,6 +28,10 @@ ds.PrepareRawData(
 \item{RDSTableNames}{\code{character vector} - Names of RDS tables}
 
 \item{FeatureNameDictionary}{Optional \code{list} containing dictionary data for feature name harmonization (Form: \code{list(Department = c(FAB = "Fachabteilung"))})}
+
+\item{RunFuzzyStringMatching}{\code{logical} - Whether to use fuzzy string matching to harmonize raw feature names}
+
+\item{FSMSettings}{\code{list} of parameters for Fuzzy String Matching ('PreferredMethod', 'Tolerance')}
 
 \item{AddIDFeature}{\code{list} containing parameters about adding an ID feature to tables:
 \itemize{ \item Do (\code{logical}) - Whether to add an ID feature (running number)

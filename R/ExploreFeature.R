@@ -30,13 +30,17 @@ ExploreFeature <- function(TableName,
 
 #-------------------------------------------------------------------------------
 
-
   # Get meta data of table object
   TableMetaData <- ds.GetObjectMetaData(ObjectName = TableName,
                                         DSConnections = DSConnections)
 
   # Stop execution if referred table object is not a data.frame
-  if (TableMetaData$FirstEligible$Class != "data.frame") { stop("Error: The referred table object does not seem to be a data.frame.", call. = FALSE)}
+  if (TableMetaData$FirstEligible$Class != "data.frame")
+  {
+    Message <- "The referred table object is not a data.frame."
+    cli::cat_bullet(Message, bullet = "cross")
+    return(NULL)
+  }
 
 
 #-------------------------------------------------------------------------------
@@ -56,7 +60,7 @@ ExploreFeature <- function(TableName,
 #-------------------------------------------------------------------------------
 
   # Initiate Statistics
-  Statistics <- tibble()
+  Statistics <- NULL
 
   if (FeatureType %in% c("numeric", "integer", "double"))
   {
@@ -72,16 +76,6 @@ ExploreFeature <- function(TableName,
                                          FeatureName = FeatureName,
                                          DSConnections = DSConnections,
                                          ...)
-  }
-
-  if (FeatureType == "Date")
-  {
-      # TO DO: Implement sample statistics for date features
-
-      # Statistics <- ds.GetSampleStatistics(TableName = TableName,
-      #                                      MetricFeatureName = FeatureName,
-      #                                      DSConnections = DSConnections,
-      #                                      ...)
   }
 
 #-------------------------------------------------------------------------------
