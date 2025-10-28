@@ -85,7 +85,7 @@ GetServerResourcesInfo <- function(ServerSpecifications = NULL,
                                      IsAvailable = TRUE)
 
   # If no ResourceNames.Required are passed, just take all available (generic) resource names
-  if (is.null(ResourceNames.Required)) { ResourceNames.Required <- unique(Resource.Available$ResourceName.Generic) }
+  if (is.null(ResourceNames.Required)) { ResourceNames.Required <- unique(Resources.Available$ResourceName.Generic) }
 
   # Create data.frame containing info about required resource availability
   Resources.Required <- crossing(Server = ServerNames,      # Get all combinations of server names and required resource names

@@ -36,7 +36,7 @@ ds.GetDataSetCheck <- function(DataSetName,
                                RequiredFeatureNames = NULL,
                                EligibleValueSets = NULL,
                                Module = "CCP",
-                               Stage = "Raw",
+                               Stage,
                                DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {

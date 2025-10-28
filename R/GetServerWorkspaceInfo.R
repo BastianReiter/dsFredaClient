@@ -165,28 +165,35 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
 
 
 #-------------------------------------------------------------------------------
-# Get eligible value sets from meta data
+# Get eligible value sets from module-specific meta data
 #-------------------------------------------------------------------------------
+
+  # Use separate_wider_regex() to identify module and transformation stage (DataSet type) for every object that has a name of the form 'Module.Stage.TableName'
   EligibleValues <- Overview.All %>%
                         filter(Class == "data.frame") %>%
                         select(Object) %>%
-                        mutate(TableWithoutPrefix = str_replace(Object, "^(RDS.|CDS.|ADS.)", ""),
-                               Stage = case_when(str_starts(Object, "RDS.") ~ "Raw",
-                                                 str_starts(Object, "CDS.") ~ "Curated",
-                                                 str_starts(Object, "ADS.") ~ "Augmented",
-                                                 .default = NA))
+                        separate_wider_regex(cols = Object,
+                                             patterns = c("Module" = paste0("(?:", paste(names(dsFredaClient::Meta.Modules), collapse = "|"), ")"),
+                                                          "\\.",
+                                                          "DSType" = paste0("(?:", paste(c("RDS", "CDS", "ADS"), collapse = "|"), ")"),
+                                                          "\\.",
+                                                          "TableName" = ".*"),
+                                             too_few = "align_start",
+                                             cols_remove = FALSE) %>%
+                        filter(if_all(everything(), ~ !is.na(.x)))
+
 
   EligibleValues.RDS.CDS <- EligibleValues %>%
-                                filter(Stage %in% c("Raw", "Curated")) %>%
-                                left_join(dsCCPhosClient::Meta.Values, by = join_by(TableWithoutPrefix == Table), relationship = "many-to-many") %>%
-                                mutate(Feature = case_when(Stage == "Raw" ~ FeatureName.Raw,
-                                                           Stage == "Curated" ~ FeatureName.Curated,
+                                filter(DSType %in% c("RDS", "CDS")) %>%
+                                left_join(dsCCPhosClient::Meta.Values, by = join_by(TableName == Table), relationship = "many-to-many") %>%
+                                mutate(Feature = case_when(DSType == "RDS" ~ FeatureName.Curated,      # Per current default in module-specific functions, feature names are directly recoded into 'Curated' form upon RDS loading
+                                                           DSType == "CDS" ~ FeatureName.Curated,
                                                            .default = NA),
-                                       Value = case_when(Stage == "Raw" ~ Value.Raw,
-                                                         Stage == "Curated" ~ Value.Curated,
+                                       Value = case_when(DSType == "RDS" ~ Value.Raw,
+                                                         DSType == "CDS" ~ Value.Curated,
                                                          .default = NA),
-                                       Label = case_when(Stage == "Raw" ~ Label.Raw,
-                                                         Stage == "Curated" ~ Label.Curated,
+                                       Label = case_when(DSType == "RDS" ~ Label.Raw,
+                                                         DSType == "CDS" ~ Label.Curated,
                                                          .default = NA)) %>%
                                 filter(!is.na(Feature) & !is.na(Value)) %>%
                                 select(Object,
@@ -195,8 +202,8 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                                        Label)
 
   EligibleValues.ADS <- EligibleValues %>%
-                            filter(Stage == "Augmented") %>%
-                            left_join(dsCCPhosClient::Meta.ADS, by = join_by(TableWithoutPrefix == TableName), relationship = "many-to-many") %>%
+                            filter(DSType == "ADS") %>%
+                            left_join(dsCCPhosClient::Meta.ADS, by = join_by(TableName == TableName), relationship = "many-to-many") %>%
                             rename("Feature" = "FeatureName") %>%
                             filter(!is.na(Value)) %>%
                             select(Object,
