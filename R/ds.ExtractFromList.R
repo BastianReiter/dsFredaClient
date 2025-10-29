@@ -19,14 +19,14 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.ExtractFromList <- function(ListName,
                                ObjectName,
-                               AssignedObjectName = NULL,
+                               NewObjectName = NULL,
                                DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- Argument Validation ---
   assert_that(is.string(ListName),
               is.string(ObjectName))
-  if (!is.null(AssignedObjectName)) { assert_that(is.string(AssignedObjectName)) }
+  if (!is.null(NewObjectName)) { assert_that(is.string(NewObjectName)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)

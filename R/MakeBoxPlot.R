@@ -26,7 +26,7 @@ MakeBoxPlot <- function(SampleStatistics,
                         AxisTitle_y = "",
                         TickLabelWidth_x = 10,
                         Decimals = 0,
-                        ggTheme = function(...) dsCCPhosClient::ggTheme_CCP(...),
+                        ggTheme = function(...) dsFredaClient::ggTheme(...),
                         ThemeArguments = list(),
                         FillPalette = NULL,
                         ...)
@@ -65,8 +65,8 @@ MakeBoxPlot <- function(SampleStatistics,
                                     alpha = 0.7,
                                     outlier.shape = NA,
                                     show.legend = FALSE) +
-              ggplot2::geom_point(aes(y = mean),
-                                  color = CCPhosColors$Accent,
+              ggplot2::geom_point(ggplot2::aes(y = mean),
+                                  color = dsFredaClient::FredaColors$Accent,
                                   size = 3,
                                   shape = 19,
                                   show.legend = FALSE) +
@@ -80,7 +80,7 @@ MakeBoxPlot <- function(SampleStatistics,
               } +
               ggplot2::scale_x_discrete(labels = scales::label_wrap(TickLabelWidth_x)) +      # Set width of x axis tick mark labels, after which linebreak should occur
               ggplot2::scale_y_continuous(labels = function(value) round(value, Decimals)) +
-              ylim(AxisLimits_y[1], AxisLimits_y[2]) +      # Set y axis limits
+              ggplot2::ylim(AxisLimits_y[1], AxisLimits_y[2]) +      # Set y axis limits
               {
                 if (!is.null(FillPalette)) { ggplot2::scale_fill_manual(values = FillPalette) }      # Set custom fill color palette}
                 else { ggplot2::scale_color_brewer(name = "Paired") }

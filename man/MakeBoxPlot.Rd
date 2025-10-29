@@ -11,7 +11,7 @@ MakeBoxPlot(
   AxisTitle_y = "",
   TickLabelWidth_x = 10,
   Decimals = 0,
-  ggTheme = function(...) dsCCPhosClient::ggTheme_CCP(...),
+  ggTheme = function(...) dsFredaClient::ggTheme(...),
   ThemeArguments = list(),
   FillPalette = NULL,
   ...
