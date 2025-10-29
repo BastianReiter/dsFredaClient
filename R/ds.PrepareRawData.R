@@ -131,7 +131,7 @@ ds.PrepareRawData <- function(RawDataSetName,
   {
       # Execute server-side assign function
       DSI::datashield.assign(conns = DSConnections,
-                             symbol = paste0(Module, ".RDS.", tablename),      # E.g. 'P21.RDS.Case'
+                             symbol = paste0(Module, ".RDS.", tablename),      # E.g. 'CCP.RDS.Case'
                              value = call("ExtractFromListDS",
                                           ListName.S = RawDataSetName,
                                           ObjectName.S = tablename))

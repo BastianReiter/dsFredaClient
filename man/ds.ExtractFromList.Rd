@@ -7,7 +7,7 @@
 ds.ExtractFromList(
   ListName,
   ObjectName,
-  AssignedObjectName = NULL,
+  NewObjectName = NULL,
   DSConnections = NULL
 )
 }
@@ -16,9 +16,9 @@ ds.ExtractFromList(
 
 \item{ObjectName}{\code{string} - Name of object inside \code{list}}
 
-\item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
-
 \item{NewObjectName}{\code{string} - Optionally assigned name of object after extraction to server session - Default: \code{NULL}}
+
+\item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 }
 \value{
 A \code{list} of messages about object assignment for monitoring purposes
