@@ -9,6 +9,7 @@ ds.GetFrequencyTable(
   FeatureName,
   GroupingFeatureName = NULL,
   MaxNumberCategories = 10,
+  RemoveNA = FALSE,
   DSConnections = NULL
 )
 }
@@ -21,6 +22,8 @@ ds.GetFrequencyTable(
 
 \item{MaxNumberCategories}{\code{integer} - Maximum number of categories analyzed individually before frequencies are cumulated in 'Other' category. - Default: 10}
 
+\item{RemoveNA}{\code{logical} - Indicating whether missing values should be removed prior to frequency calculation - Default: \code{FALSE}}
+
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 }
 \value{
@@ -29,7 +32,7 @@ A \code{list} containing:
 \item RelativeFrequencies (\code{tibble}: Relative value frequencies)}
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}} \cr\cr
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} \cr\cr
 Get table of absolute and relative value frequencies for a nominal / ordinal feature.
 }
 \details{

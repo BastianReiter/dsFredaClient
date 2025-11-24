@@ -8,10 +8,10 @@ library(usethis)
 # FredaAlphaPalettes
 #===============================================================================
 
-FredaAlphaPalettes <- list(Levels_2 <- c(0.5, 0.9),
-                           Levels_3 <- c(0.2, 0.5, 0.9),
-                           Levels_4 <- c(0.3, 0.5, 0.7, 0.9),
-                           Levels_5 <- c(0.4, 0.5, 0.6, 0.7, 0.8))
+FredaAlphaPalettes <- list(Levels_2 = c(0.5, 0.9),
+                           Levels_3 = c(0.2, 0.5, 0.9),
+                           Levels_4 = c(0.3, 0.5, 0.7, 0.9),
+                           Levels_5 = c(0.4, 0.5, 0.6, 0.7, 0.8))
 
 # Save data in .rda-file and make it part of package
 use_data(FredaAlphaPalettes, overwrite = TRUE)

@@ -1,10 +1,10 @@
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 #   dsFredaClient Internal Auxiliary Functions
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 #' AddCumulativeRow
 #'
 #' Adds a cumulative row to a tibble/data.frame
@@ -28,12 +28,11 @@ AddCumulativeRow <- function(DataFrame,
   DataFrame %>%
       bind_rows(CumulativeRow)
 }
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 
 
 
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 #' CheckDSConnections
 #'
 #' This function checks if 'DSConnections' that are passed to a DataSHIELD client function are valid. If this object is not passed, the function will try to find an existing \code{list} programmatically (using \code{DSI} functionality) and return it.
@@ -57,11 +56,89 @@ CheckDSConnections <- function(DSConnections)
 
   return(DSConnections)
 }
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 
 
+#===============================================================================
+#' ComputeSurvHaz
+#'
+#' Compute estimates (with standard errors) for cumulative survival and cumulative hazard based on timepoint-specific number at risk at number of events from a life table.
+#'
+#' @param n.risk \code{integer vector} - The timepoint-specific number at risk in a life table
+#' @param n.event \code{integer vector} - The timepoint-specific number of events in a life table
+#' @param CumHazMethod \code{string} - The method used for cumulative hazard estimation. One of 'KaplanMeier' or 'NelsonAalen' (default).
+#' @export
+ComputeSurvHaz <- function(n.risk,
+                           n.event,
+                           CumHazMethod = "NelsonAalen")
+{
+  # Kaplan-Meier survival estimator
+  SurvEstimate <- cumprod((n.risk - n.event) / n.risk)    # Cumulative product of time-specific survival rate
+  SurvStdErr <- sqrt((SurvEstimate ^ 2) * cumsum(n.event / (n.risk * (n.risk - n.event))))
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Kaplan-Meier estimator for cumulative hazard
+  CumHazEstimate <- -log(SurvEstimate)
+  CumHazStdErr <- SurvStdErr / SurvEstimate
+
+  # Nelson-Aalen estimator for cumulative hazard
+  if (CumHazMethod == "NelsonAalen")
+  {
+      CumHazEstimate <- cumsum(n.event / n.risk)
+      CumHazStdErr <- sqrt(cumsum(n.event / (n.risk ^ 2)))
+  }
+
+  return(list(SurvEstimate = SurvEstimate,
+              SurvStdErr = SurvStdErr,
+              CumHazEstimate = CumHazEstimate,
+              CumHazStdErr = CumHazStdErr))
+}
+#===============================================================================
+
+
+#===============================================================================
+#' ComputeSurvCI
+#'
+#' Compute confidence interval limits for cumulative survival estimator. Can also be used for CI of cumulative hazard.
+#'
+#' @param SurvEstimate \code{numeric vector} - The timepoint-specific estimate for cumulative survival (Kaplan-Meier)
+#' @param SurvStdError \code{integer vector} - The timepoint-specific number of events in a life table
+#' @param Method \code{string} - The method used for computing confidence interval limits. One of 'NormalApproximation' or 'Cloglog' (default).
+#' @param ConfLevel \code{numeric scalar} - Chosen confidence level
+#' @export
+ComputeSurvCI <- function(SurvEstimate,
+                          SurvStdErr,
+                          Method = "Cloglog",
+                          ConfLevel = 0.95)
+{
+  # Standard way of calculating confidence interval with normal approximation
+  zVal <- qnorm(ConfLevel + (1 - ConfLevel) / 2)
+  CI.Lower <- SurvEstimate - zVal * SurvStdErr
+  CI.Upper <- SurvEstimate + zVal * SurvStdErr
+
+  # Alternative way using Complementary log-log link (default in survfit())
+  if (Method == "Cloglog")
+  {
+      Theta <- log(-log(SurvEstimate))
+      ThetaStdErr <- SurvStdErr / (SurvEstimate * abs(log(SurvEstimate)))
+      ThetaLower <- Theta - zVal * ThetaStdErr
+      ThetaUpper <- Theta + zVal * ThetaStdErr
+
+      # Transform back (switching of upper and lower is correct)
+      CI.Lower <- exp(-exp(ThetaUpper))
+      CI.Upper <- exp(-exp(ThetaLower))
+  }
+
+  # Setting limits of 0 and 1 for confidence interval
+  CI.Lower <- pmax(CI.Lower, 0)
+  CI.Upper <- pmin(CI.Upper, 1)
+
+  return(list(Lower = CI.Lower,
+              Upper = CI.Upper))
+}
+#===============================================================================
+
+
+#===============================================================================
 #' MakeFunctionMessage
 #'
 #' Turn function message into named vector to enable classification of feedback
@@ -92,10 +169,10 @@ MakeFunctionMessage <- function(Text,
 
   return(Message)
 }
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 #' PrintSoloMessage
 #'
 #' Print text passed in a one-dimensional (named) character vector. Optionally add symbols and specific formatting based on vector element name.
@@ -127,7 +204,7 @@ PrintSoloMessage <- function(message)
 }
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 #' PrintMessages
 #'
 #' Take list of messages and print them with \code{PrintSoloMessage()}.
@@ -151,10 +228,10 @@ PrintMessages <- function(Messages)
                         cat("\n")
                    })
 }
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 #' Serialize
 #'
 #'
@@ -175,9 +252,9 @@ Serialize <- function()
 
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 # From dsTidyverse packages!
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 #' .get_encode_dictionary
 #'
 #' Taken from dsTidyverse package. Generate an encoding key which is used for encoding and decoding strings to pass the R parser
@@ -240,13 +317,13 @@ Serialize <- function()
                           }, names(encode_vec), input_string)
   return(output_string)
 }
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 # Custom Infix Operator %notin%
 #' @noRd
 #' @export
 '%notin%' <- function(x, y) { !(x %in% y) }
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#===============================================================================
 

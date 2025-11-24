@@ -61,7 +61,7 @@ CCPConnections <- ConnectToVirtualCCP(CCPTestData = TestData,
                                       Resources = list(TestResource = TestResource))
 
 
-# QuickProcessingRun()
+QuickProcessingRun()
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -164,9 +164,9 @@ ds.DrawSample(RawDataSetName = "RawDataSet",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Transform Raw Data Set (RDS) into Curated Data Set (CDS) (using default settings)
-ds.CurateData(RawDataSetName = "RawDataSet",
+ds.CurateData(RawDataSetName = "CCP.RawDataSet",
               Settings = NULL,
-              OutputName = "CurationOutput")
+              OutputName = "CCP.CurationOutput")
 
 CDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CuratedDataSet",
                                     AssumeCCPDataSet = TRUE)
@@ -235,8 +235,8 @@ plot_ly(data = filter(PlotData, Feature == "UICCStage")$data[[1]],
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Run ds.AugmentData
-ds.AugmentData(CuratedDataSetName = "CuratedDataSet",
-               OutputName = "AugmentationOutput")
+ds.AugmentData(CuratedDataSetName = "CCP.CuratedDataSet",
+               OutputName = "CCP.AugmentationOutput")
 
 ADSTableCheck <- ds.GetDataSetCheck(DataSetName = "AugmentedDataSet")
 
@@ -253,7 +253,7 @@ ADSTableCheck <- ds.GetDataSetCheck(DataSetName = "AugmentedDataSet")
 ServerWorkspaceInfo <- GetServerWorkspaceInfo()
 
 # Overview of all objects in server R sessions
-View(ServerWorkspaceInfo$Overview)
+View(ServerWorkspaceInfo$Overview$All)
 
 # Detailed meta data of a particular object (also part of ServerWorkspaceInfo)
 ObjectMetaData <- ds.GetObjectMetaData(ObjectName = "CDS_Patient")
@@ -283,10 +283,8 @@ ObjectMetaData$FirstEligible$DataTypes["PatientID"]
 
 
 
-
-
-Messages <- ds.JoinTables(TableNameA = "ADS_Patient_OneDiagnosis",
-                          TableNameB = "ADS_Diagnosis",
+Messages <- ds.JoinTables(TableNameA = "CCP.ADS.Patient",
+                          TableNameB = "CCP.ADS.Diagnosis",
                           ByStatement = "PatientID",
                           OutputName = "AnalysisDataSet")
 
@@ -328,6 +326,19 @@ Plot <- CohortDescription$AgeDistribution %>%
 
 
 
+
+ds.GetSampleStatistics(TableName = "CCP.ADS.Diagnosis",
+                       FeatureName = "PatientAgeAtDiagnosis",
+                       GroupingFeatureName = "TNM.M",
+                       DSConnections = CCPConnections)
+
+
+ds.GetFrequencyTable(TableName = "CCP.ADS.Diagnosis",
+                     FeatureName = "TNM.T",
+                     GroupingFeatureName = "TNM.M",
+                     DSConnections = CCPConnections)
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Perform exemplary analyses
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -347,10 +358,6 @@ ds.names("TestUICC")
 
 Test <- dsBaseClient::ds.corTest(x = "AnalysisDataSet$PatientAgeAtDiagnosis",
                                  y = "AnalysisDataSet$TimeDiagnosisToDeath")
-
-
-Test <- dsBaseClient::ds.glm()
-
 
 
 

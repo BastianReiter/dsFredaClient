@@ -6,18 +6,20 @@
 \usage{
 ds.GetSampleStatistics(
   TableName,
-  MetricFeatureName,
+  FeatureName,
   GroupingFeatureName = NULL,
-  RemoveMissings = TRUE,
+  RemoveNA = TRUE,
   DSConnections = NULL
 )
 }
 \arguments{
 \item{TableName}{\code{string} - Name of the table containing the feature of concern}
 
-\item{MetricFeatureName}{\code{string} - Name of feature}
+\item{FeatureName}{\code{string} - Name of feature}
 
 \item{GroupingFeatureName}{\code{string} - Name of optional grouping feature from the same table}
+
+\item{RemoveNA}{\code{logical} - Indicating whether missing values should be removed prior to frequency calculation - Default: \code{FALSE}}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 }
@@ -25,12 +27,11 @@ ds.GetSampleStatistics(
 A \code{tibble} containing parametric and non-parametric sample statistics
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}} \cr\cr
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} \cr\cr
 Obtain common parametric and nonparametric statistics about a metric feature.
-Making use of \code{dsBaseClient::ds.meanSdGp()} and \code{dsBaseClient::ds.quantileMean()}.
 }
 \details{
-Linked to server-side \code{AGGREGATE} function \code{GetSampleStatisticsDS()}.
+Linked to server-side \code{AGGREGATE} functions \code{GetSampleStatisticsDS()} and \code{GetEcdfDS()}.
 }
 \author{
 Bastian Reiter
