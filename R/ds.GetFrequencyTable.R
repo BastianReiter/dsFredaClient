@@ -1,7 +1,7 @@
 
 #' ds.GetFrequencyTable
 #'
-#' `r lifecycle::badge("stable")` \cr\cr
+#' `r lifecycle::badge("experimental")` \cr\cr
 #' Get table of absolute and relative value frequencies for a nominal / ordinal feature.
 #'
 #' Linked to server-side \code{AGGREGATE} function \code{GetFrequencyTableDS()}.
@@ -10,6 +10,7 @@
 #' @param FeatureName \code{string} - Name of feature
 #' @param GroupingFeatureName \code{string} - Name of optional grouping feature from the same table
 #' @param MaxNumberCategories \code{integer} - Maximum number of categories analyzed individually before frequencies are cumulated in 'Other' category. - Default: 10
+#' @param RemoveNA \code{logical} - Indicating whether missing values should be removed prior to frequency calculation - Default: \code{FALSE}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #'
 #' @return A \code{list} containing:
@@ -24,21 +25,26 @@ ds.GetFrequencyTable <- function(TableName,
                                  FeatureName,
                                  GroupingFeatureName = NULL,
                                  MaxNumberCategories = 10,
+                                 RemoveNA = FALSE,
                                  DSConnections = NULL)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableName <- "ADS.Patient"
-  # FeatureName <- TestFeat[1]
-  # GroupingFeatureName <- NULL
-  # MaxNumberCategories <- 5
+  # TableName <- "CCP.ADS.Diagnosis"
+  # FeatureName <- "TNM.T"
+  # GroupingFeatureName <- "TNM.M"
+  # MaxNumberCategories <- 10
+  # RemoveNA <- FALSE
   # DSConnections <- CCPConnections
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FeatureName),
-              is.count(MaxNumberCategories))
-  if (!is.null(GroupingFeatureName)) { assert_that(is.string(GroupingFeatureName)) }
+              is.count(MaxNumberCategories),
+              is.flag(RemoveNA))
+  if (!is.null(GroupingFeatureName)) { assert_that(is.string(GroupingFeatureName))
+                                       assert_that(GroupingFeatureName != FeatureName,
+                                                   msg = "Values for 'GroupingFeatureName' and 'FeatureName' can not be identical.") }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -71,7 +77,8 @@ ds.GetFrequencyTable <- function(TableName,
                                              expr = call("GetFrequencyTableDS",
                                                          TableName.S = TableName,
                                                          FeatureName.S = FeatureName,
-                                                         GroupingFeatureName.S = GroupingFeatureName))
+                                                         GroupingFeatureName.S = GroupingFeatureName,
+                                                         RemoveNA.S = RemoveNA))
 
 
   # --- TO DO --- : Implement grouping on server and execute functions below on grouped vectors
@@ -97,28 +104,31 @@ ds.GetFrequencyTable <- function(TableName,
                                     names_vary = "slowest",
                                     values_from = c(AbsoluteFrequency, RelativeFrequency)) %>%
                         mutate(All.AbsoluteFrequency = rowSums(pick(ends_with(".AbsoluteFrequency")), na.rm = TRUE),
-                               All.RelativeFrequency = All.AbsoluteFrequency / sum(All.AbsoluteFrequency),
-                               .after = Value) %>%
+                               All.RelativeFrequency = All.AbsoluteFrequency / sum(All.AbsoluteFrequency)) %>%
                         arrange(desc(All.AbsoluteFrequency))
 
   # If the number of unique values exceeds 'MaxNumberCategories', cumulate less frequent categories under 'Other' category
   if (!is.null(MaxNumberCategories))
   {
-    if (nrow(FrequencyTable) > MaxNumberCategories)
-    {
-         FrequenciesKeep <- FrequencyTable %>%
-                                slice_head(n = MaxNumberCategories)
+      CountCategories <- FrequencyTable %>%
+                              { if (!is.null(GroupingFeatureName)) { group_by(., !!sym(GroupingFeatureName)) } else {.} } %>%
+                              summarize(NumberCategories = n())
 
-         FrequenciesCumulate <- FrequencyTable %>%
-                                    slice_tail(n = nrow(FrequencyTable) - MaxNumberCategories) %>%
-                                    select(-Value) %>%
-                                    colSums(na.rm = TRUE) %>%
-                                    tibble::as_tibble_row() %>%
-                                    mutate(Value = "Other")
+      if (any(CountCategories$NumberCategories > MaxNumberCategories))
+      {
+           FrequenciesKeep <- FrequencyTable %>%
+                                  { if (!is.null(GroupingFeatureName)) { group_by(., !!sym(GroupingFeatureName)) } else {.} } %>%
+                                  slice_head(n = MaxNumberCategories)
 
-         FrequencyTable <- bind_rows(FrequenciesKeep,
-                                     FrequenciesCumulate)
-    }
+           FrequenciesCumulate <- FrequencyTable %>%
+                                      { if (!is.null(GroupingFeatureName)) { group_by(., !!sym(GroupingFeatureName)) } else {.} } %>%
+                                      slice((MaxNumberCategories + 1):max((MaxNumberCategories + 1), CountCategories$NumberCategories[cur_group_id()])) %>%
+                                      summarize(!!sym(FeatureName) := "Other",
+                                                across(ends_with("Frequency"), ~ sum(.x, na.rm = TRUE)))     # valid for both 'Absolute' and 'Relative' frequencies
+
+           FrequencyTable <- bind_rows(FrequenciesKeep,
+                                       FrequenciesCumulate)
+      }
   }
 
 
@@ -128,25 +138,30 @@ ds.GetFrequencyTable <- function(TableName,
 
   # Select columns containing absolute frequencies and transpose tibble using combination of pivot_longer() and pivot_wider()
   AbsoluteFrequencies <- FrequencyTable %>%
-                              select(Value,
+                              select({{ GroupingFeatureName }},
+                                     {{ FeatureName }},
                                      contains("AbsoluteFrequency")) %>%
                               rename_with(.fn = \(colnames) str_remove(colnames, ".AbsoluteFrequency"),
                                           .cols = contains("AbsoluteFrequency")) %>%
-                              pivot_longer(cols = -Value,
-                                           names_to = "Server") %>%
-                              pivot_wider(names_from = Value,
-                                          values_from = value)
+                              pivot_longer(cols = -c({{ GroupingFeatureName }},
+                                                     {{ FeatureName }}),
+                                           names_to = "Server",
+                                           values_to = "AbsoluteFrequency") %>%
+                              pivot_wider(names_from = {{ FeatureName }},
+                                          values_from = AbsoluteFrequency)
 
   # Select columns containing relative frequencies and transpose tibble using combination of pivot_longer() and pivot_wider()
   RelativeFrequencies <- FrequencyTable %>%
-                              select(Value,
+                              select({{ GroupingFeatureName }},
+                                     {{ FeatureName }},
                                      contains("RelativeFrequency")) %>%
                               rename_with(.fn = \(colnames) str_remove(colnames, ".RelativeFrequency"),
                                           .cols = contains("RelativeFrequency")) %>%
-                              pivot_longer(cols = -Value,
+                              pivot_longer(cols = -c({{ GroupingFeatureName }},
+                                                     {{ FeatureName }}),
                                            names_to = "Server",
                                            values_to = "RelativeFrequency") %>%
-                              pivot_wider(names_from = Value,
+                              pivot_wider(names_from = {{ FeatureName }},
                                           values_from = RelativeFrequency)
 
 

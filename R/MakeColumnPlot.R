@@ -1,5 +1,5 @@
 
-#' MakeColumn_Plot
+#' MakeColumnPlot
 #'
 #' Creates a \code{ggplot2::ggplot} object
 #'
@@ -144,14 +144,14 @@ MakeColumnPlot <- function(DataFrame,
   if (XFeatureAdditionalMapping == "alpha") { var_AlphaMapping <- PlotData$X }
   if (XFeatureAdditionalMapping == "pattern") { var_PatternMapping <- PlotData$X }
 
-  if (rlang::quo_is_null(enquo(GroupingFeature)) == FALSE)
+  if (rlang::quo_is_null(rlang::enquo(GroupingFeature)) == FALSE)
   {
       if (GroupingMapping == "fill") { var_FillMapping <- PlotData$GroupingFeature }
       if (GroupingMapping == "alpha") { var_AlphaMapping <- PlotData$GroupingFeature }
       if (GroupingMapping == "pattern") { var_PatternMapping <- PlotData$GroupingFeature }
   }
 
-  if (rlang::quo_is_null(enquo(FacetFeature)) == FALSE)
+  if (rlang::quo_is_null(rlang::enquo(FacetFeature)) == FALSE)
   {
     if (FacetMapping == "fill") { var_FillMapping <- PlotData$FacetFeature }
     if (FacetMapping == "alpha") { var_AlphaMapping <- PlotData$FacetFeature }
@@ -189,7 +189,7 @@ MakeColumnPlot <- function(DataFrame,
   if (length(var_AlphaMapping) > 1)
   {
       # Set alpha values
-      if (is.null(AlphaPalette) == TRUE) {
+      if (is.null(AlphaPalette)) {
         var_AlphaValues <- seq(from = 0.04, to = 0.8, length.out = n_distinct(PlotData$GroupingFeature))
       } else {
         var_AlphaValues = AlphaPalette

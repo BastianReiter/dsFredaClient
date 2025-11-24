@@ -45,7 +45,7 @@ A \code{list} of Time-to-Event models
 Get Time-to-Event model
 }
 \details{
-Linked to server-side \code{AGGREGATE} function \code{GetSurvModelDS()}.
+Linked to server-side \code{AGGREGATE} function \code{GetTTEModelDS()}.
 }
 \author{
 Bastian Reiter

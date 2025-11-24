@@ -98,10 +98,10 @@ ds.GetDataSetCheck <- function(DataSetName,
                                                     as_tibble()
                           }) %>%
                       list_rbind(names_to = "ServerName") %>%
-                      mutate(CheckRDSTables = case_when(if_all(-ServerName, ~ str_starts(.x, "green")) ~ "green",
-                                                        if_any(-ServerName, ~ str_starts(.x, "red")) ~ "red",
-                                                        if_any(-ServerName, ~ str_starts(.x, "yellow")) ~ "yellow",
-                                                        TRUE ~ "grey"))
+                      mutate(CheckSummary = case_when(if_all(-ServerName, ~ str_starts(.x, "green")) ~ "green",
+                                                      if_any(-ServerName, ~ str_starts(.x, "red")) ~ "red",
+                                                      if_any(-ServerName, ~ str_starts(.x, "yellow")) ~ "yellow",
+                                                      TRUE ~ "grey"))
 
 
   # Create list of data frames (one per RDS table) containing table row counts at different servers

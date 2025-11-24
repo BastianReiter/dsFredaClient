@@ -3,7 +3,7 @@
 #'
 #' Get Time-to-Event model
 #'
-#' Linked to server-side \code{AGGREGATE} function \code{GetSurvModelDS()}.
+#' Linked to server-side \code{AGGREGATE} function \code{GetTTEModelDS()}.
 #'
 #' @param TableName \code{string} - Name of the table containing the features of concern
 #' @param TimeFeature \code{string} - Name of time feature
@@ -36,11 +36,11 @@ ds.GetTTEModel <- function(TableName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableName <- "ADS_Patients"
+  # TableName <- "AnalysisDataSet"
   # TimeFeature <- "TimeFollowUp"
   # EventFeature <- "IsDocumentedDeceased"
-  # ModelType <- "coxph"
-  # CovariateA <- NULL
+  # ModelType <- "survfit"
+  # CovariateA <- "UICCStageCategory"
   # CovariateB <- NULL
   # CovariateC <- NULL
   # MinFollowUpTime <- 20
@@ -78,24 +78,53 @@ ds.GetTTEModel <- function(TableName,
 #-------------------------------------------------------------------------------
 
   # ServerReturns: Obtain survival model for each server calling dsCCPhos::GetSurvModelDS()
-  ls_ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
-                                              expr = call("GetTTEModelDS",
-                                                          TableName.S = TableName,
-                                                          TimeFeature.S = TimeFeature,
-                                                          EventFeature.S = EventFeature,
-                                                          ModelType.S = ModelType,
-                                                          CovariateA.S = CovariateA,
-                                                          CovariateB.S = CovariateB,
-                                                          CovariateC.S = CovariateC,
-                                                          MinFollowUpTime.S = MinFollowUpTime))
+  ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
+                                             expr = call("GetTTEModelDS",
+                                                         TableName.S = TableName,
+                                                         TimeFeature.S = TimeFeature,
+                                                         EventFeature.S = EventFeature,
+                                                         ModelType.S = ModelType,
+                                                         CovariateA.S = CovariateA,
+                                                         CovariateB.S = CovariateB,
+                                                         CovariateC.S = CovariateC,
+                                                         MinFollowUpTime.S = MinFollowUpTime))
 
 #-------------------------------------------------------------------------------
-# Cumulation
+# Create separate life tables from server returns
 #-------------------------------------------------------------------------------
 
-  #ServerNames <- names(DSConnections)
-
+  LifeTables.Separate <- ServerReturns %>%
+                            imap(function(Model, servername)
+                                 {
+                                      summary(object = Model,
+                                              times = seq(from = floor(min(Model$time)),
+                                                          to = ceiling(max(Model$time)),
+                                                          by = 1),
+                                              data.frame = TRUE)
+                                 })
 
 #-------------------------------------------------------------------------------
-  return(ls_ServerReturns)
+# Create cumulated life table from server-specific life tables
+#-------------------------------------------------------------------------------
+
+  LifeTable.Cumulated <- LifeTables.Separate %>%
+                              list_rbind(names_to = "Server") %>%
+                              group_by(time, strata) %>%
+                                  summarize(Server = "All",
+                                            n.risk = sum(n.risk),
+                                            n.event = sum(n.event),
+                                            n.censor = sum(n.censor)) %>%
+                              group_by(strata) %>%
+                                  filter(time >= time[which.max(n.risk)]) %>%
+                                  mutate(surv = dsFredaClient::ComputeSurvHaz(n.risk, n.event)$SurvEstimate,
+                                         cumhaz = dsFredaClient::ComputeSurvHaz(n.risk, n.event, CumHazMethod = "NelsonAalen")$CumHazEstimate,
+                                         std.err = dsFredaClient::ComputeSurvHaz(n.risk, n.event)$SurvStdErr,
+                                         std.chaz = dsFredaClient::ComputeSurvHaz(n.risk, n.event, CumHazMethod = "NelsonAalen")$CumHazStdErr,
+                                         lower = dsFredaClient::ComputeSurvCI(SurvEstimate = surv, SurvStdErr = std.err, Method = "Cloglog", ConfLevel = 0.95)$Lower,
+                                         upper = dsFredaClient::ComputeSurvCI(SurvEstimate = surv, SurvStdErr = std.err, Method = "Cloglog", ConfLevel = 0.95)$Upper) %>%
+                                  arrange(time, .by_group = TRUE)
+
+#-------------------------------------------------------------------------------
+  return(c(LifeTables.Separate,
+           list(All = LifeTable.Cumulated)))
 }
