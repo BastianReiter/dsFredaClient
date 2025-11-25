@@ -29,7 +29,6 @@
 #' @param FillPalette Custom color palette passed into function environment
 #' @param ColorPrimary \code{string}
 #' @param AlphaPalette \code{integer vector}
-#' @param ColumnWidth \code{numeric} scalar
 #' @param ... Anonymous additional arguments
 #'
 #' @return A \code{ggplot} object
@@ -38,7 +37,7 @@
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-MakeColumnPlot <- function(DataFrame,
+MakeColumnPlot <- function(LifeTables,
 
                            ...)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,6 +57,7 @@ MakeColumnPlot <- function(DataFrame,
 
 
   # Option 2)
+
 
 
 

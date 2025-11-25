@@ -330,7 +330,7 @@ Plot <- CohortDescription$AgeDistribution %>%
 ds.GetSampleStatistics(TableName = "CCP.ADS.Diagnosis",
                        FeatureName = "PatientAgeAtDiagnosis",
                        GroupingFeatureName = "TNM.M",
-                       DSConnections = CCPConnections)
+                       DSConnections = DSConnections)
 
 
 ds.GetFrequencyTable(TableName = "CCP.ADS.Diagnosis",
@@ -361,6 +361,7 @@ Test <- dsBaseClient::ds.corTest(x = "AnalysisDataSet$PatientAgeAtDiagnosis",
 
 
 
+#-------------------------------------------------------------------------------
 
 Test <- ds.GetTTEModel(TableName = "AnalysisDataSet",
                        TimeFeature = "TimeFollowUp",
@@ -371,10 +372,16 @@ Test <- ds.GetTTEModel(TableName = "AnalysisDataSet",
                        MinFollowUpTime = 20)
 
 library(ggplot2)
-library(ggsurvfit)
 
-Test$ServerC %>%
-    ggsurvfit()
+Plot <- ggplot2::ggplot(Test$All, ggplot2::aes(x = time, y = surv, color = .data[["strata"]])) +
+            ggplot2::geom_step() +
+            ggplot2::theme_minimal() +
+            ggplot2::labs(x = "Time", y = "Survival probability", color = "strata") +
+            ggplot2::theme(legend.title = ggplot2::element_text(size = 10), legend.text = ggplot2::element_text(size = 10))
+
+
+
+#-------------------------------------------------------------------------------
 
 
 Test <- ds.GetFeatureInfo(TableName = "AnalysisDataSet",
