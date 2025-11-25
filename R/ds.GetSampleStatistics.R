@@ -81,6 +81,7 @@ ds.GetSampleStatistics <- function(TableName,
                             list_transpose() %>%
                             pluck("Statistics") %>%
                             list_rbind(names_to = "Server")
+                            #arrange(factor(!!sym(GroupingFeatureName), levels = c(""))
 
   # If 'ServerReturns' are empty return NULL
   if (length(Statistics.Separate) == 0 || nrow(Statistics.Separate) == 0) { return(NULL) }
@@ -93,7 +94,8 @@ ds.GetSampleStatistics <- function(TableName,
   # TEMPORARY - Non-parametric statistics calculated with weighted means
   Statistics.Cumulated <- Statistics.Separate %>%
                               { if (!is.null(GroupingFeatureName)) { group_by(., !!sym(GroupingFeatureName)) } else {.} } %>%
-                              summarize(q5_Cum = sum(q5 * N) / sum(N),
+                              summarize(Server = "All",
+                                        q5_Cum = sum(q5 * N) / sum(N),
                                         Q1_Cum = sum(Q1 * N) / sum(N),
                                         Median_Cum = sum(Median * N) / sum(N),
                                         Q3_Cum = sum(Q3 * N) / sum(N),
@@ -105,6 +107,8 @@ ds.GetSampleStatistics <- function(TableName,
                                         SEM_Cum = SD_Cum / sqrt(N_Cum)) %>%
                               rename_with(~ sub("_Cum$", "", .x),
                                           ends_with("_Cum"))
+
+
 
 
   # ECDF.Separate <- ServerReturns %>%

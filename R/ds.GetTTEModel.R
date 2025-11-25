@@ -113,7 +113,7 @@ ds.GetTTEModel <- function(TableName,
                                   summarize(Server = "All",
                                             n.risk = sum(n.risk),
                                             n.event = sum(n.event),
-                                            n.censor = sum(n.censor)) %>%
+                                            n.censor = sum(n.censor))
                               group_by(strata) %>%
                                   filter(time >= time[which.max(n.risk)]) %>%
                                   mutate(surv = dsFredaClient::ComputeSurvHaz(n.risk, n.event)$SurvEstimate,
