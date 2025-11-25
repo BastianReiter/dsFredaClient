@@ -35,8 +35,7 @@ ds.GetSampleStatistics <- function(TableName,
   # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FeatureName),
-              is.flag(RemoveNA),
-              is.flag(ReturnECDF))
+              is.flag(RemoveNA))
   if (!is.null(GroupingFeatureName)) { assert_that(is.string(GroupingFeatureName))
                                        assert_that(GroupingFeatureName != FeatureName,
                                                    msg = "Values for 'GroupingFeatureName' and 'FeatureName' can not be identical.") }
