@@ -55,7 +55,7 @@ TestResource <- resourcer::newResource(name = "TestResource",
 
 
 CCPConnections <- ConnectToVirtualCCP(CCPTestData = TestData,
-                                      NumberOfServers = 3,
+                                      NumberOfServers = 1,
                                       NumberOfPatientsPerServer = 2000,
                                       AddedDsPackages = "dsTidyverse",
                                       Resources = list(TestResource = TestResource))
@@ -330,7 +330,7 @@ Plot <- CohortDescription$AgeDistribution %>%
 ds.GetSampleStatistics(TableName = "CCP.ADS.Diagnosis",
                        FeatureName = "PatientAgeAtDiagnosis",
                        GroupingFeatureName = "TNM.M",
-                       DSConnections = DSConnections)
+                       DSConnections = CCPConnections)
 
 
 ds.GetFrequencyTable(TableName = "CCP.ADS.Diagnosis",

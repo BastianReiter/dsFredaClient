@@ -44,11 +44,16 @@ ds.JoinTables <- function(TableNameA,
               is.string(ByStatement),
               is.string(JoinType),
               is.string(OutputName))
+  assert_that(JoinType %in% c("left_join", "right_join", "full_join", "inner_join"),
+              msg = "Error: 'JoinType' does not provide a valid join operation, must be one of 'left_join' / 'right_join' / 'full_join' / 'inner_join'.")
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
 #-------------------------------------------------------------------------------
+
+  # Encode string in 'ByStatement' to make it passable through DSI
+  ByStatement <- .encode_tidy_eval(ByStatement, .get_encode_dictionary())
 
   # Execute server-side ASSIGN function
   DSI::datashield.assign(conns = DSConnections,
