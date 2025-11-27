@@ -243,11 +243,11 @@ PrintMessages <- function(Messages)
 #' @noRd
 Serialize <- function()
 {
-  encode_list <- list(input = c("(", ")", "\"", ",", " ", "!", "&", "|", "'", "=", "+", "-", "*", "/", "^", ">", "<", "~", "\n"),
-                      output = c("$LB$", "$RB$", "$QUOTE$", "$COMMA$", "$SPACE$", "$EXCL$", "$AND$", "$OR$",
-                                 "$APO$", "$EQU$", "$ADD$", "$SUB$", "$MULT$", "$DIVIDE$", "$POWER$", "$GT$", "$LT$", "$TILDE$", "$LINE$"))
-
-  return(encode_list)
+  # encode_list <- list(input = c("(", ")", "\"", ",", " ", "!", "&", "|", "'", "=", "+", "-", "*", "/", "^", ">", "<", "~", "\n"),
+  #                     output = c("$LB$", "$RB$", "$QUOTE$", "$COMMA$", "$SPACE$", "$EXCL$", "$AND$", "$OR$",
+  #                                "$APO$", "$EQU$", "$ADD$", "$SUB$", "$MULT$", "$DIVIDE$", "$POWER$", "$GT$", "$LT$", "$TILDE$", "$LINE$"))
+  #
+  # return(encode_list)
 }
 
 

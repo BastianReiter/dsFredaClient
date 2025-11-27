@@ -78,8 +78,10 @@ ds.GetSampleStatistics <- function(TableName,
 
   # Convert Server returns into tibble containing separate statistics
   Statistics.Separate <- ServerReturns %>%
-                            list_transpose() %>%
-                            pluck("Statistics") %>%
+                            list_transpose()
+                            #pluck("Statistics") %>%
+
+  Statistics.Separate <- Statistics.Separate$Statistics %>%
                             list_rbind(names_to = "Server")
                             #arrange(factor(!!sym(GroupingFeatureName), levels = c(""))
 

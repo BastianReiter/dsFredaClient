@@ -4,14 +4,16 @@
 \alias{MakeColumnPlot}
 \title{MakeColumnPlot}
 \usage{
-MakeColumnPlot(DataFrame, ...)
+MakeColumnPlot(LifeTables, ...)
 
-MakeColumnPlot(DataFrame, ...)
+MakeColumnPlot(LifeTables, ...)
 }
 \arguments{
-\item{DataFrame}{Data frame that should have tidy format}
-
 \item{...}{Anonymous additional arguments}
+
+\item{ColumnWidth}{\code{numeric} scalar}
+
+\item{DataFrame}{Data frame that should have tidy format}
 
 \item{XFeature}{Variable that contains X axis categories}
 
@@ -62,8 +64,6 @@ MakeColumnPlot(DataFrame, ...)
 \item{ColorPrimary}{\code{string}}
 
 \item{AlphaPalette}{\code{integer vector}}
-
-\item{ColumnWidth}{\code{numeric} scalar}
 }
 \value{
 A \code{ggplot} object
