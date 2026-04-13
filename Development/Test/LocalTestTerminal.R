@@ -55,10 +55,10 @@ TestResource <- resourcer::newResource(name = "TestResource",
 
 
 CCPConnections <- ConnectToVirtualCCP(CCPTestData = TestData,
-                                      NumberOfServers = 1,
+                                      NumberOfServers = 3,
                                       NumberOfPatientsPerServer = 2000,
-                                      AddedDsPackages = "dsTidyverse",
-                                      Resources = list(TestResource = TestResource))
+                                      AddedDsPackages = "dsTidyverse")
+                                      #Resources = list(TestResource = TestResource))
 
 
 QuickProcessingRun()
@@ -118,8 +118,9 @@ datashield.assign.expr(conns = CCPConnections,
 # Check RDS tables for existence and completeness
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "RawDataSet",
-                                    AssumeCCPDataSet = TRUE)
+RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.RawDataSet",
+                                    Module = "CCP",
+                                    Stage = "Raw")
 
 View(RDSTableCheck$TableStatus)
 
@@ -136,7 +137,7 @@ RDSTableCheck$TableStatus
 # Validate RDS data
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RDSValidationReports <- ds.GetRDSValidationReport()
+# RDSValidationReports <- ds.GetRDSValidationReport()
 
 # ValidationSummaries <- RDSValidationReports %>%
 #                             map(function(Server)
@@ -155,7 +156,7 @@ RDSValidationReports <- ds.GetRDSValidationReport()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ds.DrawSample(RawDataSetName = "RawDataSet",
-              SampleSize = "1000",
+              SampleSize = 1000,
               SampleName = "RDSSample")
 
 

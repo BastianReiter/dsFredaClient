@@ -30,9 +30,9 @@ ds.GetCurationReport <- function(Module = "CCP",
 
 #-------------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
-# 1) Get CurationReport objects from servers (as a list of lists)
-#-------------------------------------------------------------------------------
+#===============================================================================
+# A) Get CurationReport objects from servers (as a list of lists)
+#===============================================================================
 
   CurationReports <- DSI::datashield.aggregate(conns = DSConnections,
                                                expr = call("GetReportingObjectDS",
@@ -43,86 +43,90 @@ ds.GetCurationReport <- function(Module = "CCP",
 
 
 
-#-------------------------------------------------------------------------------
-# 2) Cumulation of server-specific reports
-#-------------------------------------------------------------------------------
-#   a) Entry Counts
-#   b) Transformation Monitor objects
-#         i) Detailed monitors
-#         ii) Eligibility overviews
-#         iii) Value set overviews
-#   c) Diagnosis classification
+#===============================================================================
+# B) Compilation of Tracker data
+#===============================================================================
+#   1) Processing stage level
+#   2) Sub-stage (details) level
 #-------------------------------------------------------------------------------
 
-
-# 2 a) Entry Counts
+# B 1) Tracker data on processing stage level
 #-------------------------------------------------------------------------------
 
-  AllServersEntryCounts <- data.frame()
+  # Compile tracker data in cumulated data.frame (all servers, all data set tables)
+  Tracker.Stages.Cumulated <- CurationReports %>%
+                                  map(\(ServerCurationReport) ServerCurationReport %>%
+                                                                  pluck("Tracker") %>%
+                                                                  map(\(TableTracker) TableTracker %>% pluck("Stages")) %>%
+                                                                  list_rbind(names_to = "Table")) %>%
+                                  list_rbind(names_to = "Server") %>%
+                                  select(Server,
+                                         ProcessingStage,
+                                         Table,
+                                         CountRecords.Post,
+                                         Change.CountRecords,
+                                         CountRootSubjects.Post) %>%
+                                  rename(CountRecords = "CountRecords.Post",
+                                         Change = "Change.CountRecords",
+                                         CountRootSubjects = CountRootSubjects.Post) %>%
+                                  mutate(ProcessingStage = str_remove_all(ProcessingStage, " ")) %>%
+                                  pivot_wider(names_from = ProcessingStage,
+                                              names_glue = "{ProcessingStage}.{.value}",
+                                              values_from = !c(Server, ProcessingStage, Table)) %>%
+                                  select(Server,
+                                         Table,
+                                         Initial.CountRecords,
+                                         Initial.CountRootSubjects,
+                                         starts_with("PrimaryTableCleaning"),
+                                         starts_with("TableNormalization"),
+                                         starts_with("SecondaryTableCleaning"),
+                                         starts_with("RecordSubsumption")) %>%
+                                  mutate(Final.CountRecords = RecordSubsumption.CountRecords,
+                                         Final.ProportionRecords = if_else(!is.na(Initial.CountRecords) & Initial.CountRecords > 0,
+                                                                           Final.CountRecords / Initial.CountRecords,
+                                                                           NA),
+                                         Final.CountRootSubjects = RecordSubsumption.CountRootSubjects)
 
-  # Row-bind data frames from different servers
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  for (j in 1:length(DSConnections))      # Loop through all servers
-  {
-      # Get Server-specific entry count table and attach column with server name
-      ServerEntryCounts <- CurationReports$EntryCounts[[j]] %>%
-                              mutate(Server = names(DSConnections)[j])
-
-      # Row-bind all Server-specific entry count tables
-      AllServersEntryCounts <- AllServersEntryCounts %>%
-                                  bind_rows(ServerEntryCounts)
-  }
-
-  # Create table of cumulated entry counts
-  if (nrow(AllServersEntryCounts) > 0)
-  {
-      EntryCountsCumulated <- AllServersEntryCounts %>%
-                                  group_by(Table) %>%
-                                      summarize(across(c(everything(), -Server), sum)) %>%
-                                  ungroup() %>%
-                                  mutate(Server = "All")
-
-  } else { EntryCountsCumulated <- data.frame() }
-
-  # Row-binding Server-specific and cumulated entry counts to get one coherent data.frame
-  AllEntryCounts <- EntryCountsCumulated %>%
-                        bind_rows(AllServersEntryCounts) %>%
-                        mutate(ExcludedPrimary.Proportion = ExcludedPrimary / InitialCount,
-                               AfterPrimaryExclusion.Proportion = AfterPrimaryExclusion / InitialCount,
-                               ExcludedSecondary.Proportion = ExcludedSecondary / InitialCount,
-                               AfterSecondaryExclusion.Proportion = AfterSecondaryExclusion / InitialCount,
-                               ExcludedSecondaryRedundancy.Proportion = ExcludedSecondaryRedundancy / InitialCount,
-                               AfterSecondaryRedundancyExclusion.Proportion = AfterSecondaryRedundancyExclusion / InitialCount) %>%
-                        select(Table,
-                               Server,
-                               InitialCount,
-                               ExcludedPrimary,
-                               ExcludedPrimary.Proportion,
-                               AfterPrimaryExclusion,
-                               AfterPrimaryExclusion.Proportion,
-                               ExcludedSecondary,
-                               ExcludedSecondary.Proportion,
-                               AfterSecondaryExclusion,
-                               AfterSecondaryExclusion.Proportion,
-                               ExcludedSecondaryRedundancy,
-                               ExcludedSecondaryRedundancy.Proportion,
-                               AfterSecondaryRedundancyExclusion,
-                               AfterSecondaryRedundancyExclusion.Proportion)
-
-  # Create list of data.frames (one per RDS table) containing data on entry counts, comparing all Servers
-  EntryCounts <- split(AllEntryCounts, AllEntryCounts$Table) %>%
-                      imap(function(Table, tablename)
-                           {
-                              Table %>% select(-Table)
-                           })
+  # Split cumulated tracker data.frame into list of table-specific tracker data.frames
+  Tracker.Stages <- Tracker.Stages.Cumulated %>%
+                        split(.$Table) %>%
+                        map(\(TableTrackerData) TableTrackerData %>% select(-Table))
 
 
-  # 2 b) Transformation objects
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  #   i) Detailed monitors
-  #   ii) Eligibility overviews
-  #   iii) Value set overviews
-  #---------------------------------------------------------------------------
+# B 2) Tracker data on sub-stage (details) level
+#-------------------------------------------------------------------------------
+
+  # Compile tracker data in cumulated data.frame (all servers, all data set tables)
+  Tracker.Details.Cumulated <- CurationReports %>%
+                                    map(\(ServerCurationReport) ServerCurationReport %>%
+                                                                    pluck("Tracker") %>%
+                                                                    map(\(TableTracker) TableTracker %>% pluck("Details")) %>%
+                                                                    list_rbind(names_to = "Table")) %>%
+                                    list_rbind(names_to = "Server") %>%
+                                    select(Server,
+                                           ProcessingStage,
+                                           Table,
+                                           Timestamp,
+                                           MessageClass,
+                                           Message,
+                                           CountRecords.Removed,
+                                           CountRecords.Added,
+                                           CountRootSubjects.Affected) %>%
+                                    filter(CountRecords.Removed > 0 | CountRecords.Added > 0)
+
+  # Split cumulated tracker data.frame into list of table-specific tracker data.frames
+  Tracker.Details <- Tracker.Details.Cumulated %>%
+                          split(.$Table) %>%
+                          map(\(TableTrackerData) TableTrackerData %>% select(-Table) %>% arrange(Timestamp))
+
+
+#===============================================================================
+# C) Transformation objects
+#===============================================================================
+#   i) Detailed monitors
+#   ii) Eligibility overviews
+#   iii) Value set overviews
+#---------------------------------------------------------------------------
 
   TransformationMonitorsCumulated <- list()
   EligibilityOverviewsCumulated <- list()
@@ -337,7 +341,7 @@ ds.GetCurationReport <- function(Module = "CCP",
 
 
 #-------------------------------------------------------------------------------
-  return(list(EntryCounts = EntryCounts,
+  return(list(RecordCounts = RecordCounts,
               Transformation = c(list(All = list(Monitors = TransformationMonitorsCumulated,
                                                  EligibilityOverviews = EligibilityOverviewsCumulated,
                                                  ValueSetOverviews = ValueSetOverviewsCumulated)),
