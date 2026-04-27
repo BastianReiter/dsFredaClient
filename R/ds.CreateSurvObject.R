@@ -11,6 +11,7 @@
 #' @param MinFollowUpTime \code{integer} - Optional minimum of observed follow up time
 #' @param OutputName \code{string} - Assigned symbol name on servers
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list}
 #'
@@ -23,7 +24,8 @@ ds.CreateSurvObject <- function(TableName,
                                 EventFeature,
                                 MinFollowUpTime = 1,
                                 OutputName = "SurvObject",
-                                DSConnections = NULL)
+                                DSConnections = NULL,
+                                DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -32,13 +34,15 @@ ds.CreateSurvObject <- function(TableName,
   # EventFeature <- "IsDocumentedDeceased"
   # MinFollowUpTime <- 20
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(TimeFeature),
               is.string(EventFeature),
               is.count(MinFollowUpTime),
-              is.string(OutputName))
+              is.string(OutputName),
+              is.flag(DS.async))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -51,7 +55,8 @@ ds.CreateSurvObject <- function(TableName,
 
   # Get meta data of table object
   TableMetaData <- ds.GetObjectMetaData(ObjectName = TableName,
-                                        DSConnections = DSConnections)
+                                        DSConnections = DSConnections,
+                                        DS.async = DS.async)
 
   if (is.null(TableMetaData$FirstEligible$Class)) { stop("Error: The referred table object does not seem to exist on any server.", call. = FALSE)}
   if (TableMetaData$FirstEligible$Class != "data.frame") { stop("Error: The referred table object does not seem to be a data.frame.", call. = FALSE)}
@@ -67,7 +72,8 @@ ds.CreateSurvObject <- function(TableName,
                                                        TableName.S = TableName,
                                                        TimeFeature.S = TimeFeature,
                                                        EventFeature.S = EventFeature,
-                                                       MinFollowUpTime.S = MinFollowUpTime))
+                                                       MinFollowUpTime.S = MinFollowUpTime),
+                                          async = DS.async)
 
 #-------------------------------------------------------------------------------
   return(NULL)

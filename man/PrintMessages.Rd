@@ -4,10 +4,10 @@
 \alias{PrintMessages}
 \title{PrintMessages}
 \usage{
-PrintMessages(Messages)
+PrintMessages(Messages, .ListNamesAsSubtopic = FALSE)
 }
 \arguments{
-\item{Messages}{\code{list} List of of named vectors}
+\item{Messages}{\code{list} List of named vectors}
 }
 \description{
 Take list of messages and print them with \code{PrintSoloMessage()}.

@@ -4,7 +4,13 @@
 \alias{ds.GetCrossTab}
 \title{ds.GetCrossTab}
 \usage{
-ds.GetCrossTab(TableName, FeatureNames, RemoveNA = FALSE, DSConnections = NULL)
+ds.GetCrossTab(
+  TableName,
+  FeatureNames,
+  RemoveNA = FALSE,
+  DSConnections = NULL,
+  DS.async = FALSE
+)
 }
 \arguments{
 \item{TableName}{\code{string} - Name of \code{data.frame} on server}
@@ -14,6 +20,8 @@ ds.GetCrossTab(TableName, FeatureNames, RemoveNA = FALSE, DSConnections = NULL)
 \item{RemoveNA}{\code{logical} - Indicating whether missing values should be removed prior to cross tabulation - Default: \code{FALSE}}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
+
+\item{DS.async}{\code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
 }
 \value{
 A \code{list}

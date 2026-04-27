@@ -17,10 +17,11 @@
 #' @param Module Optional \code{string} identifying a defined data set and the corresponding meta data (Examples: 'CCP' / 'P21')
 #' @param Stage Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list} containing compiled meta data about data set tables:
 #'         \itemize{\item TableStatus
-#'                  \item TableRowCounts
+#'                  \item TableRecordCounts
 #'                  \item FeatureExistence
 #'                  \item FeatureTypes
 #'                  \item NonMissingValueCounts
@@ -37,7 +38,8 @@ ds.GetDataSetCheck <- function(DataSetName,
                                EligibleValueSets = NULL,
                                Module = "CCP",
                                Stage,
-                               DSConnections = NULL)
+                               DSConnections = NULL,
+                               DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -45,9 +47,11 @@ ds.GetDataSetCheck <- function(DataSetName,
   # Module <- "CCP"
   # Stage <- "Raw"
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
-  assert_that(is.string(DataSetName))
+  assert_that(is.string(DataSetName),
+              is.flag(DS.async))
   if (!is.null(RequiredTableNames)) { assert_that(is.character(RequiredTableNames)) }
   if (!is.null(RequiredFeatureNames)) { assert_that(is.list(RequiredFeatureNames)) }
   if (!is.null(EligibleValueSets)) { assert_that(is.list(EligibleValueSets)) }
@@ -69,7 +73,8 @@ ds.GetDataSetCheck <- function(DataSetName,
                                                         RequiredFeatureNames.S = RequiredFeatureNames,
                                                         EligibleValueSets.S = EligibleValueSets,
                                                         Module.S = Module,
-                                                        Stage.S = Stage))
+                                                        Stage.S = Stage),
+                                            async = DS.async)
 
 #-------------------------------------------------------------------------------
 # Transform into cumulated report objects
@@ -80,22 +85,22 @@ ds.GetDataSetCheck <- function(DataSetName,
                       map(function(ServerDataSetCheck)
                           {
                               ServerTableStatus <- ServerDataSetCheck %>%
-                                                    map_chr(function(TableInfo)
-                                                            {
-                                                                Status <- "grey"
+                                                        map_chr(function(TableInfo)
+                                                                {
+                                                                    Status <- "grey"
 
-                                                                if (TableInfo$TableExists == FALSE) { Status <- "red" }
-                                                                else if (TableInfo$TableExists == TRUE & TableInfo$TableComplete == TRUE) { Status <- "green" }
-                                                                else if (TableInfo$TableExists == TRUE & TableInfo$TableComplete == FALSE) { Status <- "yellow" }
+                                                                    if (TableInfo$TableExists == FALSE) { Status <- "red" }
+                                                                    else if (TableInfo$TableExists == TRUE & TableInfo$TableComplete == TRUE) { Status <- "green" }
+                                                                    else if (TableInfo$TableExists == TRUE & TableInfo$TableComplete == FALSE) { Status <- "yellow" }
 
-                                                                CountExistingFeatures <- sum(TableInfo$FeatureCheckOverview$Exists)
-                                                                CountTotalFeatures <- nrow(TableInfo$FeatureCheckOverview)
+                                                                    CountExistingFeatures <- sum(TableInfo$FeatureCheckOverview$Exists)
+                                                                    CountTotalFeatures <- nrow(TableInfo$FeatureCheckOverview)
 
-                                                                if (Status != "grey") { Status <- paste0(Status, " (", CountExistingFeatures, "/", CountTotalFeatures, ")") }
+                                                                    if (Status != "grey") { Status <- paste0(Status, " (", CountExistingFeatures, "/", CountTotalFeatures, ")") }
 
-                                                            }) %>%
-                                                    rbind() %>%
-                                                    as_tibble()
+                                                                }) %>%
+                                                        rbind() %>%
+                                                        as_tibble()
                           }) %>%
                       list_rbind(names_to = "ServerName") %>%
                       mutate(CheckSummary = case_when(if_all(-ServerName, ~ str_starts(.x, "green")) ~ "green",
@@ -104,18 +109,18 @@ ds.GetDataSetCheck <- function(DataSetName,
                                                       TRUE ~ "grey"))
 
 
-  # Create list of data frames (one per RDS table) containing table row counts at different servers
-  TableRowCounts <- DataSetCheck %>%
-                        list_transpose() %>%
-                        map(function(TableInfo)
-                            {
-                                TableInfo %>%
-                                     map(\(ServerTableInfo) tibble(RowCount = ServerTableInfo$RowCount)) %>%
-                                     list_rbind(names_to = "ServerName")
-                            })
+  # Create list of data frames (one per data set table) containing table record counts at different servers
+  TableRecordCounts <- DataSetCheck %>%
+                            list_transpose() %>%
+                            map(function(TableInfo)
+                                {
+                                    TableInfo %>%
+                                         map(\(ServerTableInfo) tibble(RecordCount = ServerTableInfo$RecordCount)) %>%
+                                         list_rbind(names_to = "ServerName")
+                                })
 
 
-  # Create list of data frames (one per RDS table) containing info about existence of table features
+  # Create list of data frames (one per data set table) containing info about existence of table features
   FeatureExistence <- DataSetCheck %>%
                           list_transpose() %>%
                           map(function(TableInfo)
@@ -128,7 +133,7 @@ ds.GetDataSetCheck <- function(DataSetName,
                               })
 
 
-  # Create list of data frames (one per RDS table) containing table's feature types
+  # Create list of data frames (one per data set table) containing table's feature types
   FeatureTypes <- DataSetCheck %>%
                       list_transpose() %>%
                       map(function(TableInfo)
@@ -141,7 +146,7 @@ ds.GetDataSetCheck <- function(DataSetName,
                           })
 
 
-  # Create list of data.frames (one per RDS table) containing feature-specific non-missing value counts
+  # Create list of data.frames (one per data set table) containing feature-specific non-missing value counts
   NonMissingValueCounts <- DataSetCheck %>%
                               list_transpose() %>%
                               map(function(TableInfo)
@@ -154,18 +159,18 @@ ds.GetDataSetCheck <- function(DataSetName,
                                   })
 
 
-  # Create list of data.frames (one per RDS table) containing feature-specific non-missing value rates
+  # Create list of data.frames (one per data set table) containing feature-specific non-missing value rates
   NonMissingValueRates <- NonMissingValueCounts %>%
                               imap(function(TableInfo, tablename)
                                    {
                                       TableInfo %>%
-                                          left_join(TableRowCounts[[tablename]], by = join_by(ServerName)) %>%      # Get row counts from 'TableCheckOverview'
-                                          mutate(across(-c(ServerName, RowCount), ~ .x / RowCount)) %>%
-                                          select(-RowCount)
+                                          left_join(TableRecordCounts[[tablename]], by = join_by(ServerName)) %>%      # Get record counts from 'TableCheckOverview'
+                                          mutate(across(-c(ServerName, RecordCount), ~ .x / RecordCount)) %>%
+                                          select(-RecordCount)
                                    })
 
 
-  # Create list of data frames (one per RDS table) containing feature-specific eligible value counts
+  # Create list of data frames (one per data set table) containing feature-specific eligible value counts
   EligibleValueCounts <- DataSetCheck %>%
                               list_transpose() %>%
                               map(function(TableInfo)
@@ -178,20 +183,20 @@ ds.GetDataSetCheck <- function(DataSetName,
                                   })
 
 
-  # Create list of data frames (one per RDS table) containing feature-specific eligible value rates
+  # Create list of data frames (one per data set table) containing feature-specific eligible value rates
   EligibleValueRates <- EligibleValueCounts %>%
                             imap(function(TableInfo, tablename)
                                  {
                                     TableInfo %>%
-                                        left_join(TableRowCounts[[tablename]], by = join_by(ServerName)) %>%      # Get row counts from 'TableCheckOverview'
-                                        mutate(across(-c(ServerName, RowCount), ~ .x / RowCount)) %>%
-                                        select(-RowCount)
+                                        left_join(TableRecordCounts[[tablename]], by = join_by(ServerName)) %>%      # Get record counts from 'TableCheckOverview'
+                                        mutate(across(-c(ServerName, RecordCount), ~ .x / RecordCount)) %>%
+                                        select(-RecordCount)
                                  })
 
 
 #-------------------------------------------------------------------------------
   return(list(TableStatus = TableStatus,
-              TableRowCounts = TableRowCounts,
+              TableRecordCounts = TableRecordCounts,
               FeatureExistence = FeatureExistence,
               FeatureTypes = FeatureTypes,
               NonMissingValueCounts = NonMissingValueCounts,

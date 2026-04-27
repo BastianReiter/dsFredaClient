@@ -10,6 +10,7 @@
 #' @param GroupBy \code{string} - Optional \code{dplyr::group_by} expression as string
 #' @param OutputName \code{string} - Name of resulting \code{data.frame} on server
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list} of messages about object assignment for monitoring purposes
 #'
@@ -21,7 +22,8 @@ ds.FilterTable <- function(TableName,
                            FilterExpression,
                            GroupBy = NULL,
                            OutputName,
-                           DSConnections = NULL)
+                           DSConnections = NULL,
+                           DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -30,11 +32,13 @@ ds.FilterTable <- function(TableName,
   # GroupBy <- NULL
   # OutputName <- "Test"
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FilterExpression),
-              is.string(OutputName))
+              is.string(OutputName),
+              is.flag(DS.async))
   if (!is.null(GroupBy)) { assert_that(is.string(GroupBy)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
@@ -51,11 +55,13 @@ ds.FilterTable <- function(TableName,
                          value = call("FilterTableDS",
                                       TableName.S = TableName,
                                       FilterExpression.S = FilterExpression,
-                                      GroupBy.S = GroupBy))
+                                      GroupBy.S = GroupBy),
+                         async = DS.async)
 
   # Call helper function to check if object assignment succeeded
   AssignmentInfo <- ds.GetObjectStatus(OutputName,
-                                       DSConnections = DSConnections)
+                                       DSConnections = DSConnections,
+                                       DS.async = DS.async)
 
 #-------------------------------------------------------------------------------
   return(AssignmentInfo)

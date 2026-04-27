@@ -9,6 +9,7 @@
 #' @param TableName \code{string} - Name of the table containing the feature of concern
 #' @param FeatureName \code{string} - Name of feature
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{tibble} containing separate and cumulated feature properties about feature type and sample size.
 
@@ -18,17 +19,20 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetFeatureInfo <- function(TableName,
                               FeatureName,
-                              DSConnections = NULL)
+                              DSConnections = NULL,
+                              DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
   # TableName <- "CDS_Staging"
   # FeatureName <- "TNM_T"
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
-              is.string(FeatureName))
+              is.string(FeatureName),
+              is.flag(DS.async))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -37,7 +41,8 @@ ds.GetFeatureInfo <- function(TableName,
 
   # Get meta data of table object
   TableMetaData <- ds.GetObjectMetaData(ObjectName = TableName,
-                                        DSConnections = DSConnections)
+                                        DSConnections = DSConnections,
+                                        DS.async = DS.async)
 
   # Stop execution if referred table object is not a data.frame
   if (TableMetaData$FirstEligible$Class != "data.frame") { stop("Error: The referred table object does not seem to be a data.frame.", call. = FALSE)}
@@ -47,7 +52,8 @@ ds.GetFeatureInfo <- function(TableName,
   ServerReturns <- DSI::datashield.aggregate(conns = DSConnections,
                                              expr = call("GetFeatureInfoDS",
                                                          TableName.S = TableName,
-                                                         FeatureName.S = FeatureName))
+                                                         FeatureName.S = FeatureName),
+                                             async = DS.async)
 
   # Convert Server returns into tibble containing separate feature meta data
   SeparateProperties <- ServerReturns %>%

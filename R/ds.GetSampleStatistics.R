@@ -11,6 +11,7 @@
 #' @param GroupingFeatureName \code{string} - Name of optional grouping feature from the same table
 #' @param RemoveNA \code{logical} - Indicating whether missing values should be removed prior to frequency calculation - Default: \code{FALSE}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{tibble} containing parametric and non-parametric sample statistics
 #'
@@ -22,7 +23,8 @@ ds.GetSampleStatistics <- function(TableName,
                                    FeatureName,
                                    GroupingFeatureName = NULL,
                                    RemoveNA = TRUE,
-                                   DSConnections = NULL)
+                                   DSConnections = NULL,
+                                   DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -31,11 +33,13 @@ ds.GetSampleStatistics <- function(TableName,
   # GroupingFeatureName <- "TNM.M"
   # RemoveNA <- TRUE
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FeatureName),
-              is.flag(RemoveNA))
+              is.flag(RemoveNA),
+              is.flag(DS.async))
   if (!is.null(GroupingFeatureName)) { assert_that(is.string(GroupingFeatureName))
                                        assert_that(GroupingFeatureName != FeatureName,
                                                    msg = "Values for 'GroupingFeatureName' and 'FeatureName' can not be identical.") }
@@ -51,7 +55,8 @@ ds.GetSampleStatistics <- function(TableName,
 
   # Get meta data of table object
   TableMetaData <- ds.GetObjectMetaData(ObjectName = TableName,
-                                        DSConnections = DSConnections)
+                                        DSConnections = DSConnections,
+                                        DS.async = DS.async)
 
   # Stop execution if referred table object is not a data.frame
   if (TableMetaData$FirstEligible$Class != "data.frame") { stop("Error: The referred table object does not seem to be a data.frame.", call. = FALSE)}
@@ -74,7 +79,8 @@ ds.GetSampleStatistics <- function(TableName,
                                                          FeatureName.S = FeatureName,
                                                          GroupingFeatureName.S = GroupingFeatureName,
                                                          RemoveNA.S = RemoveNA,
-                                                         ReturnECDF.S = TRUE))
+                                                         ReturnECDF.S = TRUE),
+                                             async = DS.async)
 
   # Convert Server returns into tibble containing separate statistics
   Statistics.Separate <- ServerReturns %>%

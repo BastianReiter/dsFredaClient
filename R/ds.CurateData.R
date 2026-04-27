@@ -23,41 +23,9 @@
 #' @param RunAssignmentChecks \code{logical} Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{TRUE}
 #' @param UnpackCuratedDataSet \code{logical} indicating whether the Curated Data Set \code{list} should be unpacked so that tables \code{data.frames} are directly accessible - Default: \code{TRUE}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
-#' @return \code{list} of following objects:
-#'         \itemize{\item 'Messages' - Info messages concerning completion of \code{CurateDataDS()} and assignment of the following objects on server:
-#'                        \itemize{\item CurationOutput (\code{list})
-#'                                    \itemize{ \item CuratedDataSet \code{list}
-#'                                                \itemize{ \item BioSampling
-#'                                                          \item Diagnosis
-#'                                                          \item DiseaseStatus
-#'                                                          \item GeneralCondition
-#'                                                          \item Histology
-#'                                                          \item Metastasis
-#'                                                          \item MolecularDiagnostics
-#'                                                          \item OtherClassification
-#'                                                          \item Patient
-#'                                                          \item RadiationTherapy
-#'                                                          \item Staging
-#'                                                          \item Surgery
-#'                                                          \item SystemicTherapy
-#'                                                          \item TherapyRecommendation}
-#'                                              \item CurationReport \code{list}
-#'                                                \itemize{\item EntryCounts \code{tibble}
-#'                                                          \itemize{ \item Table
-#'                                                                    \item InitialCount
-#'                                                                    \item ExcludedPrimary
-#'                                                                    \item AfterPrimaryExclusion
-#'                                                                    \item ExcludedSecondary
-#'                                                                    \item AfterSecondaryExclusion
-#'                                                                    \item ExcludedSecondaryRedundancy
-#'                                                                    \item AfterSecondaryRedundancyExclusion}
-#'                                                          \item Transformation (list of lists)
-#'                                                            \itemize{ \item Monitors
-#'                                                                      \item EligibilityOverviews
-#'                                                                      \item ValueSetOverviews}}
-#'                                              \item Messages \code{list}}}
-#'                  \item 'CurationCompletionCheck'}
+#' @return Messages
 #'
 #' @export
 #'
@@ -80,7 +48,8 @@ ds.CurateData <- function(RawDataSetName,
                           #--- Secondary Arguments ---
                           RunAssignmentChecks = TRUE,
                           UnpackCuratedDataSet = TRUE,
-                          DSConnections = NULL)
+                          DSConnections = NULL,
+                          DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   #--- For Testing Purposes ---
@@ -101,6 +70,7 @@ ds.CurateData <- function(RawDataSetName,
   # RunAssignmentChecks <- TRUE
   # UnpackCuratedDataSet <- TRUE
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(RawDataSetName),
@@ -116,7 +86,10 @@ ds.CurateData <- function(RawDataSetName,
               is.string(Profile.RecordSubsumption),
               is.string(Profile.SecondaryTableCleaning),
               is.string(Profile.TableNormalization),
-              is.string(Profile.TransformativeExpressions))
+              is.string(Profile.TransformativeExpressions),
+              is.flag(RunAssignmentChecks),
+              is.flag(UnpackCuratedDataSet),
+              is.flag(DS.async))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -147,7 +120,8 @@ ds.CurateData <- function(RawDataSetName,
                                       Profile.RecordSubsumption.S = Profile.RecordSubsumption,
                                       Profile.SecondaryTableCleaning.S = Profile.SecondaryTableCleaning,
                                       Profile.TableNormalization.S = Profile.TableNormalization,
-                                      Profile.TransformativeExpressions.S = Profile.TransformativeExpressions))
+                                      Profile.TransformativeExpressions.S = Profile.TransformativeExpressions),
+                         async = DS.async)
 
   if (RunAssignmentChecks == TRUE)
   {
@@ -163,9 +137,9 @@ ds.CurateData <- function(RawDataSetName,
 
   # Named vector determining how objects inside CurationOutput list created on servers should be extracted
   ObjectNames <- setNames(c(paste0(Module, c(".CuratedDataSet",
-                                           ".NonconformingRecords",
-                                           ".AffectedRootSubjects",
-                                           ".CurationReport")),
+                                             ".NonconformingRecords",
+                                             ".AffectedRootSubjects",
+                                             ".CurationReport")),
                             "Messages"),
                           nm = c("DataSet",
                                  "NonconformingRecords",
@@ -181,14 +155,16 @@ ds.CurateData <- function(RawDataSetName,
                              symbol = unname(ObjectNames[i]),
                              value = call("ExtractFromListDS",
                                            ListName.S = OutputName,
-                                           ObjectName.S = names(ObjectNames)[i]))
+                                           ObjectName.S = names(ObjectNames)[i]),
+                             async = DS.async)
 
       if (RunAssignmentChecks == TRUE)
       {
           # Call helper function to check if object assignment succeeded
           Messages$Assignment <- c(Messages$Assignment,
                                    ds.GetObjectStatus(ObjectName = unname(ObjectNames[i]),
-                                                      DSConnections = DSConnections))
+                                                      DSConnections = DSConnections,
+                                                      DS.async = DS.async))
       }
   }
 
@@ -211,14 +187,16 @@ ds.CurateData <- function(RawDataSetName,
                                  symbol = paste0(Module, ".CDS.", CuratedTableNames[i]),      # E.g. 'CCP.CDS.Metastasis'
                                  value = call("ExtractFromListDS",
                                               ListName.S = paste0(Module, ".CuratedDataSet"),
-                                              ObjectName.S = CuratedTableNames[i]))
+                                              ObjectName.S = CuratedTableNames[i]),
+                                 async = DS.async)
 
           if (RunAssignmentChecks == TRUE)
           {
               # Call helper function to check if object assignment succeeded
               Messages$Assignment <- c(Messages$Assignment,
                                        ds.GetObjectStatus(ObjectName = paste0(Module, ".CDS.", CuratedTableNames[i]),
-                                                          DSConnections = DSConnections))
+                                                          DSConnections = DSConnections,
+                                                          DS.async = DS.async))
           }
       }
   }
@@ -240,7 +218,8 @@ ds.CurateData <- function(RawDataSetName,
 
   CurationMessages <- DSI::datashield.aggregate(conns = DSConnections,
                                                 expr = call("GetReportingObjectDS",
-                                                            ObjectName.S = "Messages"))
+                                                            ObjectName.S = "Messages"),
+                                                async = DS.async)
 
   # Create table object for output
   Curation.Completion <- CurationMessages %>%

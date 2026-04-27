@@ -11,6 +11,7 @@
 #' @param EligibleValueSets Optional \code{list} of \code{character vectors} containing sets of eligible values for corresponding features
 #' @param GetTemplate \code{logical} - If set to \code{TRUE}, the function returns a template incorporating required feature names without actually checking an existing table
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment. Default: \code{FALSE}
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list} containing compiled meta data about table:
 #'         \itemize{\item TableCheckOverview
@@ -29,7 +30,8 @@ ds.GetTableCheck <- function(TableName,
                              RequiredFeatureNames = NULL,
                              EligibleValueSets = NULL,
                              GetTemplate = FALSE,
-                             DSConnections = NULL)
+                             DSConnections = NULL,
+                             DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -37,10 +39,12 @@ ds.GetTableCheck <- function(TableName,
   # RequiredFeatureNames <- filter(dsCCPhos::Meta_Features, TableName_Curated == "Staging")$FeatureName_Curated
   # GetTemplate <- FALSE
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
-              is.flag(GetTemplate))
+              is.flag(GetTemplate),
+              is.flag(DS.async))
   if (!is.null(RequiredFeatureNames)) { assert_that(is.character(RequiredFeatureNames)) }
   if (!is.null(EligibleValueSets)) { assert_that(is.list(EligibleValueSets))}
 
@@ -58,7 +62,8 @@ ds.GetTableCheck <- function(TableName,
                                                       TableName.S = TableName,
                                                       RequiredFeatureNames.S = RequiredFeatureNames,
                                                       EligibleValueSets.S = EligibleValueSets,
-                                                      GetTemplate.S = GetTemplate))
+                                                      GetTemplate.S = GetTemplate),
+                                          async = DS.async)
 
 #-------------------------------------------------------------------------------
 # Transform into cumulative report objects

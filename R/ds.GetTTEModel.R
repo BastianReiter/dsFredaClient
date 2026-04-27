@@ -17,6 +17,7 @@
 #' @param CovariateC \code{string} - Name of optional CovariateC
 #' @param MinFollowUpTime \code{integer} - Optional minimum of observed follow up time
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list} of Time-to-Event models
 #'
@@ -32,7 +33,8 @@ ds.GetTTEModel <- function(TableName,
                            CovariateB = NULL,
                            CovariateC = NULL,
                            MinFollowUpTime = 1,
-                           DSConnections = NULL)
+                           DSConnections = NULL,
+                           DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -45,13 +47,15 @@ ds.GetTTEModel <- function(TableName,
   # CovariateC <- NULL
   # MinFollowUpTime <- 20
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(TimeFeature),
               is.string(EventFeature),
               is.string(ModelType),
-              is.count(MinFollowUpTime))
+              is.count(MinFollowUpTime),
+              is.flag(DS.async))
   if (!is.null(CovariateA)) { assert_that(is.string(CovariateA)) }
   if (!is.null(CovariateB)) { assert_that(is.string(CovariateB)) }
   if (!is.null(CovariateC)) { assert_that(is.string(CovariateC)) }
@@ -67,7 +71,8 @@ ds.GetTTEModel <- function(TableName,
 
   # Get meta data of table object
   TableMetaData <- ds.GetObjectMetaData(ObjectName = TableName,
-                                        DSConnections = DSConnections)
+                                        DSConnections = DSConnections,
+                                        DS.async = DS.async)
 
   if (is.null(TableMetaData$FirstEligible$Class)) { stop("Error: The referred table object does not seem to exist on any server.", call. = FALSE)}
   if (TableMetaData$FirstEligible$Class != "data.frame") { stop("Error: The referred table object does not seem to be a data.frame.", call. = FALSE)}
@@ -87,7 +92,8 @@ ds.GetTTEModel <- function(TableName,
                                                          CovariateA.S = CovariateA,
                                                          CovariateB.S = CovariateB,
                                                          CovariateC.S = CovariateC,
-                                                         MinFollowUpTime.S = MinFollowUpTime))
+                                                         MinFollowUpTime.S = MinFollowUpTime),
+                                             async = DS.async)
 
 #-------------------------------------------------------------------------------
 # Create separate life tables from server returns

@@ -54,14 +54,14 @@ GetServerOpalDBInfo <- function(ServerSpecifications = NULL,
   {
       # Turn passed list into a data.frame enabling subsequent mapping. Lookups stated in server-specific character vectors are privileged (overruling lookups stated in "All" vector)
       OpalTableNames.Dictionary <- OpalTableNames.Dictionary %>%
-                                      map(\(Vector) tibble::enframe(Vector, name = "Lookup", value = "OpalTableName.Generic")) %>%
-                                      list_rbind(names_to = "Server") %>%
-                                      mutate(IsPrimary = ifelse(Server == "All", FALSE, TRUE),
-                                             Server = ifelse(Server == "All", list(ServerNames), Server)) %>%
-                                      unnest(Server) %>%
-                                      arrange(Server, Lookup, desc(IsPrimary)) %>%      # This makes sure that server-specific lookups overrule generic lookups stated in list element "All"
-                                      distinct(Server, Lookup, .keep_all = TRUE) %>%
-                                      select(-IsPrimary)
+                                        map(\(Vector) tibble::enframe(Vector, name = "Lookup", value = "OpalTableName.Generic")) %>%
+                                        list_rbind(names_to = "Server") %>%
+                                        mutate(IsPrimary = ifelse(Server == "All", FALSE, TRUE),
+                                               Server = ifelse(Server == "All", list(ServerNames), Server)) %>%
+                                        unnest(Server) %>%
+                                        arrange(Server, Lookup, desc(IsPrimary)) %>%      # This makes sure that server-specific lookups overrule generic lookups stated in list element "All"
+                                        distinct(Server, Lookup, .keep_all = TRUE) %>%
+                                        select(-IsPrimary)
   } else {
 
       OpalTableNames.Dictionary <- tibble(Server = ServerNames,
@@ -90,7 +90,6 @@ GetServerOpalDBInfo <- function(ServerSpecifications = NULL,
                              left_join(OpalTables.Available, by = join_by(Server, OpalTableName.Generic)) %>%
                              mutate(IsAvailable = replace_na(IsAvailable, FALSE),
                                     IsRequired = TRUE)
-
 
   # Create data.frame summarizing availability of required Opal tables on all servers
   Summary <- OpalTables.Required %>%

@@ -4,18 +4,36 @@
 \alias{ds.GetCurationReport}
 \title{ds.GetCurationReport}
 \usage{
-ds.GetCurationReport(Module = "CCP", DSConnections = NULL)
+ds.GetCurationReport(Module = "CCP", DSConnections = NULL, DS.async = FALSE)
 }
 \arguments{
 \item{Module}{Optional \code{string} identifying a defined data set and the corresponding meta data (Examples: 'CCP' / 'P21')}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
+
+\item{DS.async}{\code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
 }
 \value{
-A \code{list} of Curation Reports
+A \code{list} of the following structure:
+\itemize{  \item Log
+\item Counter
+\itemize{ \item DataSetLevel
+\item TableLevel
+\item Details }
+\item DataHarmonization
+\itemize{ \item Reports
+\itemize{ \item DataSetLevel
+\item TableLevel
+\item FeatureLevel
+\item ValueLevel
+\item ValueSets }
+\item Monitors
+\itemize{ \item TableLevel
+\item FeatureLevel
+\item ValueLevel }}}
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#stable}{\figure{lifecycle-stable.svg}{options: alt='[Stable]'}}}{\strong{[Stable]}} \cr\cr
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} \cr\cr
 Receive Curation Reports from servers and create cumulated reporting objects.
 }
 \details{

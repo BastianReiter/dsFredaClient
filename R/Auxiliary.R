@@ -21,8 +21,8 @@ AddCumulativeRow <- function(DataFrame,
 
   # Make cumulative row
   CumulativeRow <- DataFrame %>%
-                      summarize(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>%      # Sum all non-numeric columns
-                      bind_cols(setNames(rep(list(StringInNonNumericColumns), length(NonNumericColumns)), NonNumericColumns))      # Re-add non-numeric columns and assign 'StringInNonNumericColumns' as values
+                        summarize(across(where(is.numeric), ~ sum(.x, na.rm = TRUE))) %>%      # Sum all non-numeric columns
+                        bind_cols(setNames(rep(list(StringInNonNumericColumns), length(NonNumericColumns)), NonNumericColumns))      # Re-add non-numeric columns and assign 'StringInNonNumericColumns' as values
 
   # Row-bind original data.frame and cumulative row
   DataFrame %>%
@@ -183,23 +183,45 @@ MakeFunctionMessage <- function(Text,
 PrintSoloMessage <- function(message)
 #-------------------------------------------------------------------------------
 {
-  if (names(message) == "Topic")
+  assert_that(is.vector(message))
+
+  MessageClass <- names(message)
+  if (is.null(MessageClass)) { MessageClass <- "Info" }
+  MessageClassTypeDetails <- FALSE
+
+  if (str_starts(MessageClass, "Details."))
+  {
+      cat("   - ")
+      MessageClass <- str_remove(MessageClass, "Details.")
+  }
+
+  if (MessageClass == "Topic")
   {
       # Print topic string in bold letters (formatted with ANSI code \033...) and with horizontal line underneath
-      cat("\033[1m", as.character(message), "\n", paste0(rep("~", times = stringr::str_length(as.character(message))), collapse = ""), "\033[0m", "\n", sep = "")
+      cat("\n", "\033[1m", as.character(message), "\n", paste0(rep("~", times = stringr::str_length(as.character(message))), collapse = ""), "\033[0m", "\n", sep = "")
+
+  } else if (MessageClass == "Subtopic") {
+
+      cat("\n", paste0(cli::style_bold(cli::style_underline(message)), "\n"))
+
+  } else if (MessageClass == "Special") {
+
+      cat("\n", "\033[1m")
+      cli::cat_bullet(as.character(message), bullet = "star")
+      cat("\033[0m", "\n")
 
   } else {
 
       cli::cat_bullet(as.character(message),
-                      bullet = dplyr::case_when(names(message) == "Info" ~ "info",
-                                                names(message) == "Success" ~ "tick",
-                                                names(message) == "Warning" ~ "warning",
-                                                names(message) == "Failure" ~ "cross",
-                                                TRUE ~ "none"),
-                      bullet_col = dplyr::case_when(names(message) == "Success" ~ dsFredaClient::FredaColors$Green,
-                                                    names(message) == "Warning" ~ dsFredaClient::FredaColors$Orange,
-                                                    names(message) == "Failure" ~ dsFredaClient::FredaColors$Red,
-                                                    TRUE ~ "black"))
+                      bullet = dplyr::case_when(MessageClass == "Info" ~ "info",
+                                                MessageClass == "Success" ~ "tick",
+                                                MessageClass == "Warning" ~ "warning",
+                                                MessageClass == "Failure" ~ "cross",
+                                                .default = "none"),
+                      bullet_col = dplyr::case_when(MessageClass == "Success" ~ FredaColors$Green,
+                                                    MessageClass == "Warning" ~ FredaColors$Orange,
+                                                    MessageClass == "Failure" ~ FredaColors$Red,
+                                                    .default = "black"))
   }
 }
 
@@ -209,16 +231,19 @@ PrintSoloMessage <- function(message)
 #'
 #' Take list of messages and print them with \code{PrintSoloMessage()}.
 #'
-#' @param Messages \code{list} List of of named vectors
+#' @param Messages \code{list} List of named vectors
 #' @export
 #-------------------------------------------------------------------------------
-PrintMessages <- function(Messages)
+PrintMessages <- function(Messages,
+                          .ListNamesAsSubtopic = FALSE)
 #-------------------------------------------------------------------------------
 {
-  purrr::walk(.x = Messages,
-              .f = function(Subvector)      # List of messages contains named vectors that serve as 'topic-specific messages'
-                   {
+  purrr::iwalk(.x = Messages,
+               .f = function(Subvector, vectorname)      # List of messages contains named vectors that serve as 'topic-specific messages'
+                    {
                         cat("\n")
+
+                        if (.ListNamesAsSubtopic == TRUE & !is.null(vectorname)) { PrintSoloMessage(c(Subtopic = vectorname)) }
 
                         for (i in 1:length(Subvector))      # for-loop instead of nested purrr::walk because items in list are vectors
                         {
@@ -226,7 +251,7 @@ PrintMessages <- function(Messages)
                         }
 
                         cat("\n")
-                   })
+                    })
 }
 #===============================================================================
 
