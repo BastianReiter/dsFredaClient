@@ -11,7 +11,8 @@ ds.GetDataSetCheck(
   EligibleValueSets = NULL,
   Module = "CCP",
   Stage,
-  DSConnections = NULL
+  DSConnections = NULL,
+  DS.async = FALSE
 )
 }
 \arguments{
@@ -28,11 +29,13 @@ ds.GetDataSetCheck(
 \item{Stage}{Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
+
+\item{DS.async}{\code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
 }
 \value{
 A \code{list} containing compiled meta data about data set tables:
 \itemize{\item TableStatus
-\item TableRowCounts
+\item TableRecordCounts
 \item FeatureExistence
 \item FeatureTypes
 \item NonMissingValueCounts

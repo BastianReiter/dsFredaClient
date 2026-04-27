@@ -12,6 +12,7 @@
 #' @param MaxNumberCategories \code{integer} - Maximum number of categories analyzed individually before frequencies are cumulated in 'Other' category. - Default: 10
 #' @param RemoveNA \code{logical} - Indicating whether missing values should be removed prior to frequency calculation - Default: \code{FALSE}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list} containing:
 #'         \itemize{\item AbsoluteFrequencies (\code{tibble}: Absolute value frequencies)
@@ -26,7 +27,8 @@ ds.GetFrequencyTable <- function(TableName,
                                  GroupingFeatureName = NULL,
                                  MaxNumberCategories = 10,
                                  RemoveNA = FALSE,
-                                 DSConnections = NULL)
+                                 DSConnections = NULL,
+                                 DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -36,12 +38,14 @@ ds.GetFrequencyTable <- function(TableName,
   # MaxNumberCategories <- 10
   # RemoveNA <- FALSE
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.string(FeatureName),
               is.count(MaxNumberCategories),
-              is.flag(RemoveNA))
+              is.flag(RemoveNA),
+              is.flag(DS.async))
   if (!is.null(GroupingFeatureName)) { assert_that(is.string(GroupingFeatureName))
                                        assert_that(GroupingFeatureName != FeatureName,
                                                    msg = "Values for 'GroupingFeatureName' and 'FeatureName' can not be identical.") }
@@ -57,7 +61,8 @@ ds.GetFrequencyTable <- function(TableName,
 
   # Get meta data of table object
   TableMetaData <- ds.GetObjectMetaData(ObjectName = TableName,
-                                        DSConnections = DSConnections)
+                                        DSConnections = DSConnections,
+                                        DS.async = DS.async)
 
   if (TableMetaData$FirstEligible$Class != "data.frame") { stop("Error: The referred table object does not seem to be a data.frame.", call. = FALSE)}
 
@@ -78,11 +83,8 @@ ds.GetFrequencyTable <- function(TableName,
                                                          TableName.S = TableName,
                                                          FeatureName.S = FeatureName,
                                                          GroupingFeatureName.S = GroupingFeatureName,
-                                                         RemoveNA.S = RemoveNA))
-
-
-  # --- TO DO --- : Implement grouping on server and execute functions below on grouped vectors
-
+                                                         RemoveNA.S = RemoveNA),
+                                             async = DS.async)
 
 #-------------------------------------------------------------------------------
 # Cumulation

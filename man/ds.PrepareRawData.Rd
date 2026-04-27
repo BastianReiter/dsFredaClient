@@ -13,11 +13,13 @@ ds.PrepareRawData(
   FSMSettings = list(PreferredMethod = "jw", Tolerance = 0.2),
   AddIDFeature = list(Do = FALSE, IDFeatureName = "ID", OverwriteExistingIDFeature =
     FALSE),
-  CompleteCharacterConversion = FALSE,
+  TotalCharacterConversion = FALSE,
   CurateFeatureNames = FALSE,
   OutputName = "RDSPreparationOutput",
   RunAssignmentChecks = FALSE,
-  DSConnections = NULL
+  PrintMessages = TRUE,
+  DSConnections = NULL,
+  DS.async = FALSE
 )
 }
 \arguments{
@@ -38,15 +40,19 @@ ds.PrepareRawData(
 \item IDFeatureName (\code{string})
 \item OverwriteExistingIDFeature (\code{logical}) - Whether to overwrite an existing feature with the same name }}
 
-\item{CompleteCharacterConversion}{\code{logical} - Indicating whether to convert all features in data set tables to character type}
+\item{TotalCharacterConversion}{\code{logical} - Indicating whether to convert all features in data set tables to character type}
 
 \item{CurateFeatureNames}{\code{logical} - Indicating whether (after primary harmonization) feature names should be recoded from 'raw' to 'curated' feature names according to Module-specific meta data}
 
 \item{OutputName}{\code{character scalar} - Name of output object to be assigned on server - Default: 'RDSPreparationOutput'}
 
-\item{RunAssignmentChecks}{\code{logical} Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{FALSE}}
+\item{RunAssignmentChecks}{\code{logical} - Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{FALSE}}
+
+\item{PrintMessages}{\code{logical} - Indicating whether to print messages}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
+
+\item{DS.async}{\code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
 }
 \value{
 A \code{list} of messages about object assignment for monitoring purposes

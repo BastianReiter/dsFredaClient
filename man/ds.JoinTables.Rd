@@ -10,7 +10,8 @@ ds.JoinTables(
   ByStatement,
   JoinType = "left_join",
   OutputName,
-  DSConnections = NULL
+  DSConnections = NULL,
+  DS.async = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ ds.JoinTables(
 \item{OutputName}{\code{string} - Name of resulting table on server}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
+
+\item{DS.async}{\code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
 }
 \value{
 A \code{list} of messages about object assignment for monitoring purposes

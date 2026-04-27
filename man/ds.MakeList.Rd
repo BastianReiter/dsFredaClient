@@ -4,7 +4,7 @@
 \alias{ds.MakeList}
 \title{ds.MakeList}
 \usage{
-ds.MakeList(ObjectNames, OutputName, DSConnections = NULL)
+ds.MakeList(ObjectNames, OutputName, DSConnections = NULL, DS.async = FALSE)
 }
 \arguments{
 \item{ObjectNames}{\code{character} - Names of objects on server to be bundled in a list. Can be a \code{named vector} if names in list should differ from symbol names (with names in named vector being the names in list).}
@@ -12,6 +12,8 @@ ds.MakeList(ObjectNames, OutputName, DSConnections = NULL)
 \item{OutputName}{\code{string} - Name of resulting \code{list} on server}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
+
+\item{DS.async}{\code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
 }
 \value{
 A \code{list} of messages about object assignment for monitoring purposes

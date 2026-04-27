@@ -18,11 +18,13 @@
 #'                            \itemize{ \item Do (\code{logical}) - Whether to add an ID feature (running number)
 #'                                      \item IDFeatureName (\code{string})
 #'                                      \item OverwriteExistingIDFeature (\code{logical}) - Whether to overwrite an existing feature with the same name }
-#' @param CompleteCharacterConversion \code{logical} - Indicating whether to convert all features in data set tables to character type
+#' @param TotalCharacterConversion \code{logical} - Indicating whether to convert all features in data set tables to character type
 #' @param CurateFeatureNames \code{logical} - Indicating whether (after primary harmonization) feature names should be recoded from 'raw' to 'curated' feature names according to Module-specific meta data
 #' @param OutputName \code{character scalar} - Name of output object to be assigned on server - Default: 'RDSPreparationOutput'
-#' @param RunAssignmentChecks \code{logical} Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{FALSE}
+#' @param RunAssignmentChecks \code{logical} - Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{FALSE}
+#' @param PrintMessages \code{logical} - Indicating whether to print messages
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list} of messages about object assignment for monitoring purposes
 #'
@@ -40,11 +42,13 @@ ds.PrepareRawData <- function(RawDataSetName,
                               AddIDFeature = list(Do = FALSE,
                                                   IDFeatureName = "ID",
                                                   OverwriteExistingIDFeature = FALSE),
-                              CompleteCharacterConversion = FALSE,
+                              TotalCharacterConversion = FALSE,
                               CurateFeatureNames = FALSE,
                               OutputName = "RDSPreparationOutput",
                               RunAssignmentChecks = FALSE,
-                              DSConnections = NULL)
+                              PrintMessages = TRUE,
+                              DSConnections = NULL,
+                              DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -53,10 +57,12 @@ ds.PrepareRawData <- function(RawDataSetName,
   # AddIDFeature <- list(Do = TRUE,
   #                     IDFeatureName = "ID",
   #                     OverwriteExistingIDFeature = FALSE)
-  # CompleteCharacterConversion <- TRUE
+  # TotalCharacterConversion <- TRUE
   # OutputName <- "RDSPreparationOutput"
   # RunAssignmentChecks <- FALSE
+  # PrintMessages <- TRUE
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(RawDataSetName),
@@ -67,10 +73,12 @@ ds.PrepareRawData <- function(RawDataSetName,
               is.list(FSMSettings),
               is.list(AddIDFeature),
               is.flag(AddIDFeature$Do),
-              is.flag(CompleteCharacterConversion),
+              is.flag(TotalCharacterConversion),
               is.flag(CurateFeatureNames),
               is.string(OutputName),
-              is.flag(RunAssignmentChecks))
+              is.flag(PrintMessages),
+              is.flag(RunAssignmentChecks),
+              is.flag(DS.async))
   if (!is.null(AddIDFeature$IDFeatureName)) { assert_that(is.string(AddIDFeature$IDFeatureName)) }
   if (!is.null(AddIDFeature$OverwriteExistingIDFeature)) { assert_that(is.flag(AddIDFeature$OverwriteExistingIDFeature)) }
 
@@ -89,8 +97,9 @@ ds.PrepareRawData <- function(RawDataSetName,
                                       RunFuzzyStringMatching.S = RunFuzzyStringMatching,
                                       FSMSettings.S = FSMSettings,
                                       AddIDFeature.S = AddIDFeature,
-                                      CompleteCharacterConversion.S = CompleteCharacterConversion,
-                                      CurateFeatureNames.S = CurateFeatureNames))
+                                      TotalCharacterConversion.S = TotalCharacterConversion,
+                                      CurateFeatureNames.S = CurateFeatureNames),
+                         async = DS.async)
 
 
 # Extract objects from list returned by PrepareRawDataDS() and assign them to R server sessions
@@ -112,14 +121,16 @@ ds.PrepareRawData <- function(RawDataSetName,
                              symbol = unname(ObjectNames[i]),
                              value = call("ExtractFromListDS",
                                            ListName.S = OutputName,
-                                           ObjectName.S = names(ObjectNames)[i]))
+                                           ObjectName.S = names(ObjectNames)[i]),
+                             async = DS.async)
 
       if (RunAssignmentChecks == TRUE)
       {
           # Call helper function to check if object assignment succeeded
           Messages$Assignment <- c(Messages$Assignment,
                                    ds.GetObjectStatus(ObjectName = unname(ObjectNames[i]),
-                                                      DSConnections = DSConnections))
+                                                      DSConnections = DSConnections,
+                                                      DS.async = DS.async))
       }
   }
 
@@ -127,21 +138,23 @@ ds.PrepareRawData <- function(RawDataSetName,
 # Re-unpack RDS list, so that PREPARED RDS tables overwrite 'old' ones on servers
 #-------------------------------------------------------------------------------
 
-  for(tablename in RDSTableNames)
+  for (tablename in RDSTableNames)
   {
       # Execute server-side assign function
       DSI::datashield.assign(conns = DSConnections,
                              symbol = paste0(Module, ".RDS.", tablename),      # E.g. 'CCP.RDS.Case'
                              value = call("ExtractFromListDS",
                                           ListName.S = RawDataSetName,
-                                          ObjectName.S = tablename))
+                                          ObjectName.S = tablename),
+                             async = DS.async)
 
       if (RunAssignmentChecks == TRUE)
       {
           # Call helper function to check if object assignment succeeded
           Messages$Assignment <- c(Messages$Assignment,
                                    ds.GetObjectStatus(ObjectName = paste0(Module, ".RDS.", RDSTableNames[i]),
-                                                      DSConnections = DSConnections))
+                                                      DSConnections = DSConnections,
+                                                      DS.async = DS.async))
       }
   }
 
@@ -149,10 +162,11 @@ ds.PrepareRawData <- function(RawDataSetName,
 #--- Get 'Messages' object from servers (as a list of lists) -------------------
   Messages <- DSI::datashield.aggregate(conns = DSConnections,
                                         expr = call("GetReportingObjectDS",
-                                                    ObjectName.S = "Messages"))
+                                                    ObjectName.S = "Messages"),
+                                        async = DS.async)
 
 #--- Print and invisibly return Messages ---------------------------------------
-  PrintMessages(Messages)
+  if (PrintMessages == TRUE) { PrintMessages(Messages, .ListNamesAsSubtopic = TRUE) }
 
   invisible(Messages)
 }

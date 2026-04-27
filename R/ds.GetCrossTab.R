@@ -9,6 +9,7 @@
 #' @param FeatureNames \code{character} - Vector of feature names
 #' @param RemoveNA \code{logical} - Indicating whether missing values should be removed prior to cross tabulation - Default: \code{FALSE}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list}
 #'            \itemize{ \item CrossTab (\code{list}),
@@ -21,7 +22,8 @@
 ds.GetCrossTab <- function(TableName,
                            FeatureNames,
                            RemoveNA = FALSE,
-                           DSConnections = NULL)
+                           DSConnections = NULL,
+                           DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -29,11 +31,13 @@ ds.GetCrossTab <- function(TableName,
   # FeatureNames <- c("Sex", "CountDiagnoses")
   # RemoveNA = FALSE
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
               is.character(FeatureNames),
-              is.flag(RemoveNA))
+              is.flag(RemoveNA),
+              is.flag(DS.async))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -44,7 +48,8 @@ ds.GetCrossTab <- function(TableName,
   ProjectedCombinations <- sapply(FeatureNames, function(featurename)
                                                 {
                                                   ds.GetFeatureInfo(TableName = TableName,
-                                                                    FeatureName = featurename) %>%
+                                                                    FeatureName = featurename,
+                                                                    DS.async = DS.async) %>%
                                                       pull(CountUniqueValues) %>%
                                                       max(na.rm = TRUE)
                                                 }) %>%
@@ -71,7 +76,8 @@ ds.GetCrossTab <- function(TableName,
                                              expr = call("GetCrossTabDS",
                                                          TableName.S = TableName,
                                                          FeatureNames.S = FeatureNamesString,
-                                                         RemoveNA.S = RemoveNA))
+                                                         RemoveNA.S = RemoveNA),
+                                             async = DS.async)
 
 #-------------------------------------------------------------------------------
 # Processing of server-specific cross tabs and calculation of cumulated cross tab

@@ -72,9 +72,12 @@ ggTheme <- function(...,
                      panel.grid.major.x = ggplot2::element_blank(),      # Do not display major grid lines of x axis
                      panel.grid.major.y =  ggplot2::element_line(color = dsFredaClient::FredaColors$MediumGrey),      # Color of y axis major grid lines
                      #--- Axis parameters --------------------------------------
-                     axis.text = ggplot2::element_text(face = "bold", color = dsFredaClient::FredaColors$DarkGrey),      # Axis tick labels
-                     axis.text.x = ggplot2::element_text(size = ggplot2::rel(SizeFactorTickLabels_x)),      # x Axis tick label size
-                     axis.text.y = ggplot2::element_text(size = ggplot2::rel(SizeFactorTickLabels_y)),      # y Axis tick label size
+                     axis.text = ggplot2::element_text(face = "bold",
+                                                       color = dsFredaClient::FredaColors$DarkGrey),      # Axis tick labels
+                     axis.text.x = ggplot2::element_text(size = ggplot2::rel(SizeFactorTickLabels_x),
+                                                         margin = margin(t = 4)),      # x Axis tick label size
+                     axis.text.y = ggplot2::element_text(size = ggplot2::rel(SizeFactorTickLabels_y),
+                                                         margin = margin(r = 4)),      # y Axis tick label size
                      axis.title = ggplot2::element_text(face = "bold", color = dsFredaClient::FredaColors$DarkGrey, size = ggplot2::rel(SizeFactorAxisLabels)),      # Axis title labels
                      axis.title.x = ggplot2::element_text(margin = ggplot2::margin(0.5, 0, 0, 0, unit = "cm")),
                      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(0, 0.5, 0, 0, unit = "cm"), angle =90),

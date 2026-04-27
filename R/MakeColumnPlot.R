@@ -68,6 +68,39 @@ MakeColumnPlot <- function(DataFrame,
                            ...)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
+  # --- For Testing Purposes ---
+  # DataFrame <- CumulatedData_Full$df_Output_SampleSize %>%
+  #                       filter(FirstRelevantAdmissionYear < 2023)
+  # XFeature <- "FirstRelevantAdmissionYear"
+  # XFeatureSpecs <- NULL
+  # XFeatureAdditionalMapping <- "none"
+  # YFeature <- "N"
+  # GroupingFeature <- "Site"
+  # GroupingSpecs <- c("Site A" = "MunichLMU",
+  #                   "Site B" = "Freiburg",
+  #                   "Site C" = "Frankfurt")
+  # GroupingPosition <- position_stack()
+  # GroupingMapping <- "alpha"
+  # FacetFeature <- "PatientSubgroup"
+  # FacetSpecs <- NULL
+  # FacetMapping <- "fill"
+  # FacetArguments <- list(scales = "free_y")
+  # AxisType_y <- "absolute"
+  # CoordFlip <- FALSE
+  # LegendPosition <- "right"
+  # LegendShowFillGuide <- TRUE
+  # AxisTitle_x <- ""
+  # AxisTitle_y <- ""
+  # TickLabelWidth_x <- 10
+  # Decimals <- 0
+  # ggTheme <- function(...) dsFredaClient::ggTheme(...)
+  # ThemeArguments <- list()
+  # FillPalette <- vc_FillPalette_Subgroup
+  # ColorPrimary <- dsFredaClient::FredaColors$Primary
+  # AlphaPalette <- c(0.2, 0.5, 0.9)
+  # ColumnWidth <- 0.95
+  # ... <- NULL
+
   # --- Argument Validation ---
 
 #-------------------------------------------------------------------------------
@@ -95,7 +128,7 @@ MakeColumnPlot <- function(DataFrame,
 
 #--- Initialize internal objects -----------------------------------------------
   var_Geom <- ggplot2::geom_col()
-  var_Modifications <- list()       # Default: No modifications
+  var_Modifications <- list(ggplot2::scale_y_continuous(labels = scales::label_comma()))       # Default
   var_LegendLabels <- ggplot2::waiver()      # If no grouping specifications are passed, take legend labels from computed transformation object
   var_XLabels <- NULL
 

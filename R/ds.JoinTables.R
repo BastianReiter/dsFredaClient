@@ -15,6 +15,7 @@
 #'                              \item 'inner_join'}
 #' @param OutputName \code{string} - Name of resulting table on server
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list} of messages about object assignment for monitoring purposes
 #'
@@ -27,7 +28,8 @@ ds.JoinTables <- function(TableNameA,
                           ByStatement,
                           JoinType = "left_join",
                           OutputName,
-                          DSConnections = NULL)
+                          DSConnections = NULL,
+                          DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
@@ -37,13 +39,15 @@ ds.JoinTables <- function(TableNameA,
   # JoinType <- "left_join"
   # OutputName <- "PatientAnalysis"
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
   assert_that(is.string(TableNameA),
               is.string(TableNameB),
               is.string(ByStatement),
               is.string(JoinType),
-              is.string(OutputName))
+              is.string(OutputName),
+              is.flag(DS.async))
   assert_that(JoinType %in% c("left_join", "right_join", "full_join", "inner_join"),
               msg = "Error: 'JoinType' does not provide a valid join operation, must be one of 'left_join' / 'right_join' / 'full_join' / 'inner_join'.")
 
@@ -62,7 +66,8 @@ ds.JoinTables <- function(TableNameA,
                                       TableNameA.S = TableNameA,
                                       TableNameB.S = TableNameB,
                                       ByStatement.S = ByStatement,
-                                      JoinType.S = JoinType))
+                                      JoinType.S = JoinType),
+                         async = DS.async)
 
   # Call helper function to check if object assignment succeeded
   AssignmentInfo <- ds.GetObjectStatus(OutputName,

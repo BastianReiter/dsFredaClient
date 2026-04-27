@@ -32,7 +32,7 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 library(dsBaseClient)
-library(dsCCPhosClient)
+library(dsFredaClient)
 library(dsTidyverseClient)
 library(resourcer)
 
@@ -48,27 +48,27 @@ options(datashield.errors.print = TRUE)
 TestData <- readRDS("../dsCCPhos/Development/Data/TestData/CCPTestData.rds")
 
 # Definition of test resource, exemplary with local csv-file
-TestResource <- resourcer::newResource(name = "TestResource",
-                                       #url = "file://./Development/Test/DummyData.csv",
-                                       url = "file://localhost/C:/Users/Basti/ARBEIT Lokal/dsCCPhosClient/Development/Test/DummyData.csv",
-                                       format = "csv")
+# TestResource <- resourcer::newResource(name = "TestResource",
+#                                        #url = "file://./Development/Test/DummyData.csv",
+#                                        url = "file://localhost/C:/Users/Basti/ARBEIT Lokal/dsCCPhosClient/Development/Test/DummyData.csv",
+#                                        format = "csv")
 
 
-CCPConnections <- ConnectToVirtualCCP(CCPTestData = TestData,
-                                      NumberOfServers = 1,
-                                      NumberOfPatientsPerServer = 2000,
-                                      AddedDsPackages = "dsTidyverse",
-                                      Resources = list(TestResource = TestResource))
+CCPConnections <- dsCCPhosClient::ConnectToVirtualCCP(CCPTestData = TestData,
+                                                      NumberOfServers = 3,
+                                                      NumberOfPatientsPerServer = 2000,
+                                                      AddedDsPackages = "dsTidyverse")
+                                                      #Resources = list(TestResource = TestResource))
 
 
-QuickProcessingRun()
+# QuickProcessingRun()
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Check server requirements using dsCCPhosClient::CheckServerRequirements()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-CheckServerRequirements()
+dsCCPhosClient::CheckServerRequirements()
 
 
 # datashield.pkg_status(conns = CCPConnections)
@@ -80,7 +80,7 @@ CheckServerRequirements()
 # Load Raw Data Set (RDS) from Opal data base to R sessions on servers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-LoadRawDataSet(ServerSpecifications = NULL)
+dsCCPhosClient::CCP.LoadRawDataSet(ServerSpecifications = NULL)
 
 
 
@@ -118,8 +118,9 @@ datashield.assign.expr(conns = CCPConnections,
 # Check RDS tables for existence and completeness
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "RawDataSet",
-                                    AssumeCCPDataSet = TRUE)
+RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.RawDataSet",
+                                    Module = "CCP",
+                                    Stage = "Raw")
 
 View(RDSTableCheck$TableStatus)
 
@@ -136,7 +137,7 @@ RDSTableCheck$TableStatus
 # Validate RDS data
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RDSValidationReports <- ds.GetRDSValidationReport()
+# RDSValidationReports <- ds.GetRDSValidationReport()
 
 # ValidationSummaries <- RDSValidationReports %>%
 #                             map(function(Server)
@@ -154,9 +155,9 @@ RDSValidationReports <- ds.GetRDSValidationReport()
 # Optionally: Draw random sample from Raw Data Set on servers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ds.DrawSample(RawDataSetName = "RawDataSet",
-              SampleSize = "1000",
-              SampleName = "RDSSample")
+dsCCPhosClient::ds.CCP.DrawSample(RawDataSetName = "RawDataSet",
+                                  SampleSize = 1000,
+                                  SampleName = "RDSSample")
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -165,28 +166,18 @@ ds.DrawSample(RawDataSetName = "RawDataSet",
 
 # Transform Raw Data Set (RDS) into Curated Data Set (CDS) (using default settings)
 ds.CurateData(RawDataSetName = "CCP.RawDataSet",
-              Settings = NULL,
+              Module = "CCP",
               OutputName = "CCP.CurationOutput")
 
-CDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CuratedDataSet",
-                                    AssumeCCPDataSet = TRUE)
+CDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.CuratedDataSet",
+                                    Module = "CCP",
+                                    Stage = "Curated")
 
 # Integrated in ds.CuratedData: Make tables from Curated Data Set directly addressable by unpacking them into R server session
 # ds.UnpackCuratedDataSet(CuratedDataSetName = "CuratedDataSet")
 
 # Get curation reports
 CurationReport <- ds.GetCurationReport()
-
-View(CurationReport$EntryCounts$BioSampling)
-
-# Exemplary look at a curation report table
-#View(CurationReport$Transformation$All$Monitors$Staging)
-#View(CurationReport$Transformation$All$EligibilityOverviews$Staging)
-#View(CurationReport$Transformation$All$ValueSetOverviews$Raw)
-
-# Get validation report of Curated Data Set (CDS)
-# ValidationReportCDS <- ds.GetValidationReport_CDS(Name_CurationOutput = "CurationOutput",
-#                                                   DataSources = CCPConnections)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

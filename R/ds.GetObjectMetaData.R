@@ -8,6 +8,7 @@
 #'
 #' @param ObjectName \code{string} - Name of object on server
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list} of server returns
 #'
@@ -16,15 +17,18 @@
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ds.GetObjectMetaData <- function(ObjectName,
-                                 DSConnections = NULL)
+                                 DSConnections = NULL,
+                                 DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
   # ObjectName <- "RDS_Diagnosis"
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
 
   # --- Argument Validation ---
-  assert_that(is.string(ObjectName))
+  assert_that(is.string(ObjectName),
+              is.flag(DS.async))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -34,7 +38,8 @@ ds.GetObjectMetaData <- function(ObjectName,
   # Get object meta data from every server
   ObjectMetaData <- DSI::datashield.aggregate(conns = DSConnections,
                                               expr = call("GetObjectMetaDataDS",
-                                                          ObjectName.S = ObjectName))
+                                                          ObjectName.S = ObjectName),
+                                              async = DS.async)
 
   # Get logical vector indicating existence of object on servers
   ObjectExistence <- ObjectMetaData %>%

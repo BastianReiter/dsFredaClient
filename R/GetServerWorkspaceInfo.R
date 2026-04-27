@@ -5,6 +5,7 @@
 #' Check which objects live in server-side R sessions and collect meta data about them.
 #'
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
 #'
 #' @return A \code{list} containing overview and details of server-side workspace objects
 #'
@@ -12,11 +13,15 @@
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-GetServerWorkspaceInfo <- function(DSConnections = NULL)
+GetServerWorkspaceInfo <- function(DSConnections = NULL,
+                                   DS.async = FALSE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
   # DSConnections <- CCPConnections
+  # DS.async <- FALSE
+
+  assert_that(is.flag(DS.async))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
@@ -50,7 +55,7 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
       # Collect meta data about existing objects and attach some of it to 'ObjectInfo'
       #-------------------------------------------------------------------------
       ExistingObjects <- ServerOverview %>%
-                            filter(Exists == TRUE)
+                              filter(Exists == TRUE)
 
       # Get meta data
       MetaData <- ExistingObjects %>%
@@ -58,7 +63,8 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
                       map(function(objectname)
                           {
                               ObjectMetaData <- ds.GetObjectMetaData(ObjectName = objectname,
-                                                                     DSConnections = DSConnections[servername])
+                                                                     DSConnections = DSConnections[servername],
+                                                                     DS.async = DS.async)
                               return(ObjectMetaData[[servername]])
                           }) %>%
                       stats::setNames(ExistingObjects$Object)
@@ -75,7 +81,7 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL)
 
       # Extract structural details from object meta data
       ServerObjectDetails <- MetaData %>%
-                                map(\(ObjectMetaData) ObjectMetaData$Structure)
+                                  map(\(ObjectMetaData) ObjectMetaData$Structure)
 
       # Add server-specific overview table and object details to overall lists
       Overview[[servername]] <- ServerOverview

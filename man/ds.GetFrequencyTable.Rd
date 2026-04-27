@@ -10,7 +10,8 @@ ds.GetFrequencyTable(
   GroupingFeatureName = NULL,
   MaxNumberCategories = 10,
   RemoveNA = FALSE,
-  DSConnections = NULL
+  DSConnections = NULL,
+  DS.async = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ ds.GetFrequencyTable(
 \item{RemoveNA}{\code{logical} - Indicating whether missing values should be removed prior to frequency calculation - Default: \code{FALSE}}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
+
+\item{DS.async}{\code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
 }
 \value{
 A \code{list} containing:
