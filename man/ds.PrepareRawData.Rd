@@ -9,11 +9,14 @@ ds.PrepareRawData(
   Module,
   RDSTableNames,
   FeatureNameDictionary = list(),
-  RunFuzzyStringMatching = FALSE,
-  FSMSettings = list(PreferredMethod = "jw", Tolerance = 0.2),
-  AddIDFeature = list(Do = FALSE, IDFeatureName = "ID", OverwriteExistingIDFeature =
-    FALSE),
-  TotalCharacterConversion = FALSE,
+  FuzzyStringMatching.Run = FALSE,
+  FuzzyStringMatching.PreferredMethod = "jw",
+  FuzzyStringMatching.Tolerance = 0.2,
+  AddIDFeature.Do = FALSE,
+  AddIDFeature.IDFeatureName = "ID",
+  AddIDFeature.OverwriteExistingIDFeature = FALSE,
+  CharacterConversion.Date = FALSE,
+  CharacterConversion.Total = FALSE,
   CurateFeatureNames = FALSE,
   OutputName = "RDSPreparationOutput",
   RunAssignmentChecks = FALSE,
@@ -31,16 +34,21 @@ ds.PrepareRawData(
 
 \item{FeatureNameDictionary}{Optional \code{list} containing dictionary data for feature name harmonization (Form: \code{list(Department = c(FAB = "Fachabteilung"))})}
 
-\item{RunFuzzyStringMatching}{\code{logical} - Whether to use fuzzy string matching to harmonize raw feature names}
+\item{FuzzyStringMatching.Run}{\code{logical} - Whether to use fuzzy string matching to harmonize raw feature names}
 
-\item{FSMSettings}{\code{list} of parameters for Fuzzy String Matching ('PreferredMethod', 'Tolerance')}
+\item{FuzzyStringMatching.PreferredMethod}{\code{logical} - Selects the method \code{stringdist()} uses (see \code{stringdist} documentation) - Default: 'jw'}
 
-\item{AddIDFeature}{\code{list} containing parameters about adding an ID feature to tables:
-\itemize{ \item Do (\code{logical}) - Whether to add an ID feature (running number)
-\item IDFeatureName (\code{string})
-\item OverwriteExistingIDFeature (\code{logical}) - Whether to overwrite an existing feature with the same name }}
+\item{FuzzyStringMatching.Tolerance}{\code{logical} - Number between 0 and 1 relating to normalized distance between to strings (1 meaning furthest distance, 0 meaning no distance). If a string in 'Vector' is not similar enough to any of the 'EligibleStrings' and its minimal harmonized distance exceeds this number, it is set \code{NA}. - Default: 0.2}
 
-\item{TotalCharacterConversion}{\code{logical} - Indicating whether to convert all features in data set tables to character type}
+\item{AddIDFeature.Do}{\code{logical} - Whether to add an ID feature (running number) to tables}
+
+\item{AddIDFeature.IDFeatureName}{\code{string} - The name of the new ID feature}
+
+\item{AddIDFeature.OverwriteExistingIDFeature}{\code{logical} - Whether to overwrite an existing feature with the same name}
+
+\item{CharacterConversion.Date}{\code{logical} - Whether to convert date features in data set tables to character type}
+
+\item{CharacterConversion.Total}{\code{logical} - Whether to convert all features in data set tables to character type}
 
 \item{CurateFeatureNames}{\code{logical} - Indicating whether (after primary harmonization) feature names should be recoded from 'raw' to 'curated' feature names according to Module-specific meta data}
 
