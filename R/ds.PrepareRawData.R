@@ -92,6 +92,13 @@ ds.PrepareRawData <- function(RawDataSetName,
 
 #-------------------------------------------------------------------------------
 
+  # Encode strings in character vectors of 'Conversion.DateIntoPOSIXct' to make them passable through DSI
+  if (length(Conversion.DateIntoPOSIXct) > 0)
+  {
+      Conversion.DateIntoPOSIXct <- Conversion.DateIntoPOSIXct %>%
+                                        map(\(X) X %>% map_chr(\(x) .encode_tidy_eval(x, .get_encode_dictionary())))
+  }
+
   # Execute server-side assign function: This creates a list on servers with name assigned with 'OutputName'
   DSI::datashield.assign(conns = DSConnections,
                          symbol = OutputName,
