@@ -56,7 +56,7 @@ TestData <- readRDS("../dsCCPhos/Development/Data/TestData/CCPTestData.rds")
 
 CCPConnections <- dsCCPhosClient::ConnectToVirtualCCP(CCPTestData = TestData,
                                                       NumberOfServers = 3,
-                                                      NumberOfPatientsPerServer = 2000,
+                                                      NumberOfPatientsPerServer = 500,
                                                       AddedDsPackages = "dsTidyverse")
                                                       #Resources = list(TestResource = TestResource))
 
@@ -226,8 +226,8 @@ plot_ly(data = filter(PlotData, Feature == "UICCStage")$data[[1]],
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # Run ds.AugmentData
-ds.AugmentData(CuratedDataSetName = "CCP.CuratedDataSet",
-               OutputName = "CCP.AugmentationOutput")
+dsCCPhosClient::ds.CCP.AugmentData(CuratedDataSetName = "CCP.CuratedDataSet",
+                                   OutputName = "CCP.AugmentationOutput")
 
 ADSTableCheck <- ds.GetDataSetCheck(DataSetName = "AugmentedDataSet")
 

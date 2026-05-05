@@ -218,9 +218,9 @@ PrintSoloMessage <- function(message)
                                                 MessageClass == "Warning" ~ "warning",
                                                 MessageClass == "Failure" ~ "cross",
                                                 .default = "none"),
-                      bullet_col = dplyr::case_when(MessageClass == "Success" ~ FredaColors$Green,
-                                                    MessageClass == "Warning" ~ FredaColors$Orange,
-                                                    MessageClass == "Failure" ~ FredaColors$Red,
+                      bullet_col = dplyr::case_when(MessageClass == "Success" ~ dsFredaClient::FredaColors$Green,
+                                                    MessageClass == "Warning" ~ dsFredaClient::FredaColors$Orange,
+                                                    MessageClass == "Failure" ~ dsFredaClient::FredaColors$Red,
                                                     .default = "black"))
   }
 }

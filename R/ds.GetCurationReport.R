@@ -90,7 +90,6 @@ ds.GetCurationReport <- function(Module = "CCP",
 # C 1) COUNTER SUMMARY on DATA SET level
 #-------------------------------------------------------------------------------
 
-
   Counter.StageLevel.Servers <- CurationReports %>%
                                     map(\(ServerCurationReport) ServerCurationReport %>%
                                                                     pluck("Counter", "Extensive") %>%

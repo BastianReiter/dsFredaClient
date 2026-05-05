@@ -70,7 +70,7 @@ ExploreFeature <- function(TableName,
   if (FeatureType %in% c("numeric", "integer", "double"))
   {
       Statistics <- ds.GetSampleStatistics(TableName = TableName,
-                                           MetricFeatureName = FeatureName,
+                                           FeatureName = FeatureName,
                                            DSConnections = DSConnections,
                                            DS.async = DS.async,
                                            ...)

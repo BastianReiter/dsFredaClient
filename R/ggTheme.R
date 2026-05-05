@@ -75,9 +75,9 @@ ggTheme <- function(...,
                      axis.text = ggplot2::element_text(face = "bold",
                                                        color = dsFredaClient::FredaColors$DarkGrey),      # Axis tick labels
                      axis.text.x = ggplot2::element_text(size = ggplot2::rel(SizeFactorTickLabels_x),
-                                                         margin = margin(t = 4)),      # x Axis tick label size
+                                                         margin = ggplot2::margin(t = 4)),      # x Axis tick label size
                      axis.text.y = ggplot2::element_text(size = ggplot2::rel(SizeFactorTickLabels_y),
-                                                         margin = margin(r = 4)),      # y Axis tick label size
+                                                         margin = ggplot2::margin(r = 4)),      # y Axis tick label size
                      axis.title = ggplot2::element_text(face = "bold", color = dsFredaClient::FredaColors$DarkGrey, size = ggplot2::rel(SizeFactorAxisLabels)),      # Axis title labels
                      axis.title.x = ggplot2::element_text(margin = ggplot2::margin(0.5, 0, 0, 0, unit = "cm")),
                      axis.title.y = ggplot2::element_text(margin = ggplot2::margin(0, 0.5, 0, 0, unit = "cm"), angle =90),
