@@ -2,23 +2,24 @@
 #' ds.PrepareRawData
 #'
 #' Trigger basic preparatory transformations on RawDataSet prior to Curation:
-#' \itemize{  \item Optionally convert all columns to character type
+#' \itemize{  \item Feature name harmonization
 #'            \item Add ID feature (running number) for tables without primary key feature
-#'            \item Try to harmonize feature names employing Fuzzy String Matching and Dictionary look-up }
+#'            \item Type- or format-conversion of features }
 #'
 #' Linked to server-side ASSIGN method \code{PrepareRawDataDS()}
 #'
 #' @param RawDataSetName \code{string} - Name of Raw Data Set object (list) on server
 #' @param Module \code{string} identifying a defined data set and the corresponding meta data needed for feature name harmonization (Examples: 'CCP' / 'P21')
 #' @param RDSTableNames \code{character vector} - Names of RDS tables
-#' @param FeatureNameDictionary Optional \code{list} containing dictionary data for feature name harmonization (Form: \code{list(Department = c(FAB = "Fachabteilung"))})
-#' @param RunFuzzyStringMatching \code{logical} - Whether to use fuzzy string matching to harmonize raw feature names
-#' @param FSMSettings \code{list} of parameters for Fuzzy String Matching ('PreferredMethod', 'Tolerance')
-#' @param AddIDFeature \code{list} containing parameters about adding an ID feature to tables:
-#'                            \itemize{ \item Do (\code{logical}) - Whether to add an ID feature (running number)
-#'                                      \item IDFeatureName (\code{string})
-#'                                      \item OverwriteExistingIDFeature (\code{logical}) - Whether to overwrite an existing feature with the same name }
-#' @param TotalCharacterConversion \code{logical} - Indicating whether to convert all features in data set tables to character type
+#' @param FeatureNames.Dictionary Optional \code{list} containing dictionary data for feature name harmonization (Form: \code{list(Department = c(FAB = "Fachabteilung"))})
+#' @param FeatureNames.FuzzyStringMatching.Run \code{logical} - Whether to use fuzzy string matching to harmonize raw feature names
+#' @param FeatureNames.FuzzyStringMatching.PreferredMethod \code{logical} - Selects the method \code{stringdist()} uses (see \code{stringdist} documentation) - Default: 'jw'
+#' @param FeatureNames.FuzzyStringMatching.Tolerance \code{logical} - Number between 0 and 1 relating to normalized distance between to strings (1 meaning furthest distance, 0 meaning no distance). If a string in 'Vector' is not similar enough to any of the 'EligibleStrings' and its minimal harmonized distance exceeds this number, it is set \code{NA}. - Default: 0.2
+#' @param AddIDFeature.Do \code{logical} - Whether to add an ID feature (running number) to tables
+#' @param AddIDFeature.IDFeatureName \code{string} - The name of the new ID feature
+#' @param AddIDFeature.OverwriteExistingIDFeature \code{logical} - Whether to overwrite an existing feature with the same name
+#' @param Conversion.IntoCharacter \code{string} - Controls conversion of certain features in data set tables into character type. One of 'None' / 'All' / 'Date'. - Default: 'None'
+#' @param Conversion.DateIntoPOSIXct \code{list} - Containing character vectors representing date formats used in argument 'tryFormats' in function \code{base::as.POSIXct}. List element should be either '.All' for all date features or specific date feature names. - Default: \code{NULL}
 #' @param CurateFeatureNames \code{logical} - Indicating whether (after primary harmonization) feature names should be recoded from 'raw' to 'curated' feature names according to Module-specific meta data
 #' @param OutputName \code{character scalar} - Name of output object to be assigned on server - Default: 'RDSPreparationOutput'
 #' @param RunAssignmentChecks \code{logical} - Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{FALSE}
@@ -35,14 +36,15 @@
 ds.PrepareRawData <- function(RawDataSetName,
                               Module,
                               RDSTableNames,
-                              FeatureNameDictionary = list(),
-                              RunFuzzyStringMatching = FALSE,
-                              FSMSettings = list(PreferredMethod = "jw",
-                                                 Tolerance = 0.2),
-                              AddIDFeature = list(Do = FALSE,
-                                                  IDFeatureName = "ID",
-                                                  OverwriteExistingIDFeature = FALSE),
-                              TotalCharacterConversion = FALSE,
+                              FeatureNames.Dictionary = list(),
+                              FeatureNames.FuzzyStringMatching.Run = FALSE,
+                              FeatureNames.FuzzyStringMatching.PreferredMethod = "jw",
+                              FeatureNames.FuzzyStringMatching.Tolerance = 0.2,
+                              AddIDFeature.Do = FALSE,
+                              AddIDFeature.IDFeatureName = "ID",
+                              AddIDFeature.OverwriteExistingIDFeature = FALSE,
+                              Conversion.IntoCharacter = "None",
+                              Conversion.DateIntoPOSIXct = NULL,
                               CurateFeatureNames = FALSE,
                               OutputName = "RDSPreparationOutput",
                               RunAssignmentChecks = FALSE,
@@ -53,7 +55,7 @@ ds.PrepareRawData <- function(RawDataSetName,
 {
   # --- For Testing Purposes ---
   # RawDataSetName = "P21.RawDataSet"
-  # FeatureNameDictionary <- list(Department = c(FAB = "Fachabteilung"))
+  # FeatureNames.Dictionary <- list(Department = c(FAB = "Fachabteilung"))
   # AddIDFeature <- list(Do = TRUE,
   #                     IDFeatureName = "ID",
   #                     OverwriteExistingIDFeature = FALSE)
@@ -68,24 +70,34 @@ ds.PrepareRawData <- function(RawDataSetName,
   assert_that(is.string(RawDataSetName),
               is.string(Module),
               is.character(RDSTableNames),
-              is.list(FeatureNameDictionary),
-              is.flag(RunFuzzyStringMatching),
-              is.list(FSMSettings),
-              is.list(AddIDFeature),
-              is.flag(AddIDFeature$Do),
-              is.flag(TotalCharacterConversion),
+              is.list(FeatureNames.Dictionary),
+              is.flag(FeatureNames.FuzzyStringMatching.Run),
+              is.string(FeatureNames.FuzzyStringMatching.PreferredMethod),
+              is.number(FeatureNames.FuzzyStringMatching.Tolerance),
+              is.flag(AddIDFeature.Do),
+              is.string(Conversion.IntoCharacter),
               is.flag(CurateFeatureNames),
               is.string(OutputName),
               is.flag(PrintMessages),
               is.flag(RunAssignmentChecks),
               is.flag(DS.async))
-  if (!is.null(AddIDFeature$IDFeatureName)) { assert_that(is.string(AddIDFeature$IDFeatureName)) }
-  if (!is.null(AddIDFeature$OverwriteExistingIDFeature)) { assert_that(is.flag(AddIDFeature$OverwriteExistingIDFeature)) }
+  if (FeatureNames.FuzzyStringMatching.Tolerance < 0 | FeatureNames.FuzzyStringMatching.Tolerance > 1) { stop("ERROR: Value of argument 'FeatureNames.FuzzyStringMatching.Tolerance' must be between 0 and 1.") }
+  if (!is.null(AddIDFeature.IDFeatureName)) { assert_that(is.string(AddIDFeature.IDFeatureName)) }
+  if (!is.null(AddIDFeature.OverwriteExistingIDFeature)) { assert_that(is.flag(AddIDFeature.OverwriteExistingIDFeature)) }
+  if (!(Conversion.IntoCharacter %in% c("None", "All", "Date"))) { stop("ERROR: Value of argument 'Conversion.IntoCharacter' must be one of 'None' / 'All' / 'Date'.") }
+  if (!is.null(Conversion.DateIntoPOSIXct)) { assert_that(is.list(Conversion.DateIntoPOSIXct)) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)
 
 #-------------------------------------------------------------------------------
+
+  # Encode strings in character vectors of 'Conversion.DateIntoPOSIXct' to make them passable through DSI
+  if (length(Conversion.DateIntoPOSIXct) > 0)
+  {
+      Conversion.DateIntoPOSIXct <- Conversion.DateIntoPOSIXct %>%
+                                        map(\(X) X %>% map_chr(\(x) .encode_tidy_eval(x, .get_encode_dictionary())))
+  }
 
   # Execute server-side assign function: This creates a list on servers with name assigned with 'OutputName'
   DSI::datashield.assign(conns = DSConnections,
@@ -93,11 +105,15 @@ ds.PrepareRawData <- function(RawDataSetName,
                          value = call("PrepareRawDataDS",
                                       RawDataSetName.S = RawDataSetName,
                                       Module.S = Module,
-                                      FeatureNameDictionary.S = FeatureNameDictionary,
-                                      RunFuzzyStringMatching.S = RunFuzzyStringMatching,
-                                      FSMSettings.S = FSMSettings,
-                                      AddIDFeature.S = AddIDFeature,
-                                      TotalCharacterConversion.S = TotalCharacterConversion,
+                                      FeatureNames.Dictionary.S = FeatureNames.Dictionary,
+                                      FeatureNames.FuzzyStringMatching.Run.S = FeatureNames.FuzzyStringMatching.Run,
+                                      FeatureNames.FuzzyStringMatching.PreferredMethod.S = FeatureNames.FuzzyStringMatching.PreferredMethod,
+                                      FeatureNames.FuzzyStringMatching.Tolerance.S = FeatureNames.FuzzyStringMatching.Tolerance,
+                                      AddIDFeature.Do.S = AddIDFeature.Do,
+                                      AddIDFeature.IDFeatureName.S = AddIDFeature.IDFeatureName,
+                                      AddIDFeature.OverwriteExistingIDFeature.S = AddIDFeature.OverwriteExistingIDFeature,
+                                      Conversion.IntoCharacter.S = Conversion.IntoCharacter,
+                                      Conversion.DateIntoPOSIXct.S = Conversion.DateIntoPOSIXct,
                                       CurateFeatureNames.S = CurateFeatureNames),
                          async = DS.async)
 
