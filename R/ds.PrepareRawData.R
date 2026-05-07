@@ -54,12 +54,24 @@ ds.PrepareRawData <- function(RawDataSetName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # RawDataSetName = "P21.RawDataSet"
-  # FeatureNames.Dictionary <- list(Department = c(FAB = "Fachabteilung"))
-  # AddIDFeature <- list(Do = TRUE,
-  #                     IDFeatureName = "ID",
-  #                     OverwriteExistingIDFeature = FALSE)
-  # TotalCharacterConversion <- TRUE
+  # RawDataSetName <- "P21.RawDataSet"
+  # Module <- "P21"
+  # RDSTableNames <- dsFredaP21Client::Meta.Tables$TableName.Curated
+  # FeatureNames.Dictionary <- list(Case = c("Aufnahmegrund" = NA,      # Fix termini that could otherwise be falsely classified by Fuzzy String Matching
+  #                                          "Geburtsmonat" = NA),
+  #                                 DiagnosisICD = c("icd_lokalisation" = "Lokalisation",
+  #                                                  "diagnosensicherheit" = NA),
+  #                                 Department = c(FAB = "Fachabteilung"))
+  # FeatureNames.FuzzyStringMatching.Run <- TRUE
+  # FeatureNames.FuzzyStringMatching.PreferredMethod <- "jw"
+  # FeatureNames.FuzzyStringMatching.Tolerance <- 0.2
+  # AddIDFeature.Do <- TRUE
+  # AddIDFeature.IDFeatureName <- "ID"
+  # AddIDFeature.OverwriteExistingIDFeature <- FALSE
+  # Conversion.IntoCharacter <- "All"
+  # Conversion.DateIntoPOSIXct <- NULL
+  # Conversion.DateIntoPOSIXct <- list(.All = c("%Y%m%d%H%M", "%Y%m%d", "%Y-%m-%d"))
+  # CurateFeatureNames <- TRUE
   # OutputName <- "RDSPreparationOutput"
   # RunAssignmentChecks <- FALSE
   # PrintMessages <- TRUE
@@ -92,11 +104,15 @@ ds.PrepareRawData <- function(RawDataSetName,
 
 #-------------------------------------------------------------------------------
 
-  # Encode strings in character vectors of 'Conversion.DateIntoPOSIXct' to make them passable through DSI
+  # Turn list 'Conversion.DateIntoPOSIXct' into one big encoded string to make it passable through DSI
   if (length(Conversion.DateIntoPOSIXct) > 0)
   {
+      # Turn character vectors into strings
       Conversion.DateIntoPOSIXct <- Conversion.DateIntoPOSIXct %>%
-                                        map(\(X) X %>% map_chr(\(x) .encode_tidy_eval(x, .get_encode_dictionary())))
+                                        imap_chr(\(X, selector) paste0("'", selector, "' = ", paste0("c(", paste0("'", X, "'", collapse = ", "), ")")))
+
+      # Turn complete list into one string and encode
+      Conversion.DateIntoPOSIXct <- .encode_tidy_eval(paste0("list(", paste0(Conversion.DateIntoPOSIXct, collapse = ", "), ")"), .get_encode_dictionary())
   }
 
   # Execute server-side assign function: This creates a list on servers with name assigned with 'OutputName'
