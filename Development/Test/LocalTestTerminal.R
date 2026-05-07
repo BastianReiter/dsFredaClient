@@ -179,6 +179,9 @@ CDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.CuratedDataSet",
 # Get curation reports
 CurationReport <- ds.GetCurationReport()
 
+FredaGUI::Widget.CurationReport(Module = "CCP",
+                                CurationReport = CurationReport)
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Plot data on value eligibility for exemplary table in CDS
