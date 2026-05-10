@@ -132,6 +132,9 @@ View(RDSTableCheck$NonMissingValueRates$RDS_Diagnosis)
 RDSTableCheck$TableStatus
 
 
+TestData <- ds.GetTestData(DataSetName = "CCP.RawDataSet",
+                           SampleSize = 30)
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Validate RDS data
