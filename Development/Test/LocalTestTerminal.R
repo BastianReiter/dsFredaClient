@@ -133,7 +133,8 @@ RDSTableCheck$TableStatus
 
 
 TestData <- ds.GetTestData(DataSetName = "CCP.RawDataSet",
-                           SampleSize = 30)
+                           SampleSize = 30,
+                           Shuffle = TRUE)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -8,6 +8,7 @@ ds.GetTestData(
   DataSetName = NA_character_,
   TableName = NA_character_,
   SampleSize,
+  Shuffle = TRUE,
   DSConnections = NULL,
   DS.async = FALSE
 )
@@ -16,6 +17,10 @@ ds.GetTestData(
 \item{DataSetName}{\code{string} - Name of Data Set object (list) on server}
 
 \item{TableName}{\code{string} - Name of specific table object on server}
+
+\item{SampleSize}{\code{count} - Sample size of test data}
+
+\item{Shuffle}{\code{flag} - Whether to shuffle test data}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 
