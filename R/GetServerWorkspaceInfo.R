@@ -144,7 +144,7 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL,
                                                                 group_by(Element) %>%
                                                                     summarize(ExistsEverywhere = case_when(n() == length(ServerNames) ~ TRUE,
                                                                                                            .default = FALSE),
-                                                                              Type = case_when(length(unique(Type)) == 1 ~ unique(Type),
+                                                                              Type = case_when(length(unique(Type)) == 1 ~ Type[1],
                                                                                                .default = "Varied")) %>%
                                                                 ungroup()
 
