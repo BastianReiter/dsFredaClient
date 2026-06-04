@@ -45,7 +45,7 @@ options(datashield.errors.print = TRUE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #TestData <- readRDS("../dsCCPhos/Development/Data/RealData/CCPRealData_Frankfurt.rds")
-TestData <- readRDS("../dsCCPhos/Development/Data/TestData/CCPTestData.rds")
+TestData <- readRDS("../Data/CCP/CCPTestData2026.rds")
 
 # Using test data from servers
 # TestDataReal <- readRDS("../dsFreda/Development/Test/ServersTestData.Real.rds") %>% purrr::pluck("Berlin")
@@ -85,9 +85,7 @@ TestData <- readRDS("../dsCCPhos/Development/Data/TestData/CCPTestData.rds")
 #                                        format = "csv")
 
 
-CCPConnections <- dsCCPhosClient::ConnectToVirtualCCP(CCPTestData = TestDataReal,
-                                                      NumberOfServers = 3,
-                                                      NumberOfPatientsPerServer = 30,
+CCPConnections <- dsCCPhosClient::ConnectToVirtualCCP(CCPData = TestData,
                                                       AddedDsPackages = "dsTidyverse")
                                                       #Resources = list(TestResource = TestResource))
 

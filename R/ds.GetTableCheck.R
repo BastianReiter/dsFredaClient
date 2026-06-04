@@ -11,7 +11,7 @@
 #' @param EligibleValueSets Optional \code{list} of \code{character vectors} containing sets of eligible values for corresponding features
 #' @param GetTemplate \code{logical} - If set to \code{TRUE}, the function returns a template incorporating required feature names without actually checking an existing table
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment. Default: \code{FALSE}
-#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
 #' @return A \code{list} containing compiled meta data about table:
 #'         \itemize{\item TableCheckOverview
@@ -31,7 +31,7 @@ ds.GetTableCheck <- function(TableName,
                              EligibleValueSets = NULL,
                              GetTemplate = FALSE,
                              DSConnections = NULL,
-                             DS.async = FALSE)
+                             DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---

@@ -6,7 +6,7 @@
 #'
 #' Linked to server-side ASSIGN methods \code{CurateDataDS()} and \code{ExtractFromListDS()}
 #'
-#' @param RawDataSetName \code{character} - Name of Raw Data Set object (list) on server - Default: 'CCP.RawDataSet'
+#' @param RawDataSetName \code{character} - Name of Raw Data Set object (list) on server - Default: '<Module>.RawDataSet'
 #' @param Module \code{string} - Identifying a registered FREDA module (Examples: 'CCP' / 'P21')
 #' @param OutputName \code{character} - Name of output object to be assigned on server - Default: '<Module>.CurationOutput'
 #' @param Profile.CurationProcess \code{string} - "Default"
@@ -23,7 +23,7 @@
 #' @param RunAssignmentChecks \code{logical} Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{TRUE}
 #' @param UnpackCuratedDataSet \code{logical} indicating whether the Curated Data Set \code{list} should be unpacked so that tables \code{data.frames} are directly accessible - Default: \code{TRUE}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
-#' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
+#' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
 #' @return Messages
 #'
@@ -31,7 +31,7 @@
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ds.CurateData <- function(RawDataSetName,
+ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
                           Module,
                           OutputName = paste0(Module, ".CurationOutput"),
                           Profile.CurationProcess = "Default",
@@ -49,7 +49,7 @@ ds.CurateData <- function(RawDataSetName,
                           RunAssignmentChecks = TRUE,
                           UnpackCuratedDataSet = TRUE,
                           DSConnections = NULL,
-                          DS.async = FALSE)
+                          DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   #--- For Testing Purposes ---

@@ -5,7 +5,7 @@
 \title{ds.CurateData}
 \usage{
 ds.CurateData(
-  RawDataSetName,
+  RawDataSetName = paste0(Module, ".RawDataSet"),
   Module,
   OutputName = paste0(Module, ".CurationOutput"),
   Profile.CurationProcess = "Default",
@@ -22,11 +22,11 @@ ds.CurateData(
   RunAssignmentChecks = TRUE,
   UnpackCuratedDataSet = TRUE,
   DSConnections = NULL,
-  DS.async = FALSE
+  DS.async = dsFredaClient::Set.DSSettings$DS.async
 )
 }
 \arguments{
-\item{RawDataSetName}{\code{character} - Name of Raw Data Set object (list) on server - Default: 'CCP.RawDataSet'}
+\item{RawDataSetName}{\code{character} - Name of Raw Data Set object (list) on server - Default: '\if{html}{\out{<Module>}}.RawDataSet'}
 
 \item{Module}{\code{string} - Identifying a registered FREDA module (Examples: 'CCP' / 'P21')}
 
@@ -60,7 +60,7 @@ ds.CurateData(
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 
-\item{DS.async}{\code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
+\item{DS.async}{\code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}}
 }
 \value{
 Messages

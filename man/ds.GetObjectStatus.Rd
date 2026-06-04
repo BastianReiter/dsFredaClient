@@ -4,14 +4,18 @@
 \alias{ds.GetObjectStatus}
 \title{ds.GetObjectStatus}
 \usage{
-ds.GetObjectStatus(ObjectName, DSConnections = NULL, DS.async = FALSE)
+ds.GetObjectStatus(
+  ObjectName,
+  DSConnections = NULL,
+  DS.async = dsFredaClient::Set.DSSettings$DS.async
+)
 }
 \arguments{
 \item{ObjectName}{\code{string} - Name of object on server}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 
-\item{DS.async}{\code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
+\item{DS.async}{\code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}}
 }
 \value{
 \code{list} of messages

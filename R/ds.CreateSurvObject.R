@@ -11,7 +11,7 @@
 #' @param MinFollowUpTime \code{integer} - Optional minimum of observed follow up time
 #' @param OutputName \code{string} - Assigned symbol name on servers
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
-#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
 #' @return A \code{list}
 #'
@@ -73,7 +73,7 @@ ds.CreateSurvObject <- function(TableName,
                                                        TimeFeature.S = TimeFeature,
                                                        EventFeature.S = EventFeature,
                                                        MinFollowUpTime.S = MinFollowUpTime),
-                                          async = DS.async)
+                                          async = dsFredaClient::Set.DSSettings$DS.async)
 
 #-------------------------------------------------------------------------------
   return(NULL)

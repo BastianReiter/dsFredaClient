@@ -10,7 +10,7 @@ ds.GetTestData(
   SampleSize,
   Shuffle = TRUE,
   DSConnections = NULL,
-  DS.async = FALSE
+  DS.async = dsFredaClient::Set.DSSettings$DS.async
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ ds.GetTestData(
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 
-\item{DS.async}{\code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}}
+\item{DS.async}{\code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}}
 }
 \value{
 A \code{list}
