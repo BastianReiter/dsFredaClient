@@ -8,7 +8,7 @@
 #' @param ObjectNames \code{character} - Names of objects on server to be bundled in a list. Can be a \code{named vector} if names in list should differ from symbol names (with names in named vector being the names in list).
 #' @param OutputName \code{string} - Name of resulting \code{list} on server
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
-#' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
+#' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
 #' @return A \code{list} of messages about object assignment for monitoring purposes
 #'
@@ -19,7 +19,7 @@
 ds.MakeList <- function(ObjectNames,
                         OutputName,
                         DSConnections = NULL,
-                        DS.async = FALSE)
+                        DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- Argument Validation ---

@@ -53,6 +53,14 @@ Set.ServerRequirements <- list(#--- Data frame containing names of required pack
 use_data(Set.ServerRequirements, overwrite = TRUE)
 
 
+#===============================================================================
+# DataSHIELD Client-side default settings
+#===============================================================================
+
+Set.DSSettings <- list(DS.async = TRUE)
+
+use_data(Set.DSSettings, overwrite = TRUE)
+
 
 #===============================================================================
 # Template data frame: Server specifications

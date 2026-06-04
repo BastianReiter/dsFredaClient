@@ -7,7 +7,7 @@
 #' @param InputWorkspaceInfo \code{list}
 #' @param TableSelection \code{character}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
-#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
 #' @return A \code{list} containing overview and details of server-side workspace objects
 #'
@@ -19,7 +19,7 @@ GetExplorationData <- function(OrderList = NULL,
                                InputWorkspaceInfo = NULL,
                                TableSelection = NULL,
                                DSConnections = NULL,
-                               DS.async = FALSE)
+                               DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---

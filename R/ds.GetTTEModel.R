@@ -17,7 +17,7 @@
 #' @param CovariateC \code{string} - Name of optional CovariateC
 #' @param MinFollowUpTime \code{integer} - Optional minimum of observed follow up time
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
-#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
+#' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
 #' @return A \code{list} of Time-to-Event models
 #'
@@ -34,7 +34,7 @@ ds.GetTTEModel <- function(TableName,
                            CovariateC = NULL,
                            MinFollowUpTime = 1,
                            DSConnections = NULL,
-                           DS.async = FALSE)
+                           DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---

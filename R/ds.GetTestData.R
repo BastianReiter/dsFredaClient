@@ -13,7 +13,7 @@
 #' @param SampleSize \code{count} - Sample size of test data
 #' @param Shuffle \code{flag} - Whether to shuffle test data
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
-#' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{FALSE}
+#' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
 #' @return A \code{list}
 #'
@@ -26,7 +26,7 @@ ds.GetTestData <- function(DataSetName = NA_character_,
                            SampleSize,
                            Shuffle = TRUE,
                            DSConnections = NULL,
-                           DS.async = FALSE)
+                           DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
