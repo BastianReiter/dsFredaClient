@@ -31,9 +31,9 @@
 # Load required packages
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-library(dsBaseClient)
 library(dsFredaClient)
 library(dsTidyverseClient)
+library(dsBaseClient)
 library(resourcer)
 
 # Print DataSHIELD errors right away
@@ -45,7 +45,7 @@ options(datashield.errors.print = TRUE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #TestData <- readRDS("../dsCCPhos/Development/Data/RealData/CCPRealData_Frankfurt.rds")
-TestData <- readRDS("../Data/CCP/CCPTestData2026.rds")
+TestData <- readRDS("../Data/CCP/CCPTestData2024.rds")
 
 # Using test data from servers
 # TestDataReal <- readRDS("../dsFreda/Development/Test/ServersTestData.Real.rds") %>% purrr::pluck("Berlin")
@@ -86,7 +86,9 @@ TestData <- readRDS("../Data/CCP/CCPTestData2026.rds")
 
 
 CCPConnections <- dsCCPhosClient::ConnectToVirtualCCP(CCPData = TestData,
-                                                      AddedDsPackages = "dsTidyverse")
+                                                      AddedDsPackages = "dsTidyverse",
+                                                      NumberOfServers = 3,
+                                                      NumberOfPatientsPerServer = 1000)
                                                       #Resources = list(TestResource = TestResource))
 
 

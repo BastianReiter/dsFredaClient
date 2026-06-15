@@ -20,8 +20,9 @@
 #' @param Profile.RecordSubsumption \code{string} - "Default"
 #' @param Profile.SecondaryTableCleaning \code{string} - "Default"
 #' @param Profile.TableNormalization \code{string} - "Default"
-#' @param RunAssignmentChecks \code{logical} Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{TRUE}
-#' @param UnpackCuratedDataSet \code{logical} indicating whether the Curated Data Set \code{list} should be unpacked so that tables \code{data.frames} are directly accessible - Default: \code{TRUE}
+#' @param RunAssignmentChecks \code{logical} - Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{TRUE}
+#' @param UnpackCuratedDataSet \code{logical} - Indicating whether the Curated Data Set \code{list} should be unpacked so that tables \code{data.frames} are directly accessible - Default: \code{TRUE}
+#' @param RunSeparately \code{logical} - Indicating whether \code{CurateDataDS()} should be run separately for each server. This can be done for testing purposes or if timeout issues arise. - Default: \code{FALSE}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
@@ -48,6 +49,7 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
                           #--- Secondary Arguments ---
                           RunAssignmentChecks = TRUE,
                           UnpackCuratedDataSet = TRUE,
+                          RunSeparately = FALSE,
                           DSConnections = NULL,
                           DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -69,6 +71,7 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
   # Profile.TransformativeExpressions <- "Default"
   # RunAssignmentChecks <- TRUE
   # UnpackCuratedDataSet <- TRUE
+  # RunSeparately <- FALSE
   # DSConnections <- CCPConnections
   # DS.async <- FALSE
 
@@ -89,6 +92,7 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
               is.string(Profile.TransformativeExpressions),
               is.flag(RunAssignmentChecks),
               is.flag(UnpackCuratedDataSet),
+              is.flag(RunSeparately),
               is.flag(DS.async))
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
@@ -104,24 +108,46 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
 
 # Trigger dsFreda::CurateDataDS()
 #-------------------------------------------------------------------------------
-  # Execute the server-side function call
-  DSI::datashield.assign(conns = DSConnections,
-                         symbol = OutputName,
-                         value = call("CurateDataDS",
-                                      RawDataSetName.S = RawDataSetName,
-                                      Module.S = Module,
-                                      Profile.CurationProcess.S = Profile.CurationProcess,
-                                      Profile.DataRemediation.S = Profile.DataRemediation,
-                                      Profile.Dictionary.S = Profile.Dictionary,
-                                      Profile.FeatureRequirements.S = Profile.FeatureRequirements,
-                                      Profile.FeatureTracking.S = Profile.FeatureTracking,
-                                      Profile.FuzzyStringMatching.S = Profile.FuzzyStringMatching,
-                                      Profile.PrimaryTableCleaning.S = Profile.PrimaryTableCleaning,
-                                      Profile.RecordSubsumption.S = Profile.RecordSubsumption,
-                                      Profile.SecondaryTableCleaning.S = Profile.SecondaryTableCleaning,
-                                      Profile.TableNormalization.S = Profile.TableNormalization,
-                                      Profile.TransformativeExpressions.S = Profile.TransformativeExpressions),
-                         async = DS.async)
+
+  # Auxiliary function to wrap triggering of server-side function call
+  TriggerCurateDataDS <- function(SelectedConnections)
+  {
+      DSI::datashield.assign(conns = SelectedConnections,
+                             symbol = OutputName,
+                             value = call("CurateDataDS",
+                                          RawDataSetName.S = RawDataSetName,
+                                          Module.S = Module,
+                                          Profile.CurationProcess.S = Profile.CurationProcess,
+                                          Profile.DataRemediation.S = Profile.DataRemediation,
+                                          Profile.Dictionary.S = Profile.Dictionary,
+                                          Profile.FeatureRequirements.S = Profile.FeatureRequirements,
+                                          Profile.FeatureTracking.S = Profile.FeatureTracking,
+                                          Profile.FuzzyStringMatching.S = Profile.FuzzyStringMatching,
+                                          Profile.PrimaryTableCleaning.S = Profile.PrimaryTableCleaning,
+                                          Profile.RecordSubsumption.S = Profile.RecordSubsumption,
+                                          Profile.SecondaryTableCleaning.S = Profile.SecondaryTableCleaning,
+                                          Profile.TableNormalization.S = Profile.TableNormalization,
+                                          Profile.TransformativeExpressions.S = Profile.TransformativeExpressions),
+                             async = DS.async)
+  }
+
+  # Trigger server-side function call separately...
+  if (RunSeparately == TRUE)
+  {
+      for (i in 1:length(DSConnections))
+      {
+          # First, use dsBaseClient::ds.exists("PING") to ping ALL servers and effectively keep them idle before triggering heavy work at ONE server. This may reduce risk of running into a server timeout issue.
+          .Ping <- dsBaseClient::ds.exists("PING")
+          # Then trigger heavy work at ONE server
+          TriggerCurateDataDS(DSConnections[i])
+      }
+
+  # ... or trigger normal DSI call with complete list of connections (default)
+  } else {
+
+      TriggerCurateDataDS(DSConnections)
+  }
+
 
   if (RunAssignmentChecks == TRUE)
   {
