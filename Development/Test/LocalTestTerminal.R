@@ -154,17 +154,6 @@ RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.RawDataSet",
                                     Module = "CCP",
                                     Stage = "Raw")
 
-View(RDSTableCheck$TableStatus)
-
-View(RDSTableCheck$TableRowCounts$RDS_Diagnosis)
-View(RDSTableCheck$FeatureExistence$RDS_Diagnosis)
-View(RDSTableCheck$FeatureTypes$RDS_Diagnosis)
-View(RDSTableCheck$NonMissingValueRates$RDS_Diagnosis)
-
-RDSTableCheck$TableStatus
-
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Validate RDS data
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

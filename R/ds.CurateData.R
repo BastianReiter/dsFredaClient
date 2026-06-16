@@ -249,16 +249,16 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
 
   # Create table object for output
   Curation.Completion <- CurationMessages %>%
-                              map(\(ServerMessages) tibble(Curation.CompletionCheck = ServerMessages$Curation.CompletionCheck,
-                                                           Curation.Duration = ServerMessages$Curation.Duration )) %>%
+                              map(\(ServerMessages) tibble(Process.CompletionCheck = ServerMessages$Process.CompletionCheck,
+                                                           Process.Duration = ServerMessages$Process.Duration )) %>%
                               list_rbind(names_to = "ServerName")
 
   # Create vector of messages informing about curation completion
   Messages$Curation.Completion <- CurationMessages %>%
                                       imap(function(ServerMessages, servername)
                                            {
-                                              tibble(CompletionCheck = ServerMessages$Curation.CompletionCheck,
-                                                     Duration = ServerMessages$Curation.Duration) %>%
+                                              tibble(CompletionCheck = ServerMessages$Process.CompletionCheck,
+                                                     Duration = ServerMessages$Process.Duration) %>%
                                                   mutate(Message = case_when(CompletionCheck == "green" ~ paste0("Curation on server '", servername, "' performed successfully! (Duration: ", Duration, ")"),
                                                                              CompletionCheck == "yellow" ~ paste0("Curation on server '", servername, "' performed with warnings! \n", ServerMessages$FinalMessage),
                                                                              CompletionCheck == "red" ~ paste0("Curation on server '", servername, "' could not be performed! \n", ServerMessages$FinalMessage),

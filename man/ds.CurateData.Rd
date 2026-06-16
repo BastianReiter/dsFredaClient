@@ -21,6 +21,7 @@ ds.CurateData(
   Profile.TransformativeExpressions = "Default",
   RunAssignmentChecks = TRUE,
   UnpackCuratedDataSet = TRUE,
+  RunSeparately = FALSE,
   DSConnections = NULL,
   DS.async = dsFredaClient::Set.DSSettings$DS.async
 )
@@ -54,9 +55,11 @@ ds.CurateData(
 
 \item{Profile.TransformativeExpressions}{\code{string} - "Default"}
 
-\item{RunAssignmentChecks}{\code{logical} Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{TRUE}}
+\item{RunAssignmentChecks}{\code{logical} - Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{TRUE}}
 
-\item{UnpackCuratedDataSet}{\code{logical} indicating whether the Curated Data Set \code{list} should be unpacked so that tables \code{data.frames} are directly accessible - Default: \code{TRUE}}
+\item{UnpackCuratedDataSet}{\code{logical} - Indicating whether the Curated Data Set \code{list} should be unpacked so that tables \code{data.frames} are directly accessible - Default: \code{TRUE}}
+
+\item{RunSeparately}{\code{logical} - Indicating whether \code{CurateDataDS()} should be run separately for each server. This can be done for testing purposes or if timeout issues arise. - Default: \code{FALSE}}
 
 \item{DSConnections}{\code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.}
 
