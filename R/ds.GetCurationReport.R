@@ -80,14 +80,25 @@ ds.GetCurationReport <- function(Module = "CCP",
 
 
 #===============================================================================
-# C) Compilation of COUNTER data
+# C) Compilation of PROCESS report
+#===============================================================================
+
+  ProcessReport <- CurationReports %>%
+                        list_transpose() %>%
+                        pluck("Process") %>%
+                        map(\(X) as_tibble(X)) %>%
+                        list_rbind(names_to = "Server")
+
+
+#===============================================================================
+# D) Compilation of COUNTER data
 #===============================================================================
 #   1) Cumulate stage-level Counter data as basis for summaries
 #   2) Create Summary View from stage-level data and split into table-level and data-set-level summary
 #   3) Extensive Counter data on sub-stage-level (details), no cumulation
 #-------------------------------------------------------------------------------
 
-# C 1) COUNTER SUMMARY on DATA SET level
+# D 1) COUNTER SUMMARY on DATA SET level
 #-------------------------------------------------------------------------------
 
   Counter.StageLevel.Servers <- CurationReports %>%
@@ -113,7 +124,7 @@ ds.GetCurationReport <- function(Module = "CCP",
                             bind_rows(Counter.StageLevel.Servers)
 
 
-# C 2) Create COUNTER SUMMARY views from Stage-level data
+# D 2) Create COUNTER SUMMARY views from Stage-level data
 #-------------------------------------------------------------------------------
 
   Counter.Summary <- Counter.StageLevel %>%
@@ -186,7 +197,7 @@ ds.GetCurationReport <- function(Module = "CCP",
                               relocate(CountTables, .before = 2)
 
 
-# C 3) Extensive COUNTER data on sub-stage-level (details), no cumulation necessary
+# D 3) Extensive COUNTER data on sub-stage-level (details), no cumulation necessary
 #-------------------------------------------------------------------------------
 
   # Compile relevant COUNTER DETAILS data in cumulated data.frame (all servers, all tables) and then split into table-specific data.frames
@@ -218,7 +229,7 @@ ds.GetCurationReport <- function(Module = "CCP",
 
 
 #===============================================================================
-# D) Compilation of DATA HARMONIZATION Reports and Monitors
+# E) Compilation of DATA HARMONIZATION Reports and Monitors
 #===============================================================================
 #   1) Data Harmonization Reports on data-set-level
 #   2) Data Harmonization Reports on table-level
@@ -231,7 +242,7 @@ ds.GetCurationReport <- function(Module = "CCP",
 #
 #-------------------------------------------------------------------------------
 
-# D 1) Data Harmonization REPORTS on DATA-SET-LEVEL
+# E 1) Data Harmonization REPORTS on DATA-SET-LEVEL
 #-------------------------------------------------------------------------------
 
   # Get all server-specific data-set-level data harmonization reports and row-bind them
@@ -252,7 +263,7 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                 bind_rows(DataHarmonization.Report.DataSetLevel.Servers)
 
 
-# D 2) Data Harmonization REPORTS on TABLE-LEVEL
+# E 2) Data Harmonization REPORTS on TABLE-LEVEL
 #-------------------------------------------------------------------------------
 
   # Get all server-specific table-level data harmonization reports and row-bind them
@@ -275,7 +286,7 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                   map(\(X) X %>% select(-Table))
 
 
-# D 3) Data Harmonization REPORTS on FEATURE-LEVEL
+# E 3) Data Harmonization REPORTS on FEATURE-LEVEL
 #-------------------------------------------------------------------------------
 
   # Get all server-specific feature-level data harmonization reports and row-bind them
@@ -303,7 +314,7 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                                   map(\(X) X %>% select(-Feature)))
 
 
-# D 4) Data Harmonization REPORTS on VALUE-LEVEL
+# E 4) Data Harmonization REPORTS on VALUE-LEVEL
 #-------------------------------------------------------------------------------
 
   # Get all server-specific value-level data harmonization reports and row-bind them
@@ -335,7 +346,7 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                                                 map(\(X) X %>% select(-Value.Raw))))
 
 
-# D 5) Full Value Sets for all harmonization stages (Raw, Remediated, Recoded, Final)
+# E 5) Full Value Sets for all harmonization stages (Raw, Remediated, Recoded, Final)
 #-------------------------------------------------------------------------------
 
   DataHarmonization.ValueSets.Servers <- CurationReports %>%
@@ -374,7 +385,7 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                                                               map(\(X) X %>% select(-HarmonizationStage)))))
 
 
-# D 6) Data Harmonization MONITORS on TABLE-LEVEL
+# E 6) Data Harmonization MONITORS on TABLE-LEVEL
 #-------------------------------------------------------------------------------
 
   # Get all server-specific table-level data harmonization monitors and row-bind them
@@ -403,7 +414,7 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                                 map(\(X) X %>% select(-Table)))
 
 
-# D 7) Data Harmonization MONITORS on FEATURE-LEVEL
+# E 7) Data Harmonization MONITORS on FEATURE-LEVEL
 #-------------------------------------------------------------------------------
 
   # Get all server-specific feature-level data harmonization monitors and row-bind them
@@ -435,7 +446,7 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                                                 map(\(X) X %>% select(-Feature))))
 
 
-# D 8) Data Harmonization MONITORS on VALUE-LEVEL
+# E 8) Data Harmonization MONITORS on VALUE-LEVEL
 #-------------------------------------------------------------------------------
 
   # Get all server-specific value-level data harmonization monitors and row-bind them
@@ -474,6 +485,7 @@ ds.GetCurationReport <- function(Module = "CCP",
 
 #-------------------------------------------------------------------------------
   return(list(Log = Log,
+              Process = ProcessReport,
               Counter = list(DataSetLevel = Counter.DataSetLevel,
                              TableLevel = Counter.TableLevel,
                              StageLevel = Counter.StageLevel,
