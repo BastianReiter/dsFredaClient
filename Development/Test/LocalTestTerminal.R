@@ -176,8 +176,8 @@ RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.RawDataSet",
 # Optionally: Draw random sample from Raw Data Set on servers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-dsCCPhosClient::ds.CCP.DrawSample(RawDataSetName = "RawDataSet",
-                                  SampleSize = 1000,
+dsCCPhosClient::ds.CCP.DrawSample(RawDataSetName = "CCP.RawDataSet",
+                                  SampleSize = 500,
                                   SampleName = "RDSSample")
 
 
