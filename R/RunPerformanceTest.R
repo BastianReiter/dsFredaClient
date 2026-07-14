@@ -30,7 +30,6 @@ RunPerformanceTest <- function(ServerSpecifications,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # ServerSpecifications <- NULL
   # ScenarioA.Runs <- 2
   # ScenarioA.SampleSizes = c(125, 250)   #, 500, 1000, 2000)
   # ScenarioA.SampleSizes.Shuffle <- TRUE
