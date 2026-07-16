@@ -26,6 +26,7 @@ RunPerformanceTest <- function(ServerSpecifications,
                                ScenarioB.Runs = 1,
                                ScenarioB.SequenceServerCount = 1:nrow(ServerSpecifications),
                                ScenarioB.SampleSize = 500,
+                               CreateLogFiles = TRUE,
                                DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
@@ -36,6 +37,7 @@ RunPerformanceTest <- function(ServerSpecifications,
   # ScenarioB.Runs <- 2
   # ScenarioB.SequenceServerCount <- 1:3
   # ScenarioB.SampleSize <- 100
+  # CreateLogFiles <- TRUE
   # DS.async <- FALSE
   # #---
   # ScenarioA.CCPConnections <- CCPConnections
@@ -46,6 +48,18 @@ RunPerformanceTest <- function(ServerSpecifications,
   if (!is.null(ServerSpecifications)) { is.data.frame(ServerSpecifications) }
 
 #-------------------------------------------------------------------------------
+
+  # Set up log file name
+  if (CreateLogFiles == TRUE)
+  {
+      Timestamp <- format(Sys.time(), "%Y%m%d%H%M%S")
+      LogFile.ScenarioA <- paste0("PerformanceTest_ScenarioA_", Timestamp, ".txt")
+      LogFile.ScenarioA.ServerSpecific <- paste0("PerformanceTest_ScenarioA_ServerSpecific_", Timestamp, ".txt")
+      LogFile.ScenarioB <- paste0("PerformanceTest_ScenarioB_", Timestamp, ".txt")
+      LogFile.ScenarioB.ServerSpecific <- paste0("PerformanceTest_ScenarioB_ServerSpecific_", Timestamp, ".txt")
+
+      #if (file.exists(LogFile)) { file.remove(LogFile) }
+  }
 
 
   # Set up function that carries out a single processing run, with times being tracked along the way
@@ -64,16 +78,33 @@ RunPerformanceTest <- function(ServerSpecifications,
 
 
       #---  Data Curation  -----------------------------------------------------
-      ds.CurateData(RawDataSetName = "RDSSample",
-                    Module = "CCP",
-                    OutputName = "CCP.CurationOutput",
-                    RunAssignmentChecks = FALSE,
-                    RunSeparately = FALSE,
-                    DSConnections = SingleRun.DSConnections)
+      # ds.CurateData(RawDataSetName = "RDSSample",
+      #               Module = "CCP",
+      #               OutputName = "CCP.CurationOutput",
+      #               RunAssignmentChecks = FALSE,
+      #               UnpackCuratedDataSet = FALSE,
+      #               RunSeparately = FALSE,
+      #               DSConnections = SingleRun.DSConnections)
+
+      # Trigger curation on servers
+      DSI::datashield.assign(conns = SingleRun.DSConnections,
+                             symbol = "CCP.CurationOutput",
+                             value = call("CurateDataDS",
+                                          RawDataSetName.S = "RDSSample",
+                                          Module.S = "CCP"),
+                             async = DS.async)
 
       Tracker$Time.AfterCuration <- Sys.time()
 
       # Get curation messages (more lightweight then full Curation Report)
+      # First, extract curation messages from curation output on servers
+      DSI::datashield.assign(conns = SingleRun.DSConnections,
+                             symbol = "Messages",
+                             value = call("ExtractFromListDS",
+                                           ListName.S = "CCP.CurationOutput",
+                                           ObjectName.S = "Messages"),
+                             async = DS.async)
+
       ServerProcessInfo <- DSI::datashield.aggregate(conns = SingleRun.DSConnections,
                                                     expr = call("GetReportingObjectDS",
                                                                 ObjectName.S = "Messages"),
@@ -129,6 +160,8 @@ RunPerformanceTest <- function(ServerSpecifications,
   {
       for (i in 1:ScenarioA.Runs)
       {
+          PrintSoloMessage(c(Special = paste0("Scenario A: Started Run ", i, " / ", ScenarioA.Runs)))
+
           Results.A.CurrentRun <- tibble(Run = i,
                                          Time.StartRun = Sys.time())
 
@@ -153,6 +186,8 @@ RunPerformanceTest <- function(ServerSpecifications,
           #---  Run single processing run with specific sample size ------------
           for (CurrentSampleSize in ScenarioA.SampleSizes)
           {
+              PrintSoloMessage(c(Special = paste0("Scenario A, Run ", i, " / ", ScenarioA.Runs, ": Started processing with ", nrow(ServerSpecifications), " servers and sample size ", CurrentSampleSize, ".")))
+
               SingleRunResults <- SingleRun(SingleRun.SampleSize = CurrentSampleSize,
                                             SingleRun.DSConnections = ScenarioA.CCPConnections)
 
@@ -163,26 +198,36 @@ RunPerformanceTest <- function(ServerSpecifications,
                                                       bind_rows(SingleRunResults$ServerSpecific)
           }
 
-          Results.A.CurrentRun <- Results.A.CurrentRun %>%
-                                      bind_cols(Tracker.ScenarioA)
+          # Column-binding of server-specific tracker results
+          Results.A.ServerSpecific.CurrentRun <- Results.A.CurrentRun %>%
+                                                    bind_cols(Tracker.ScenarioA.ServerSpecific)
 
+          # Column-binding of tracker results and calculation of durations
+          Results.A.CurrentRun <- Results.A.CurrentRun %>%
+                                      bind_cols(Tracker.ScenarioA) %>%
+                                      mutate(Duration.Login = as.numeric(difftime(Time.AfterLogin, Time.StartRun, units = "secs")),
+                                             Duration.Loading = as.numeric(difftime(Time.AfterLoading, Time.AfterLogin, units = "secs")),
+                                             Duration.SampleDrawing = as.numeric(difftime(Time.AfterSampleDrawing, Time.AfterLoading, units = "secs")),
+                                             Duration.Curation.WithTI = as.numeric(difftime(Time.AfterCuration, Time.AfterSampleDrawing, units = "secs")),
+                                             Duration.Curation.WithoutTI = Duration.Curation.Total.WithoutGapTime,
+                                             Duration.Curation.OnlyTI = Duration.Curation.WithTI - Duration.Curation.WithoutTI)
+
+          # Row-bind current results to main result data.frames
           Results.A <- Results.A %>%
                             bind_rows(Results.A.CurrentRun)
 
           Results.A.ServerSpecific <- Results.A.ServerSpecific %>%
-                                          bind_rows(Tracker.ScenarioA.ServerSpecific)
+                                          bind_rows(Results.A.ServerSpecific.CurrentRun)
+
+          if (CreateLogFiles == TRUE)
+          {
+              write.table(Results.A.CurrentRun, file = LogFile.ScenarioA, sep = ",", row.names = FALSE, append = file.exists(LogFile.ScenarioA))
+              write.table(Results.A.ServerSpecific.CurrentRun, file = LogFile.ScenarioA.ServerSpecific, sep = ",", row.names = FALSE, append = file.exists(LogFile.ScenarioA.ServerSpecific))
+          }
 
           DSI::datashield.logout(conns = ScenarioA.CCPConnections)
-      }
 
-      # Calculation of durations
-      Results.A <- Results.A %>%
-                        mutate(Duration.Login = as.numeric(difftime(Time.AfterLogin, Time.StartRun, units = "secs")),
-                               Duration.Loading = as.numeric(difftime(Time.AfterLoading, Time.AfterLogin, units = "secs")),
-                               Duration.SampleDrawing = as.numeric(difftime(Time.AfterSampleDrawing, Time.AfterLoading, units = "secs")),
-                               Duration.Curation.WithTI = as.numeric(difftime(Time.AfterCuration, Time.AfterSampleDrawing, units = "secs")),
-                               Duration.Curation.WithoutTI = Duration.Curation.Total.WithoutGapTime,
-                               Duration.Curation.OnlyTI = Duration.Curation.WithTI - Duration.Curation.WithoutTI)
+      }
   }
 
 
@@ -201,6 +246,8 @@ RunPerformanceTest <- function(ServerSpecifications,
       {
           for (k in ScenarioB.SequenceServerCount)
           {
+              PrintSoloMessage(c(Special = paste0("Scenario B: Started Run ", i, " / ", ScenarioB.Runs, " with ", k, " from ", nrow(ServerSpecifications), " servers and sample size ", ScenarioB.SampleSize, ".")))
+
               # Randomly select k servers from all servers
               CurrentServerSpecifications <- ServerSpecifications[sample(1:nrow(ServerSpecifications), k), ]
 
@@ -210,7 +257,7 @@ RunPerformanceTest <- function(ServerSpecifications,
               # Connect to CCP servers
               ScenarioB.CCPConnections <- dsCCPhosClient::ConnectToCCP(ServerSpecifications = CurrentServerSpecifications)
 
-              Results.B.CurrentRun$NumberOfServers <- length(ScenarioA.CCPConnections)
+              Results.B.CurrentRun$NumberOfServers <- k
               Results.B.CurrentRun$Time.AfterLogin <- Sys.time()
 
               #---  Load Raw Data Set  ---------------------------------------------
@@ -220,20 +267,33 @@ RunPerformanceTest <- function(ServerSpecifications,
               Results.B.CurrentRun$Time.AfterLoading <- Sys.time()
 
               #---  Run single processing run with specific sample size ------------
-              Tracker.ScenarioB <- tibble()
-              Tracker.ScenarioB.ServerSpecific <- tibble()
-
               SingleRunResults <- SingleRun(SingleRun.SampleSize = ScenarioB.SampleSize,
                                             SingleRun.DSConnections = ScenarioB.CCPConnections)
 
-              Results.B.CurrentRun <- Results.B.CurrentRun %>%
-                                          bind_cols(SingleRunResults$Summary)
+              Results.B.ServerSpecific.CurrentRun <- Results.B.CurrentRun %>%
+                                                          bind_cols(SingleRunResults$ServerSpecific)
 
+              Results.B.CurrentRun <- Results.B.CurrentRun %>%
+                                          bind_cols(SingleRunResults$Summary) %>%
+                                          mutate(Duration.Login = as.numeric(difftime(Time.AfterLogin, Time.StartRun, units = "secs")),
+                                                 Duration.Loading = as.numeric(difftime(Time.AfterLoading, Time.AfterLogin, units = "secs")),
+                                                 Duration.SampleDrawing = as.numeric(difftime(Time.AfterSampleDrawing, Time.AfterLoading, units = "secs")),
+                                                 Duration.Curation.WithTI = as.numeric(difftime(Time.AfterCuration, Time.AfterSampleDrawing, units = "secs")),
+                                                 Duration.Curation.WithoutTI = Duration.Curation.Total.WithoutGapTime,
+                                                 Duration.Curation.OnlyTI = Duration.Curation.WithTI - Duration.Curation.WithoutTI)
+
+              # Row-bind current results to main result data.frames
               Results.B <- Results.B %>%
                                 bind_rows(Results.B.CurrentRun)
 
               Results.B.ServerSpecific <- Results.B.ServerSpecific %>%
-                                              bind_rows(SingleRunResults$ServerSpecific)
+                                              bind_rows(Results.B.ServerSpecific.CurrentRun)
+
+              if (CreateLogFiles == TRUE)
+              {
+                  write.table(Results.B.CurrentRun, file = LogFile.ScenarioB, sep = ",", row.names = FALSE, append = file.exists(LogFile.ScenarioB))
+                  write.table(Results.B.ServerSpecific.CurrentRun, file = LogFile.ScenarioB.ServerSpecific, sep = ",", row.names = FALSE, append = file.exists(LogFile.ScenarioB.ServerSpecific))
+              }
 
               DSI::datashield.logout(conns = ScenarioB.CCPConnections)
           }
