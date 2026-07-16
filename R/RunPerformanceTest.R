@@ -26,7 +26,7 @@ RunPerformanceTest <- function(ServerSpecifications,
                                ScenarioB.Runs = 1,
                                ScenarioB.SequenceServerCount = 1:nrow(ServerSpecifications),
                                ScenarioB.SampleSize = 500,
-                               CreateLogFiles = TRUE,
+                               CreateLogFiles = FALSE,
                                DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
@@ -244,9 +244,11 @@ RunPerformanceTest <- function(ServerSpecifications,
   {
       for (i in 1:ScenarioB.Runs)
       {
+          PrintSoloMessage(c(Special = paste0("Scenario B: Started Run ", i, " / ", ScenarioB.Runs)))
+
           for (k in ScenarioB.SequenceServerCount)
           {
-              PrintSoloMessage(c(Special = paste0("Scenario B: Started Run ", i, " / ", ScenarioB.Runs, " with ", k, " from ", nrow(ServerSpecifications), " servers and sample size ", ScenarioB.SampleSize, ".")))
+              PrintSoloMessage(c(Special = paste0("Scenario B, Run ", i, " / ", ScenarioB.Runs, ": Started processing with ", k, " from ", nrow(ServerSpecifications), " servers and fixed sample size ", ScenarioB.SampleSize, ".")))
 
               # Randomly select k servers from all servers
               CurrentServerSpecifications <- ServerSpecifications[sample(1:nrow(ServerSpecifications), k), ]
