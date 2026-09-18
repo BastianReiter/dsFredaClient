@@ -12,6 +12,7 @@
 #' @param Profile.CurationProcess \code{string} - "Default"
 #' @param Profile.DataRemediation \code{string} - "Default"
 #' @param Profile.Dictionary \code{string} - "Default"
+#' @param Profile.FeatureRequirements \code{string} - "Default"
 #' @param Profile.FeatureTracking \code{string} - "Default"
 #' @param Profile.FuzzyStringMatching \code{string} - "Default"
 #' @param Profile.PrimaryTableCleaning \code{string} - "Default"
@@ -19,7 +20,6 @@
 #' @param Profile.SecondaryTableCleaning \code{string} - "Default"
 #' @param Profile.TableNormalization \code{string} - "Default"
 #' @param Profile.TransformativeExpressions \code{string} - "Default"
-#' @param Profile.ValueAvailability \code{string} - "Default"
 #' @param RunAssignmentChecks \code{logical} - Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{TRUE}
 #' @param UnpackCuratedDataSet \code{logical} - Indicating whether the Curated Data Set \code{list} should be unpacked so that tables \code{data.frames} are directly accessible - Default: \code{TRUE}
 #' @param RunSeparately \code{logical} - Indicating whether \code{CurateDataDS()} should be run separately for each server. This can be done for testing purposes or if timeout issues arise. - Default: \code{FALSE}
@@ -38,6 +38,7 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
                           Profile.CurationProcess = "Default",
                           Profile.DataRemediation = "Default",
                           Profile.Dictionary = "Default",
+                          Profile.FeatureRequirements = "Default",
                           Profile.FeatureTracking = "Default",
                           Profile.FuzzyStringMatching = "Default",
                           Profile.PrimaryTableCleaning = "Default",
@@ -45,7 +46,6 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
                           Profile.SecondaryTableCleaning = "Default",
                           Profile.TableNormalization = "Default",
                           Profile.TransformativeExpressions = "Default",
-                          Profile.ValueAvailability = "Default",
                           #--- Secondary Arguments ---
                           RunAssignmentChecks = TRUE,
                           UnpackCuratedDataSet = TRUE,
@@ -61,6 +61,7 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
   # Profile.CurationProcess <- "Default"
   # Profile.DataRemediation <- "Default"
   # Profile.Dictionary <- "Default"
+  # Profile.FeatureRequirements <- "Default"
   # Profile.FeatureTracking <- "Default"
   # Profile.FuzzyStringMatching <- "Default"
   # Profile.PrimaryTableCleaning <- "Default"
@@ -68,7 +69,6 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
   # Profile.SecondaryTableCleaning <- "Default"
   # Profile.TableNormalization <- "Default"
   # Profile.TransformativeExpressions <- "Default"
-  # Profile.ValueAvailability <- "Default"
   # RunAssignmentChecks <- TRUE
   # UnpackCuratedDataSet <- TRUE
   # RunSeparately <- FALSE
@@ -82,6 +82,7 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
               is.string(Profile.CurationProcess),
               is.string(Profile.DataRemediation),
               is.string(Profile.Dictionary),
+              is.string(Profile.FeatureRequirements),
               is.string(Profile.FeatureTracking),
               is.string(Profile.FuzzyStringMatching),
               is.string(Profile.PrimaryTableCleaning),
@@ -89,7 +90,6 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
               is.string(Profile.SecondaryTableCleaning),
               is.string(Profile.TableNormalization),
               is.string(Profile.TransformativeExpressions),
-              is.string(Profile.ValueAvailability),
               is.flag(RunAssignmentChecks),
               is.flag(UnpackCuratedDataSet),
               is.flag(RunSeparately),
@@ -120,14 +120,14 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
                                           Profile.CurationProcess.S = Profile.CurationProcess,
                                           Profile.DataRemediation.S = Profile.DataRemediation,
                                           Profile.Dictionary.S = Profile.Dictionary,
+                                          Profile.FeatureRequirements.S = Profile.FeatureRequirements,
                                           Profile.FeatureTracking.S = Profile.FeatureTracking,
                                           Profile.FuzzyStringMatching.S = Profile.FuzzyStringMatching,
                                           Profile.PrimaryTableCleaning.S = Profile.PrimaryTableCleaning,
                                           Profile.RecordSubsumption.S = Profile.RecordSubsumption,
                                           Profile.SecondaryTableCleaning.S = Profile.SecondaryTableCleaning,
                                           Profile.TableNormalization.S = Profile.TableNormalization,
-                                          Profile.TransformativeExpressions.S = Profile.TransformativeExpressions,
-                                          Profile.ValueAvailability.S = Profile.ValueAvailability),
+                                          Profile.TransformativeExpressions.S = Profile.TransformativeExpressions),
                              async = DS.async)
   }
 
