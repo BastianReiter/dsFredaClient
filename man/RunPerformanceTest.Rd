@@ -14,7 +14,7 @@ RunPerformanceTest(
   ScenarioB.Runs = 1,
   ScenarioB.SequenceServerCount = 1:nrow(ServerSpecifications),
   ScenarioB.SampleSize = 500,
-  CreateLogFiles = TRUE,
+  CreateLogFiles = FALSE,
   DS.async = dsFredaClient::Set.DSSettings$DS.async
 )
 }

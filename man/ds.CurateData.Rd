@@ -11,7 +11,6 @@ ds.CurateData(
   Profile.CurationProcess = "Default",
   Profile.DataRemediation = "Default",
   Profile.Dictionary = "Default",
-  Profile.FeatureRequirements = "Default",
   Profile.FeatureTracking = "Default",
   Profile.FuzzyStringMatching = "Default",
   Profile.PrimaryTableCleaning = "Default",
@@ -19,6 +18,7 @@ ds.CurateData(
   Profile.SecondaryTableCleaning = "Default",
   Profile.TableNormalization = "Default",
   Profile.TransformativeExpressions = "Default",
+  Profile.ValueAvailability = "Default",
   RunAssignmentChecks = TRUE,
   UnpackCuratedDataSet = TRUE,
   RunSeparately = FALSE,
@@ -39,8 +39,6 @@ ds.CurateData(
 
 \item{Profile.Dictionary}{\code{string} - "Default"}
 
-\item{Profile.FeatureRequirements}{\code{string} - "Default"}
-
 \item{Profile.FeatureTracking}{\code{string} - "Default"}
 
 \item{Profile.FuzzyStringMatching}{\code{string} - "Default"}
@@ -54,6 +52,8 @@ ds.CurateData(
 \item{Profile.TableNormalization}{\code{string} - "Default"}
 
 \item{Profile.TransformativeExpressions}{\code{string} - "Default"}
+
+\item{Profile.ValueAvailability}{\code{string} - "Default"}
 
 \item{RunAssignmentChecks}{\code{logical} - Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{TRUE}}
 

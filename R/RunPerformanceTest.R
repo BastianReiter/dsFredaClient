@@ -302,20 +302,6 @@ RunPerformanceTest <- function(ServerSpecifications,
       }
   }
 
-
-
-  # Create table of timed durations
-  # PerformanceMonitor <- tibble(Time.Initialization = Time.Initial,
-  #                              Duration.Loading = as.double(lubridate::as.duration(Time.AfterLoading - Time.Initial)),
-  #                              Duration.Curation = as.double(lubridate::as.duration(Time.AfterCuration - Time.AfterLoading)),
-  #                              Duration.Augmentation = as.double(lubridate::as.duration(Time.AfterAugmentation - Time.AfterCuration)),
-  #                              Duration.ReportAkquisition = as.double(lubridate::as.duration(Time.AfterReportAkquisition - Time.AfterAugmentation)),
-  #                              Duration.WorkspaceSaving = as.double(lubridate::as.duration(Time.AfterWorkspaceSaving - Time.AfterReportAkquisition)))
-
-  # Add PerformanceMonitor to 'Report' list
-  # Report <- c(Report,
-  #             list(PerformanceMonitor))
-
 #-------------------------------------------------------------------------------
   return(list(Results.A = Results.A,
               Results.A.ServerSpecific = Results.A.ServerSpecific,
