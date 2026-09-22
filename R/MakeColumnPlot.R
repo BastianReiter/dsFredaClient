@@ -69,12 +69,12 @@ MakeColumnPlot <- function(DataFrame,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # DataFrame <- CumulatedData_Full$df_Output_SampleSize %>%
-  #                       filter(FirstRelevantAdmissionYear < 2023)
-  # XFeature <- "FirstRelevantAdmissionYear"
+  # DataFrame <- CohortDescription$CohortSize.OverTime %>%
+  #                   filter(Server != "All")
+  # XFeature <- "DiagnosisYear"
   # XFeatureSpecs <- NULL
   # XFeatureAdditionalMapping <- "none"
-  # YFeature <- "N"
+  # YFeature <- "PatientCount"
   # GroupingFeature <- "Site"
   # GroupingSpecs <- c("Site A" = "MunichLMU",
   #                   "Site B" = "Freiburg",
