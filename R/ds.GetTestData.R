@@ -1,12 +1,9 @@
 
 #' ds.GetTestData
 #'
-#' Trigger basic preparatory transformations on RawDataSet prior to Curation:
-#' \itemize{  \item Feature name harmonization
-#'            \item Add ID feature (running number) for tables without primary key feature
-#'            \item Type- or format-conversion of features }
+#' Get randomized test data from servers (only possible in 'developer' mode).
 #'
-#' Linked to server-side ASSIGN method \code{PrepareRawDataDS()}
+#' Linked to server-side AGGREGATE method \code{GetTestDataDS()}
 #'
 #' @param DataSetName \code{string} - Name of Data Set object (list) on server
 #' @param TableName \code{string} - Name of specific table object on server
