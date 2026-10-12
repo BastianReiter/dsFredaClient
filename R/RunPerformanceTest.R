@@ -133,7 +133,7 @@ RunPerformanceTest <- function(ServerSpecifications,
                             mutate(ProcessGapTime = case_when(Interval > 0 ~ Interval,
                                                               .default = 0)) %>%
                             summarize(Duration.Curation.TotalGapTime = sum(ProcessGapTime),
-                                      Duration.Curation.Total = as.numeric(difftime(max(Process.End, na.rm = TRUE), min(Process.Start, na.rm = TRUE))),
+                                      Duration.Curation.Total = as.numeric(difftime(max(Process.End, na.rm = TRUE), min(Process.Start, na.rm = TRUE), units = "secs")),
                                       Duration.Curation.Total.WithoutGapTime = Duration.Curation.Total - Duration.Curation.TotalGapTime,
                                       CPUCount.Median = median(CPU.Count, na.rm = TRUE),
                                       RAM.Total.Median = median(RAM.Total, na.rm = TRUE),

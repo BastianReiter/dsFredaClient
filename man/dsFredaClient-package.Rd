@@ -19,5 +19,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Bastian Reiter \email{b.reiter@med.uni-frankfurt.de} (\href{https://orcid.org/0000-0002-1088-0502}{ORCID})
 
+Authors:
+\itemize{
+  \item Bastian Reiter \email{b.reiter@med.uni-frankfurt.de} (\href{https://orcid.org/0000-0002-1088-0502}{ORCID})
+}
+
 }
 \keyword{internal}

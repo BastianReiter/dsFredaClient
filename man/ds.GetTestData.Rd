@@ -30,13 +30,10 @@ ds.GetTestData(
 A \code{list}
 }
 \description{
-Trigger basic preparatory transformations on RawDataSet prior to Curation:
-\itemize{  \item Feature name harmonization
-\item Add ID feature (running number) for tables without primary key feature
-\item Type- or format-conversion of features }
+Get randomized test data from servers (only possible in 'developer' mode).
 }
 \details{
-Linked to server-side ASSIGN method \code{PrepareRawDataDS()}
+Linked to server-side AGGREGATE method \code{GetTestDataDS()}
 }
 \author{
 Bastian Reiter

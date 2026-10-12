@@ -1,6 +1,6 @@
 Package: dsFredaClient
 Title: Federated Refinement, Exploration and Data Augmentation
-Version: 0.3.22
+Version: 0.3.23
 Authors@R: 
     person("Bastian", "Reiter", , "b.reiter@med.uni-frankfurt.de", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-1088-0502"))
@@ -9,7 +9,6 @@ URL: https://ccphos.netlify.app/, https://github.com/BastianReiter/dsFredaClient
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
 Imports:
     assertthat,
     cli,
@@ -45,3 +44,4 @@ Remotes:
     BastianReiter/dsFreda,
     datashield/dsBase,
     datashield/dsBaseClient
+Config/roxygen2/version: 8.1.0
