@@ -128,7 +128,7 @@ RunPerformanceTest <- function(ServerSpecifications,
 
       Tracker.ServerSpecific <- ServerProcessInfo %>%
                                     left_join(ServerSystemSpecs, by = join_by(Server)) %>%
-                                    mutate(SampleSize = SingleRun.SampleSize, .after = NumberOfServers)
+                                    mutate(SampleSize = SingleRun.SampleSize)
 
       ProcessSummary <- Tracker.ServerSpecific %>%
                             mutate(ProcessGapTime = case_when(Interval > 0 ~ Interval,
