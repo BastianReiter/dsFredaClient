@@ -45,8 +45,8 @@ Set.ServerRequirements <- list(#--- Data frame containing names of required pack
                                 RequiredFunctions = data.frame(FunctionName = character(),
                                                                FunctionType = character()) %>%
                                                         add_row(FunctionName = "GetReportingObjectDS", FunctionType = "aggregate") %>%
-                                                        add_row(FunctionName = "AugmentDataDS", FunctionType = "assign") %>%
-                                                        add_row(FunctionName = "CurateDataDS", FunctionType = "assign") %>%
+                                                        add_row(FunctionName = "EnrichDataDS", FunctionType = "assign") %>%
+                                                        add_row(FunctionName = "RefineDataDS", FunctionType = "assign") %>%
                                                         add_row(FunctionName = "ExtractFromListDS", FunctionType = "assign"))
 
 # Save data in .rda-file and make it part of package

@@ -68,40 +68,40 @@ RunPerformanceTest <- function(ServerSpecifications,
   {
       Tracker <- tibble(SampleSize = SingleRun.SampleSize)
 
-      #---  Draw RDS Samples  --------------------------------------------------
-      ds.CCP.DrawSample(RawDataSetName = "CCP.RawDataSet",
+      #---  Draw SDS Samples  --------------------------------------------------
+      ds.CCP.DrawSample(SourceDataSetName = "CCP.SourceDataSet",
                         SampleSize = SingleRun.SampleSize,
-                        SampleName = "RDSSample",
+                        SampleName = "SDSSample",
                         DSConnections = SingleRun.DSConnections)
 
       Tracker$Time.AfterSampleDrawing <- Sys.time()
 
 
-      #---  Data Curation  -----------------------------------------------------
-      # ds.CurateData(RawDataSetName = "RDSSample",
+      #---  Data Refinement  -----------------------------------------------------
+      # ds.RefineData(SourceDataSetName = "SDSSample",
       #               Module = "CCP",
-      #               OutputName = "CCP.CurationOutput",
+      #               OutputName = "CCP.RefinementOutput",
       #               RunAssignmentChecks = FALSE,
-      #               UnpackCuratedDataSet = FALSE,
+      #               UnpackRefinedDataSet = FALSE,
       #               RunSeparately = FALSE,
       #               DSConnections = SingleRun.DSConnections)
 
-      # Trigger curation on servers
+      # Trigger Refinement on servers
       DSI::datashield.assign(conns = SingleRun.DSConnections,
-                             symbol = "CCP.CurationOutput",
-                             value = call("CurateDataDS",
-                                          RawDataSetName.S = "RDSSample",
+                             symbol = "CCP.RefinementOutput",
+                             value = call("RefineDataDS",
+                                          SourceDataSetName.S = "SDSSample",
                                           Module.S = "CCP"),
                              async = DS.async)
 
-      Tracker$Time.AfterCuration <- Sys.time()
+      Tracker$Time.AfterRefinement <- Sys.time()
 
-      # Get curation messages (more lightweight then full Curation Report)
-      # First, extract curation messages from curation output on servers
+      # Get Refinement messages (more lightweight then full Refinement Report)
+      # First, extract Refinement messages from Refinement output on servers
       DSI::datashield.assign(conns = SingleRun.DSConnections,
                              symbol = "Messages",
                              value = call("ExtractFromListDS",
-                                           ListName.S = "CCP.CurationOutput",
+                                           ListName.S = "CCP.RefinementOutput",
                                            ObjectName.S = "Messages"),
                              async = DS.async)
 
@@ -110,8 +110,8 @@ RunPerformanceTest <- function(ServerSpecifications,
                                                                 ObjectName.S = "Messages"),
                                                     async = DS.async) %>%
                                 tibble::enframe(name = "Server",
-                                                value = "CurationMessages") %>%
-                                tidyr::unnest_wider(CurationMessages) %>%
+                                                value = "RefinementMessages") %>%
+                                tidyr::unnest_wider(RefinementMessages) %>%
                                 select(Server, Process.Start, Process.End) %>%
                                 arrange(Process.Start) %>%
                                 mutate(Process.Duration = as.numeric(difftime(Process.End, Process.Start, units = "secs")),
@@ -133,9 +133,9 @@ RunPerformanceTest <- function(ServerSpecifications,
       ProcessSummary <- Tracker.ServerSpecific %>%
                             mutate(ProcessGapTime = case_when(Interval > 0 ~ Interval,
                                                               .default = 0)) %>%
-                            summarize(Duration.Curation.TotalGapTime = sum(ProcessGapTime),
-                                      Duration.Curation.Total = as.numeric(difftime(max(Process.End, na.rm = TRUE), min(Process.Start, na.rm = TRUE), units = "secs")),
-                                      Duration.Curation.Total.WithoutGapTime = Duration.Curation.Total - Duration.Curation.TotalGapTime,
+                            summarize(Duration.Refinement.TotalGapTime = sum(ProcessGapTime),
+                                      Duration.Refinement.Total = as.numeric(difftime(max(Process.End, na.rm = TRUE), min(Process.Start, na.rm = TRUE), units = "secs")),
+                                      Duration.Refinement.Total.WithoutGapTime = Duration.Refinement.Total - Duration.Refinement.TotalGapTime,
                                       CPUCount.Median = median(CPU.Count, na.rm = TRUE),
                                       RAM.Total.Median = median(RAM.Total, na.rm = TRUE),
                                       RAM.Available.Median = median(RAM.Available, na.rm = TRUE))
@@ -172,8 +172,8 @@ RunPerformanceTest <- function(ServerSpecifications,
           Results.A.CurrentRun$NumberOfServers <- length(ScenarioA.CCPConnections)
           Results.A.CurrentRun$Time.AfterLogin <- Sys.time()
 
-          #---  Load Raw Data Set  ---------------------------------------------
-          CCP.LoadRawDataSet(ServerSpecifications = ServerSpecifications,
+          #---  Load Source Data Set  ---------------------------------------------
+          CCP.LoadSourceDataSet(ServerSpecifications = ServerSpecifications,
                              DSConnections = ScenarioA.CCPConnections)
 
           Results.A.CurrentRun$Time.AfterLoading <- Sys.time()
@@ -209,9 +209,9 @@ RunPerformanceTest <- function(ServerSpecifications,
                                       mutate(Duration.Login = as.numeric(difftime(Time.AfterLogin, Time.StartRun, units = "secs")),
                                              Duration.Loading = as.numeric(difftime(Time.AfterLoading, Time.AfterLogin, units = "secs")),
                                              Duration.SampleDrawing = as.numeric(difftime(Time.AfterSampleDrawing, Time.AfterLoading, units = "secs")),
-                                             Duration.Curation.WithTI = as.numeric(difftime(Time.AfterCuration, Time.AfterSampleDrawing, units = "secs")),
-                                             Duration.Curation.WithoutTI = Duration.Curation.Total.WithoutGapTime,
-                                             Duration.Curation.OnlyTI = Duration.Curation.WithTI - Duration.Curation.WithoutTI)
+                                             Duration.Refinement.WithTI = as.numeric(difftime(Time.AfterRefinement, Time.AfterSampleDrawing, units = "secs")),
+                                             Duration.Refinement.WithoutTI = Duration.Refinement.Total.WithoutGapTime,
+                                             Duration.Refinement.OnlyTI = Duration.Refinement.WithTI - Duration.Refinement.WithoutTI)
 
           # Row-bind current results to main result data.frames
           Results.A <- Results.A %>%
@@ -263,8 +263,8 @@ RunPerformanceTest <- function(ServerSpecifications,
               Results.B.CurrentRun$NumberOfServers <- k
               Results.B.CurrentRun$Time.AfterLogin <- Sys.time()
 
-              #---  Load Raw Data Set  ---------------------------------------------
-              CCP.LoadRawDataSet(ServerSpecifications = CurrentServerSpecifications,
+              #---  Load Source Data Set  ---------------------------------------------
+              CCP.LoadSourceDataSet(ServerSpecifications = CurrentServerSpecifications,
                                  DSConnections = ScenarioB.CCPConnections)
 
               Results.B.CurrentRun$Time.AfterLoading <- Sys.time()
@@ -281,9 +281,9 @@ RunPerformanceTest <- function(ServerSpecifications,
                                           mutate(Duration.Login = as.numeric(difftime(Time.AfterLogin, Time.StartRun, units = "secs")),
                                                  Duration.Loading = as.numeric(difftime(Time.AfterLoading, Time.AfterLogin, units = "secs")),
                                                  Duration.SampleDrawing = as.numeric(difftime(Time.AfterSampleDrawing, Time.AfterLoading, units = "secs")),
-                                                 Duration.Curation.WithTI = as.numeric(difftime(Time.AfterCuration, Time.AfterSampleDrawing, units = "secs")),
-                                                 Duration.Curation.WithoutTI = Duration.Curation.Total.WithoutGapTime,
-                                                 Duration.Curation.OnlyTI = Duration.Curation.WithTI - Duration.Curation.WithoutTI)
+                                                 Duration.Refinement.WithTI = as.numeric(difftime(Time.AfterRefinement, Time.AfterSampleDrawing, units = "secs")),
+                                                 Duration.Refinement.WithoutTI = Duration.Refinement.Total.WithoutGapTime,
+                                                 Duration.Refinement.OnlyTI = Duration.Refinement.WithTI - Duration.Refinement.WithoutTI)
 
               # Row-bind current results to main result data.frames
               Results.B <- Results.B %>%

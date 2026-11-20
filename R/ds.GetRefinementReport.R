@@ -1,8 +1,8 @@
 
-#' ds.GetCurationReport
+#' ds.GetRefinementReport
 #'
 #' `r lifecycle::badge("experimental")` \cr\cr
-#' Receive Curation Reports from servers and create cumulated reporting objects.
+#' Receive Refinement Reports from servers and create cumulated reporting objects.
 #'
 #' Linked to server-side \code{AGGREGATE} method \code{GetReportingObjectDS()}
 #'
@@ -32,7 +32,7 @@
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ds.GetCurationReport <- function(Module = "CCP",
+ds.GetRefinementReport <- function(Module = "CCP",
                                  DSConnections = NULL,
                                  DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -53,20 +53,20 @@ ds.GetCurationReport <- function(Module = "CCP",
 #===============================================================================
 # - OVERVIEW -
 #===============================================================================
-#   A)  Get CurationReports from all servers
+#   A)  Get RefinementReports from all servers
 #   B)  Rearrangement of LOG report objects
 #   C)  Compilation of COUNTER data
 #   D)  Compilation of DATA HARMONIZATION Reports and Monitors
 #-------------------------------------------------------------------------------
 
 #===============================================================================
-# A) Get CurationReports from all servers
+# A) Get RefinementReports from all servers
 #===============================================================================
 
-  # Get CurationReport objects from servers
-  CurationReports <- DSI::datashield.aggregate(conns = DSConnections,
+  # Get RefinementReport objects from servers
+  RefinementReports <- DSI::datashield.aggregate(conns = DSConnections,
                                                expr = call("GetReportingObjectDS",
-                                                           ObjectName.S = paste0(Module, ".CurationReport")),
+                                                           ObjectName.S = paste0(Module, ".RefinementReport")),
                                                async = DS.async)
 
 
@@ -74,7 +74,7 @@ ds.GetCurationReport <- function(Module = "CCP",
 # B) Rearrangement of LOG report objects
 #===============================================================================
 
-  Log <- CurationReports %>%
+  Log <- RefinementReports %>%
               list_transpose() %>%
               pluck("Log")
 
@@ -83,7 +83,7 @@ ds.GetCurationReport <- function(Module = "CCP",
 # C) Compilation of PROCESS report
 #===============================================================================
 
-  ProcessReport <- CurationReports %>%
+  ProcessReport <- RefinementReports %>%
                         list_transpose() %>%
                         pluck("Process") %>%
                         map(\(X) as_tibble(X)) %>%
@@ -101,8 +101,8 @@ ds.GetCurationReport <- function(Module = "CCP",
 # D 1) COUNTER SUMMARY on DATA SET level
 #-------------------------------------------------------------------------------
 
-  Counter.StageLevel.Servers <- CurationReports %>%
-                                    map(\(ServerCurationReport) ServerCurationReport %>%
+  Counter.StageLevel.Servers <- RefinementReports %>%
+                                    map(\(ServerRefinementReport) ServerRefinementReport %>%
                                                                     pluck("Counter", "Extensive") %>%
                                                                     map(\(TableCounter) TableCounter %>% pluck("StageLevel")) %>%
                                                                     list_rbind(names_to = "Table")) %>%
@@ -181,9 +181,9 @@ ds.GetCurationReport <- function(Module = "CCP",
   # DATA-SET-LEVEL Counter summaries
   #---------------------------------
 
-  # First, get server-specific data set table counts from CurationReports
-  TableCount <- CurationReports %>%
-                    map(\(ServerCurationReport) ServerCurationReport %>%
+  # First, get server-specific data set table counts from RefinementReports
+  TableCount <- RefinementReports %>%
+                    map(\(ServerRefinementReport) ServerRefinementReport %>%
                                                           pluck("Counter", "Summary", "DataSetLevel") %>%
                                                           select(CountTables)) %>%
                     list_rbind(names_to = "Server") %>%
@@ -201,8 +201,8 @@ ds.GetCurationReport <- function(Module = "CCP",
 #-------------------------------------------------------------------------------
 
   # Compile relevant COUNTER DETAILS data in cumulated data.frame (all servers, all tables) and then split into table-specific data.frames
-  Counter.Details <- CurationReports %>%
-                          map(\(ServerCurationReport) ServerCurationReport %>%
+  Counter.Details <- RefinementReports %>%
+                          map(\(ServerRefinementReport) ServerRefinementReport %>%
                                                           pluck("Counter", "Extensive") %>%
                                                           map(\(TableCounter) TableCounter %>% pluck("Details")) %>%
                                                           list_rbind(names_to = "Table")) %>%
@@ -246,7 +246,7 @@ ds.GetCurationReport <- function(Module = "CCP",
 #-------------------------------------------------------------------------------
 
   # Get all server-specific data-set-level data harmonization reports and row-bind them
-  DataHarmonization.Report.DataSetLevel.Servers <- CurationReports %>%
+  DataHarmonization.Report.DataSetLevel.Servers <- RefinementReports %>%
                                                         map(\(X) X %>% pluck("DataHarmonization", "Reports", "DataSetLevel")) %>%
                                                         list_rbind(names_to = "Server")
 
@@ -255,9 +255,9 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                                     CountAffectedTables = max(CountAffectedTables),
                                                                     CountTrackedFeatures = max(CountTrackedFeatures),
                                                                     across(starts_with("CountValues"), ~ sum(.x, na.rm = FALSE)),
-                                                                    ProportionValues.Harmonized = ifelse(is.na(CountValues.Ineligible.Raw) | CountValues.Ineligible.Raw == 0,
+                                                                    ProportionValues.Harmonized = ifelse(is.na(CountValues.Ineligible.Source) | CountValues.Ineligible.Source == 0,
                                                                                                          NA,
-                                                                                                         CountValues.Harmonized / CountValues.Ineligible.Raw))
+                                                                                                         CountValues.Harmonized / CountValues.Ineligible.Source))
 
   DataHarmonization.Report.DataSetLevel <- DataHarmonization.Report.DataSetLevel.Cumulated %>%
                                                 bind_rows(DataHarmonization.Report.DataSetLevel.Servers)
@@ -267,7 +267,7 @@ ds.GetCurationReport <- function(Module = "CCP",
 #-------------------------------------------------------------------------------
 
   # Get all server-specific table-level data harmonization reports and row-bind them
-  DataHarmonization.Report.TableLevel.Servers <- CurationReports %>%
+  DataHarmonization.Report.TableLevel.Servers <- RefinementReports %>%
                                                       map(\(X) X %>% pluck("DataHarmonization", "Reports", "TableLevel")) %>%
                                                       list_rbind(names_to = "Server")
 
@@ -276,9 +276,9 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                         summarize(Server = "All",
                                                                   CountTrackedFeatures = max(CountTrackedFeatures),
                                                                   across(starts_with("CountValues"), ~ sum(.x, na.rm = FALSE)),
-                                                                  ProportionValues.Harmonized = ifelse(is.na(CountValues.Ineligible.Raw) | CountValues.Ineligible.Raw == 0,
+                                                                  ProportionValues.Harmonized = ifelse(is.na(CountValues.Ineligible.Source) | CountValues.Ineligible.Source == 0,
                                                                                                        NA,
-                                                                                                       CountValues.Harmonized / CountValues.Ineligible.Raw))
+                                                                                                       CountValues.Harmonized / CountValues.Ineligible.Source))
 
   DataHarmonization.Report.TableLevel <- DataHarmonization.Report.TableLevel.Cumulated %>%
                                               bind_rows(DataHarmonization.Report.TableLevel.Servers) %>%
@@ -290,8 +290,8 @@ ds.GetCurationReport <- function(Module = "CCP",
 #-------------------------------------------------------------------------------
 
   # Get all server-specific feature-level data harmonization reports and row-bind them
-  DataHarmonization.Report.FeatureLevel.Servers <- CurationReports %>%
-                                                        map(\(ServerCurationReport) ServerCurationReport %>%
+  DataHarmonization.Report.FeatureLevel.Servers <- RefinementReports %>%
+                                                        map(\(ServerRefinementReport) ServerRefinementReport %>%
                                                                                         pluck("DataHarmonization", "Reports", "FeatureLevel") %>%
                                                                                         list_rbind(names_to = "Table")) %>%
                                                         list_rbind(names_to = "Server")
@@ -301,8 +301,8 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                               summarize(Server = "All",
                                                                         across(starts_with("Count"), ~ sum(.x, na.rm = TRUE))) %>%
                                                           ungroup() %>%
-                                                          mutate(ProportionValues.Harmonized = case_when(is.na(CountValues.Ineligible.Raw) | CountValues.Ineligible.Raw == 0 ~ NA,
-                                                                                                         .default = CountValues.Harmonized / CountValues.Ineligible.Raw)) %>%
+                                                          mutate(ProportionValues.Harmonized = case_when(is.na(CountValues.Ineligible.Source) | CountValues.Ineligible.Source == 0 ~ NA,
+                                                                                                         .default = CountValues.Harmonized / CountValues.Ineligible.Source)) %>%
                                                           relocate(Server, .before = 1)
 
   DataHarmonization.Report.FeatureLevel <- DataHarmonization.Report.FeatureLevel.Cumulated %>%
@@ -318,14 +318,14 @@ ds.GetCurationReport <- function(Module = "CCP",
 #-------------------------------------------------------------------------------
 
   # Get all server-specific value-level data harmonization reports and row-bind them
-  DataHarmonization.Report.ValueLevel.Servers <- CurationReports %>%
-                                                      map(\(ServerCurationReport) ServerCurationReport %>%
+  DataHarmonization.Report.ValueLevel.Servers <- RefinementReports %>%
+                                                      map(\(ServerRefinementReport) ServerRefinementReport %>%
                                                                                       pluck("DataHarmonization", "Reports", "ValueLevel") %>%
                                                                                       list_rbind(names_to = "Table")) %>%
                                                       list_rbind(names_to = "Server")
 
   DataHarmonization.Report.ValueLevel.Cumulated <- DataHarmonization.Report.ValueLevel.Servers %>%
-                                                        group_by(Table, Feature, Value.Raw) %>%
+                                                        group_by(Table, Feature, Value.Source) %>%
                                                             arrange(desc(IsOccurring), .by_group = TRUE) %>%      # Make sure that a server-specific row can be on top, where 'IsOccurring' is TRUE
                                                             summarize(Server = "All",
                                                                       Count = sum(Count, na.rm = TRUE),
@@ -342,15 +342,15 @@ ds.GetCurationReport <- function(Module = "CCP",
                                                               split(.$Feature) %>%
                                                                   map(\(X) X %>%
                                                                             select(-Feature) %>%
-                                                                            split(.$Value.Raw) %>%
-                                                                                map(\(X) X %>% select(-Value.Raw))))
+                                                                            split(.$Value.Source) %>%
+                                                                                map(\(X) X %>% select(-Value.Source))))
 
 
-# E 5) Full Value Sets for all harmonization stages (Raw, Remediated, Recoded, Final)
+# E 5) Full Value Sets for all harmonization stages (Source, Remediated, Recoded, Final)
 #-------------------------------------------------------------------------------
 
-  DataHarmonization.ValueSets.Servers <- CurationReports %>%
-                                              map(\(ServerCurationReport) ServerCurationReport %>%
+  DataHarmonization.ValueSets.Servers <- RefinementReports %>%
+                                              map(\(ServerRefinementReport) ServerRefinementReport %>%
                                                                               pluck("DataHarmonization", "Reports", "ValueSets") %>%
                                                                               map(\(TableValueSets) TableValueSets %>%
                                                                                                         map(\(FeatureValueSet) FeatureValueSet %>%
@@ -389,8 +389,8 @@ ds.GetCurationReport <- function(Module = "CCP",
 #-------------------------------------------------------------------------------
 
   # Get all server-specific table-level data harmonization monitors and row-bind them
-  DataHarmonization.Monitor.TableLevel.Servers <- CurationReports %>%
-                                                      map(\(ServerCurationReport) ServerCurationReport %>%
+  DataHarmonization.Monitor.TableLevel.Servers <- RefinementReports %>%
+                                                      map(\(ServerRefinementReport) ServerRefinementReport %>%
                                                                                       pluck("DataHarmonization", "Monitors", "TableLevel") %>%
                                                                                       list_rbind(names_to = "Table")) %>%
                                                       list_rbind(names_to = "Server")
@@ -418,8 +418,8 @@ ds.GetCurationReport <- function(Module = "CCP",
 #-------------------------------------------------------------------------------
 
   # Get all server-specific feature-level data harmonization monitors and row-bind them
-  DataHarmonization.Monitor.FeatureLevel.Servers <- CurationReports %>%
-                                                        map(\(ServerCurationReport) ServerCurationReport %>%
+  DataHarmonization.Monitor.FeatureLevel.Servers <- RefinementReports %>%
+                                                        map(\(ServerRefinementReport) ServerRefinementReport %>%
                                                                                         pluck("DataHarmonization", "Monitors", "FeatureLevel") %>%
                                                                                         list_rbind(names_to = "Table")) %>%
                                                         list_rbind(names_to = "Server")
@@ -450,14 +450,14 @@ ds.GetCurationReport <- function(Module = "CCP",
 #-------------------------------------------------------------------------------
 
   # Get all server-specific value-level data harmonization monitors and row-bind them
-  DataHarmonization.Monitor.ValueLevel.Servers <- CurationReports %>%
-                                                      map(\(ServerCurationReport) ServerCurationReport %>%
+  DataHarmonization.Monitor.ValueLevel.Servers <- RefinementReports %>%
+                                                      map(\(ServerRefinementReport) ServerRefinementReport %>%
                                                                                       pluck("DataHarmonization", "Monitors", "ValueLevel") %>%
                                                                                       list_rbind(names_to = "Table")) %>%
                                                       list_rbind(names_to = "Server")
 
   DataHarmonization.Monitor.ValueLevel.Cumulated <- DataHarmonization.Monitor.ValueLevel.Servers %>%
-                                                        group_by(Table, Feature, Value.Raw) %>%
+                                                        group_by(Table, Feature, Value.Source) %>%
                                                             arrange(desc(IsOccurring), .by_group = TRUE) %>%      # Make sure that a server-specific row can be on top where 'IsOccurring' is TRUE
                                                             summarize(Server = "All",
                                                                       across(!starts_with("Count"), ~ .x[1]),      # Take first row in group for all columns other than the ones starting with 'Count'
@@ -471,9 +471,9 @@ ds.GetCurationReport <- function(Module = "CCP",
                                               group_by(Server, Table) %>%
                                                   arrange(Feature,
                                                           desc(IsOccurring),
-                                                          desc(IsEligible.Raw),
+                                                          desc(IsEligible.Source),
                                                           desc(IsEligible.Remediated),
-                                                          Value.Raw,
+                                                          Value.Source,
                                                           .by_group = TRUE) %>%
                                               ungroup() %>%
                                               split(.$Server) %>%

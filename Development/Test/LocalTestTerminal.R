@@ -49,15 +49,15 @@ TestData <- readRDS("../Data/CCP/CCPTestData2024.rds")
 
 # Using test data from servers
 # TestDataReal <- readRDS("../dsFreda/Development/Test/ServersTestData.Real.rds") %>% purrr::pluck("Berlin")
-# TableNameLookup <- dsCCPhos::Meta.Tables %>% select(TableName.Curated, TableName.Raw) %>% tibble::deframe()
+# TableNameLookup <- dsCCPhos::Meta.Tables %>% select(TableName.Refined, TableName.Source) %>% tibble::deframe()
 # names(TestDataReal) <- TableNameLookup[names(TestDataReal)]
 #
 # TestDataReal <- TestDataReal %>%
 #                   imap(function(Table, tablename)
 #                        {
 #                           # Create named vector to look up matching feature names in meta data ('OldName' = 'NewName')
-#                           Lookup <- dsCCPhos::Meta.Features %>% filter(TableName.Raw == tablename) %>% pull(FeatureName.Curated)
-#                           names(Lookup) <- dsCCPhos::Meta.Features %>% filter(TableName.Raw == tablename) %>% pull(FeatureName.Raw)
+#                           Lookup <- dsCCPhos::Meta.Features %>% filter(TableName.Source == tablename) %>% pull(FeatureName.Refined)
+#                           names(Lookup) <- dsCCPhos::Meta.Features %>% filter(TableName.Source == tablename) %>% pull(FeatureName.Source)
 #
 #                           if (length(Table) > 0)
 #                           {
@@ -108,13 +108,13 @@ dsCCPhosClient::CheckServerRequirements()
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Load Raw Data Set (RDS) from Opal data base to R sessions on servers
+# Load Source Data Set (SDS) from Opal data base to R sessions on servers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-dsCCPhosClient::CCP.LoadRawDataSet(ServerSpecifications = NULL)
+dsCCPhosClient::CCP.LoadSourceDataSet(ServerSpecifications = NULL)
 
 
-#Test <- DSLite::getDSLiteData(CCPConnections, "CCP.RawDataSet")
+#Test <- DSLite::getDSLiteData(CCPConnections, "CCP.SourceDataSet")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Optionally load additional data from a Resource to R sessions on servers
@@ -147,20 +147,20 @@ datashield.assign.expr(conns = CCPConnections,
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Check RDS tables for existence and completeness
+# Check SDS tables for existence and completeness
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.RawDataSet",
+SDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.SourceDataSet",
                                     Module = "CCP",
-                                    Stage = "Raw")
+                                    Stage = "Source")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Validate RDS data
+# Validate SDS data
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# RDSValidationReports <- ds.GetRDSValidationReport()
+# SDSValidationReports <- ds.GetSDSValidationReport()
 
-# ValidationSummaries <- RDSValidationReports %>%
+# ValidationSummaries <- SDSValidationReports %>%
 #                             map(function(Server)
 #                                 {
 #                                     map()
@@ -173,44 +173,44 @@ RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.RawDataSet",
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Optionally: Draw random sample from Raw Data Set on servers
+# Optionally: Draw random sample from Source Data Set on servers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-dsCCPhosClient::ds.CCP.DrawSample(RawDataSetName = "CCP.RawDataSet",
+dsCCPhosClient::ds.CCP.DrawSample(SourceDataSetName = "CCP.SourceDataSet",
                                   SampleSize = 500,
-                                  SampleName = "RDSSample")
+                                  SampleName = "SDSSample")
 
 
 
-# CurrentTestData <- DSLite::getDSLiteData(CCPConnections, "CCP.RawDataSet")
+# CurrentTestData <- DSLite::getDSLiteData(CCPConnections, "CCP.SourceDataSet")
 #
 # saveRDS(CurrentTestData, file = "FailingTestData.rds")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Transform Raw Data Set (RDS) into Curated Data Set (CDS)
+# Transform Source Data Set (SDS) into Refined Data Set (RDS)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Transform Raw Data Set (RDS) into Curated Data Set (CDS) (using default settings)
-ds.CurateData(RawDataSetName = "CCP.RawDataSet",
+# Transform Source Data Set (SDS) into Refined Data Set (RDS) (using default settings)
+ds.RefineData(SourceDataSetName = "CCP.SourceDataSet",
               Module = "CCP",
-              OutputName = "CCP.CurationOutput")
+              OutputName = "CCP.RefinementOutput")
 
-CDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.CuratedDataSet",
+RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.RefinedDataSet",
                                     Module = "CCP",
-                                    Stage = "Curated")
+                                    Stage = "Refined")
 
-# Integrated in ds.CuratedData: Make tables from Curated Data Set directly addressable by unpacking them into R server session
-# ds.UnpackCuratedDataSet(CuratedDataSetName = "CuratedDataSet")
+# Integrated in ds.RefineData: Make tables from Refined Data Set directly addressable by unpacking them into R server session
+# ds.UnpackRefinedDataSet(RefinedDataSetName = "RefinedDataSet")
 
-# Get curation reports
-CurationReport <- ds.GetCurationReport()
+# Get Refinement reports
+RefinementReport <- ds.GetRefinementReport()
 
-FredaGUI::Widget.CurationReport(Module = "CCP",
-                                CurationReport = CurationReport)
+FredaGUI::Widget.RefinementReport(Module = "CCP",
+                                RefinementReport = RefinementReport)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Plot data on value eligibility for exemplary table in CDS
+# Plot data on value eligibility for exemplary table in RDS
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # - Restructure eligibility overview table to meet requirements of plot function
 # - Create separate data frames for each 'Feature' value
@@ -219,9 +219,9 @@ FredaGUI::Widget.CurationReport(Module = "CCP",
 #   - 'data': plot data for feature-specific plot
 #-------------------------------------------------------------------------------
 
-PlotData <- CurationReports$All$Transformation$EligibilityOverviews$Staging %>%
+PlotData <- RefinementReports$All$Transformation$EligibilityOverviews$Staging %>%
                 select(-ends_with("_Proportional")) %>%
-                pivot_longer(cols = c(Raw, Harmonized, Recoded, Final),
+                pivot_longer(cols = c(Source, Harmonized, Recoded, Final),
                              names_to = "Stage",
                              values_to = "Count") %>%
                 pivot_wider(names_from = "Eligibility",
@@ -244,21 +244,21 @@ plot_ly(data = filter(PlotData, Feature == "UICCStage")$data[[1]],
               name = "Missing",
               color = I(dsCCPhosClient::CCPhosColors$MediumGrey)) %>%
     layout(xaxis = list(categoryorder = "array",
-                        categoryarray = c("Raw", "Harmonized", "Recoded", "Final")),
+                        categoryarray = c("Source", "Harmonized", "Recoded", "Final")),
            yaxis = list(title = "Count"),
            barmode = "stack")
 
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Transform Curated Data Set (CDS) into Augmented Data Set (ADS)
+# Transform Refined Data Set (RDS) into Enriched Data Set (EDS)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Run ds.AugmentData
-dsCCPhosClient::ds.CCP.AugmentData(CuratedDataSetName = "CCP.CuratedDataSet",
-                                   OutputName = "CCP.AugmentationOutput")
+# Run ds.EnrichData
+dsCCPhosClient::ds.CCP.EnrichData(RefinedDataSetName = "CCP.RefinedDataSet",
+                                   OutputName = "CCP.EnrichmentOutput")
 
-ADSTableCheck <- ds.GetDataSetCheck(DataSetName = "AugmentedDataSet")
+EDSTableCheck <- ds.GetDataSetCheck(DataSetName = "EnrichedDataSet")
 
 
 
@@ -276,7 +276,7 @@ ServerWorkspaceInfo <- GetServerWorkspaceInfo()
 View(ServerWorkspaceInfo$Overview$All)
 
 # Detailed meta data of a particular object (also part of ServerWorkspaceInfo)
-ObjectMetaData <- ds.GetObjectMetaData(ObjectName = "CDS_Patient")
+ObjectMetaData <- ds.GetObjectMetaData(ObjectName = "RDS_Patient")
 
 # Explore Object meta data: Structural overview
 View(ObjectMetaData$ServerA$Structure)
@@ -286,25 +286,25 @@ ObjectMetaData$FirstEligible$DataTypes["PatientID"]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Process ADS tables
+# Process EDS tables
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 # dsTidyverse
-# ds.filter(df.name = "ADS_Patient",
+# ds.filter(df.name = "EDS_Patient",
 #           tidy_expr = list(CountDiagnoses == 1),
-#           newobj = "ADS_Patient_OneDiagnosis")
+#           newobj = "EDS_Patient_OneDiagnosis")
 #
 #
-# ds.filter(df.name = "ADS_Patient",
+# ds.filter(df.name = "EDS_Patient",
 #           tidy_expr = list(Gender == "Female"),
-#           newobj = "ADS_Patient_OneDiagnosis")
+#           newobj = "EDS_Patient_OneDiagnosis")
 
 
 
 
-Messages <- ds.JoinTables(TableNameA = "CCP.ADS.Patient",
-                          TableNameB = "CCP.ADS.Diagnosis",
+Messages <- ds.JoinTables(TableNameA = "CCP.EDS.Patient",
+                          TableNameB = "CCP.EDS.Diagnosis",
                           ByStatement = "PatientID",
                           OutputName = "AnalysisDataSet")
 
@@ -314,8 +314,8 @@ Messages <- ds.JoinTables(TableNameA = "CCP.ADS.Patient",
 # Data Exploration
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-CohortDescription <- ds.GetCohortDescription(DataSetName = "AugmentedDataSet",
-                                             CCPDataSetType = "ADS")
+CohortDescription <- ds.GetCohortDescription(DataSetName = "EnrichedDataSet",
+                                             CCPDataSetType = "EDS")
 
 
 # Transform data into display-friendly time series tables using auxiliary function 'DisplayTimeSeries()'
@@ -347,13 +347,13 @@ Plot <- CohortDescription$AgeDistribution %>%
 
 
 
-ds.GetSampleStatistics(TableName = "CCP.ADS.Diagnosis",
+ds.GetSampleStatistics(TableName = "CCP.EDS.Diagnosis",
                        FeatureName = "PatientAgeAtDiagnosis",
                        GroupingFeatureName = "TNM.M",
                        DSConnections = CCPConnections)
 
 
-ds.GetFrequencyTable(TableName = "CCP.ADS.Diagnosis",
+ds.GetFrequencyTable(TableName = "CCP.EDS.Diagnosis",
                      FeatureName = "TNM.T",
                      GroupingFeatureName = "TNM.M",
                      DSConnections = CCPConnections)
@@ -364,11 +364,11 @@ ds.GetFrequencyTable(TableName = "CCP.ADS.Diagnosis",
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-Test <- ds.GetCrossTab(TableName = "ADS_Patient",
+Test <- ds.GetCrossTab(TableName = "EDS_Patient",
                        FeatureNames = c("Sex", "LastVitalStatus", "CountDiagnoses"),
                        RemoveNA = TRUE)
 
-ds.MutateTable(TableName = "ADS_Diagnosis",
+ds.MutateTable(TableName = "EDS_Diagnosis",
                MutateExpression = "UICCStageClassification = case_when(str_starts(TNM_T, '3') ~ 'III', .default = '<NA>')",
                OutputName = "TestUICC")
 
@@ -410,7 +410,7 @@ Test <- ds.GetFeatureInfo(TableName = "AnalysisDataSet",
 Test <- ds.GetSampleStatistics(TableName = "AnalysisDataSet",
                                MetricFeatureName = "PatientAgeAtDiagnosis")
 
-Test <- ds.GetFrequencyTable(TableName = "ADS_Diagnosis",
+Test <- ds.GetFrequencyTable(TableName = "EDS_Diagnosis",
                              FeatureName = "TNM_T",
                              MaxNumberCategories = 20)
 
@@ -452,19 +452,19 @@ Test <- ExploreFeature(TableName = "AnalysisDataSet",
 
 
 
-ds.GetObjectMetaData(ObjectName = "AugmentationOutput")
+ds.GetObjectMetaData(ObjectName = "EnrichmentOutput")
 
 
-ds.mean(x = "ADS_Patients$PatientAgeAtDiagnosis",
+ds.mean(x = "EDS_Patients$PatientAgeAtDiagnosis",
         datasources = CCPConnections)
 
 
-MetaData_ADS_Patients <- ds.GetObjectMetaData(ObjectName = "ADS_Patients")
+MetaData_EDS_Patients <- ds.GetObjectMetaData(ObjectName = "EDS_Patients")
 
-View(MetaData_ADS_Patients$ServerA$ContentOverview)
+View(MetaData_EDS_Patients$ServerA$ContentOverview)
 
 
-SampleStatistics <- ds.GetSampleStatistics(TableName = "ADS_Patients",
+SampleStatistics <- ds.GetSampleStatistics(TableName = "EDS_Patients",
                                            MetricFeatureName = "PatientAgeAtDiagnosis")
 
 
@@ -478,8 +478,8 @@ TestPlot <- MakeBoxPlot(SampleStatistics = SampleStatistics,
 TestPlot
 
 
-# dsSurvivalClient::ds.Surv(time = "ADS_Patients$TimeFollowUp",
-#                           event = "ADS_Patients$IsDocumentedDeceased",
+# dsSurvivalClient::ds.Surv(time = "EDS_Patients$TimeFollowUp",
+#                           event = "EDS_Patients$IsDocumentedDeceased",
 #                           objectname = "TestSurv",
 #                           datasources = CCPConnections)
 #

@@ -32,7 +32,7 @@ ds.GetFrequencyTable <- function(TableName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableName <- "CCP.ADS.Diagnosis"
+  # TableName <- "CCP.EDS.Diagnosis"
   # FeatureName <- "TNM.T"
   # GroupingFeatureName <- "TNM.M"
   # MaxNumberCategories <- 10

@@ -26,7 +26,7 @@ GetServerOpalDBInfo <- function(ServerSpecifications = NULL,
 {
   # --- For Testing Purposes ---
   # ServerSpecifications = NULL
-  # OpalTableNames.Required <- dsCCPhosClient::Meta.Tables$TableName.Raw
+  # OpalTableNames.Required <- dsCCPhosClient::Meta.Tables$TableName.Source
   # OpalTableNames.Dictionary <- NULL
   # DSConnections = CCPConnections
 

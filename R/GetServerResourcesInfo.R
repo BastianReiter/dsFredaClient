@@ -27,7 +27,7 @@ GetServerResourcesInfo <- function(ServerSpecifications = NULL,
   # --- For Testing Purposes ---
   # ServerSpecifications <- NULL
   # ServerSpecifications <- read.csv(file = "SiteSpecs_Test.csv")
-  # ResourceNames.Required <- dsFredaP21Client::Meta.Tables$TableName.Raw
+  # ResourceNames.Required <- dsFredaP21Client::Meta.Tables$TableName.Source
   # ResourceNames.Dictionary <- NULL
   # ResourceNames.Dictionary <- list(All = c("FAB" = "fab", "ICD" = "ice"),
   #                                  ServerA = c("FAB" = "fabeee"))

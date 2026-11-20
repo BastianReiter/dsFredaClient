@@ -27,7 +27,7 @@ ds.GetCrossTab <- function(TableName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableName <- "ADS_Patient"
+  # TableName <- "EDS.Patient"
   # FeatureNames <- c("Sex", "CountDiagnoses")
   # RemoveNA = FALSE
   # DSConnections <- CCPConnections

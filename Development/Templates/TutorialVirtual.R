@@ -70,10 +70,10 @@ ServerRequirements <- CheckServerRequirements(CCPSiteSpecifications = Credential
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Load Raw Data Set (RDS) from Opal data base to R sessions on servers
+# Load Source Data Set (SDS) from Opal data base to R sessions on servers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Messages <- LoadRawDataSet(CCPSiteSpecifications = Credentials,
+Messages <- LoadSourceDataSet(CCPSiteSpecifications = Credentials,
                            DataSources = CCPConnections)
 
 
@@ -82,52 +82,52 @@ ServerWorkspaceInfo <- GetServerWorkspaceInfo(DataSources = CCPConnections)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Check RDS tables for existence and completeness
+# Check SDS tables for existence and completeness
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RDSTableCheck <- ds.CheckRDSTables(DataSources = CCPConnections)
+SDSTableCheck <- ds.CheckSDSTables(DataSources = CCPConnections)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# OPTIONAL: Get random samples from Raw Data Set on servers for easier testing
+# OPTIONAL: Get random samples from Source Data Set on servers for easier testing
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ds.DrawSample(RawDataSetName = "RawDataSet",
+ds.DrawSample(SourceDataSetName = "SourceDataSet",
               SampleSize = "2000",
-              SampleName = "RDSSample",
+              SampleName = "SDSSample",
               DataSources = CCPConnections)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# DATA CURATION: Transform Raw Data Set (RDS) into Curated Data Set (CDS)
+# DATA REFINEMENT: Transform Source Data Set (SDS) into Refined Data Set (RDS)
 #-------------------------------------------------------------------------------
 #   - See function documentation for optional settings
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Trigger Curation process
-ds.CurateData(DataSources = CCPConnections)
+# Trigger Refinement process
+ds.RefineData(DataSources = CCPConnections)
 
 
-# Make tables from Curated Data Set directly addressable by unpacking them into R server session
-Messages <- ds.UnpackCuratedDataSet(CuratedDataSetName = "CuratedDataSet",
+# Make tables from Refined Data Set directly addressable by unpacking them into R server session
+Messages <- ds.UnpackRefinedDataSet(RefinedDataSetName = "RefinedDataSet",
                                     DataSources = CCPConnections)
 
-# Get curation reports
-CurationReports <- dsCCPhosClient::ds.GetCurationReport(DataSources = CCPConnections)
+# Get Refinement reports
+RefinementReports <- dsCCPhosClient::ds.GetRefinementReport(DataSources = CCPConnections)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# DATA AUGMENTATION: Transform Curated Data Set (CDS) into Augmented Data Set (ADS)
+# DATA ENRICHMENT: Transform Refined Data Set (RDS) into Enriched Data Set (EDS)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Trigger Augmentation process
-Messages <- ds.AugmentData(CuratedDataSetName = "CuratedDataSet",
-                           OutputName = "AugmentationOutput",
+# Trigger Enrichment process
+Messages <- ds.EnrichData(RefinedDataSetName = "RefinedDataSet",
+                           OutputName = "EnrichmentOutput",
                            DataSources = CCPConnections)
 
 
-# Make tables from Augmented Data Set directly addressable by unpacking them into R server session
-Messages <- ds.UnpackAugmentedDataSet(AugmentedDataSetName = "AugmentedDataSet",
+# Make tables from Enriched Data Set directly addressable by unpacking them into R server session
+Messages <- ds.UnpackEnrichedDataSet(EnrichedDataSetName = "EnrichedDataSet",
                                       DataSources = CCPConnections)
 
 
@@ -144,7 +144,7 @@ ServerWorkspaceInfo <- GetServerWorkspaceInfo(DataSources = CCPConnections)
 View(ServerWorkspaceInfo$Overview)
 
 # Detailed meta data of a particular object (also part of ServerWorkspaceInfo)
-ObjectMetaData <- ds.GetObjectMetaData(ObjectName = "ADS_Patients",
+ObjectMetaData <- ds.GetObjectMetaData(ObjectName = "EDS_Patients",
                                        DataSources = CCPConnections)
 
 # Explore Object meta data: Structural overview
@@ -161,20 +161,20 @@ ObjectMetaData$FirstEligible$DataTypes["PatientID"]
 
 
 Test <- ds.GetFeatureInfo(DataSources = CCPConnections,
-                          TableName = "ADS_Patients",
+                          TableName = "EDS_Patients",
                           FeatureName = "TNM_T")
 
 Test <- ds.GetSampleStatistics(DataSources = CCPConnections,
-                               TableName = "ADS_Patients",
+                               TableName = "EDS_Patients",
                                MetricFeatureName = "PatientAgeAtDiagnosis")
 
 Test <- ds.GetFrequencyTable(DataSources = CCPConnections,
-                             TableName = "ADS_Patients",
+                             TableName = "EDS_Patients",
                              FeatureName = "TNM_T",
                              MaxNumberCategories = 5)
 
 Test <- ds.GetTTEModel(DataSources = CCPConnections,
-                       TableName = "ADS_Patients",
+                       TableName = "EDS_Patients",
                        TimeFeature = "TimeFollowUp",
                        EventFeature = "IsDocumentedDeceased",
                        ModelType = "coxph",

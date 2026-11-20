@@ -33,8 +33,8 @@ ds.JoinTables <- function(TableNameA,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableNameA <- "ADS_Patient"
-  # TableNameB <- "ADS_Diagnosis"
+  # TableNameA <- "EDS.Patient"
+  # TableNameB <- "EDS.Diagnosis"
   # ByStatement <- "PatientID"
   # JoinType <- "left_join"
   # OutputName <- "PatientAnalysis"

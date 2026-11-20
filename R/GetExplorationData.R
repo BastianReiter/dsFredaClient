@@ -23,16 +23,16 @@ GetExplorationData <- function(OrderList = NULL,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # OrderList <- list(ADS.Diagnosis = c("Grading",
+  # OrderList <- list(EDS.Diagnosis = c("Grading",
   #                                     "PatientAgeAtDiagnosis",
   #                                     "TNM.T"))
   # OrderList <- NULL
   # InputWorkspaceInfo <- ServerWorkspaceInfo
-  # TableSelection <- c("CCP.ADS.Diagnosis",
-  #                     "CCP.ADS.DiseaseCourse",
-  #                     "CCP.ADS.Events",
-  #                     "CCP.ADS.Patient",
-  #                     "CCP.ADS.Therapy")
+  # TableSelection <- c("CCP.EDS.Diagnosis",
+  #                     "CCP.EDS.DiseaseCourse",
+  #                     "CCP.EDS.Events",
+  #                     "CCP.EDS.Patient",
+  #                     "CCP.EDS.Therapy")
   # DSConnections <- CCPConnections
   # DS.async <- FALSE
 

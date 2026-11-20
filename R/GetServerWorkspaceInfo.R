@@ -181,7 +181,7 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL,
                         separate_wider_regex(cols = Object,
                                              patterns = c("Module" = paste0("(?:", paste(names(dsFredaClient::Meta.Modules), collapse = "|"), ")"),
                                                           "\\.",
-                                                          "DSType" = paste0("(?:", paste(c("RDS", "CDS", "ADS"), collapse = "|"), ")"),
+                                                          "DSType" = paste0("(?:", paste(c("SDS", "RDS", "EDS"), collapse = "|"), ")"),
                                                           "\\.",
                                                           "TableName" = ".*"),
                                              too_few = "align_start",
@@ -189,17 +189,17 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL,
                         filter(if_all(everything(), ~ !is.na(.x)))
 
 
-  EligibleValues.RDS.CDS <- EligibleValues %>%
-                                filter(DSType %in% c("RDS", "CDS")) %>%
+  EligibleValues.SDS.RDS <- EligibleValues %>%
+                                filter(DSType %in% c("SDS", "RDS")) %>%
                                 left_join(dsCCPhosClient::Meta.Values, by = join_by(TableName == Table), relationship = "many-to-many") %>%
-                                mutate(Feature = case_when(DSType == "RDS" ~ FeatureName.Curated,      # Per current default in module-specific functions, feature names are directly recoded into 'Curated' form upon RDS loading
-                                                           DSType == "CDS" ~ FeatureName.Curated,
+                                mutate(Feature = case_when(DSType == "SDS" ~ FeatureName.Refined,      # Per current default in module-specific functions, feature names are directly recoded into 'Refined' form upon SDS loading
+                                                           DSType == "RDS" ~ FeatureName.Refined,
                                                            .default = NA),
-                                       Value = case_when(DSType == "RDS" ~ Value.Raw,
-                                                         DSType == "CDS" ~ Value.Curated,
+                                       Value = case_when(DSType == "SDS" ~ Value.Source,
+                                                         DSType == "RDS" ~ Value.Refined,
                                                          .default = NA),
-                                       Label = case_when(DSType == "RDS" ~ Label.Raw,
-                                                         DSType == "CDS" ~ Label.Curated,
+                                       Label = case_when(DSType == "SDS" ~ Label.Source,
+                                                         DSType == "RDS" ~ Label.Refined,
                                                          .default = NA)) %>%
                                 filter(!is.na(Feature) & !is.na(Value)) %>%
                                 select(Object,
@@ -207,9 +207,9 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL,
                                        Value,
                                        Label)
 
-  EligibleValues.ADS <- EligibleValues %>%
-                            filter(DSType == "ADS") %>%
-                            left_join(dsCCPhosClient::Meta.ADS, by = join_by(TableName == TableName), relationship = "many-to-many") %>%
+  EligibleValues.EDS <- EligibleValues %>%
+                            filter(DSType == "EDS") %>%
+                            left_join(dsCCPhosClient::Meta.EDS, by = join_by(TableName == TableName), relationship = "many-to-many") %>%
                             rename("Feature" = "FeatureName") %>%
                             filter(!is.na(Value)) %>%
                             select(Object,
@@ -217,8 +217,8 @@ GetServerWorkspaceInfo <- function(DSConnections = NULL,
                                    Value,
                                    Label)
 
-  EligibleValues <- EligibleValues.RDS.CDS %>%
-                        bind_rows(EligibleValues.ADS) %>%
+  EligibleValues <- EligibleValues.SDS.RDS %>%
+                        bind_rows(EligibleValues.EDS) %>%
                         base::split(., .$Object) %>%
                         map(\(PerObject) base::split(PerObject, PerObject$Feature))
 

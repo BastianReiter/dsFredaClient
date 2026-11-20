@@ -6,7 +6,7 @@
 #' @param TableName \code{string} - Name of the table containing the feature of concern
 #' @param FeatureName \code{string} - Name of feature
 #' @param ValuesMetaData \code{data.frame} - 'Meta.Values'
-#' @param Stage \code{string} - Either 'Curated' (Default) or 'Raw'. Both stages might have different sets of eligible values.
+#' @param Stage \code{string} - Either 'Refined' (Default) or 'Source'. Both stages might have different sets of eligible values.
 #'
 #' @return \code{vector} of eligible values
 #'
@@ -17,14 +17,14 @@
 GetEligibleValues <- function(TableName,
                               FeatureName,
                               ValuesMetaData,
-                              Stage = "Curated")
+                              Stage = "Refined")
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
   # TableName = "Surgery"
   # FeatureName = "Intention"
   # ValuesMetaData = dsCCPhos::Meta.Values
-  # Stage = "Curated"
+  # Stage = "Refined"
 
   # --- Argument Validation ---
   assert_that(is.string(TableName),
@@ -37,8 +37,8 @@ GetEligibleValues <- function(TableName,
   EligibleValues <- ValuesMetaData %>%
                         filter(Table == TableName,
                                Feature == FeatureName) %>%
-                        { if (Stage == "Raw") { pull(., Value.Raw) }
-                          else { pull(., Value.Curated) } }
+                        { if (Stage == "Source") { pull(., Value.Source) }
+                          else { pull(., Value.Refined) } }
 
 #-------------------------------------------------------------------------------
   return(EligibleValues)

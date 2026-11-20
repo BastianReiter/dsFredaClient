@@ -10,12 +10,12 @@
 #'
 #' Linked to server-side AGGREGATE method \code{GetDataSetCheckDS()}
 #'
-#' @param DataSetName \code{string} - Name of Data Set object (list) on server, usually "RawDataSet", "CuratedDataSet" or "AugmentedDataSet"
+#' @param DataSetName \code{string} - Name of Data Set object (list) on server, usually "SourceDataSet", "RefinedDataSet" or "EnrichedDataSet"
 #' @param RequiredTableNames Optional \code{character vector} - Names of required tables
 #' @param RequiredFeatureNames Optional \code{list} of \code{character vectors} - Names of required features - Default: \code{names(Table)}
 #' @param EligibleValueSets Optional \code{list} of \code{character vectors} containing sets of eligible values for corresponding feature.
 #' @param Module Optional \code{string} identifying a defined data set and the corresponding meta data (Examples: 'CCP' / 'P21')
-#' @param Stage Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Raw' / 'Curated'
+#' @param Stage Optional \code{string} - Indicating transformation stage of addressed data set. This is relevant for which names and values to look up in passed meta data. Options: 'Source' / 'Refined'
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #' @param DS.async \code{logical} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
@@ -43,9 +43,9 @@ ds.GetDataSetCheck <- function(DataSetName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # DataSetName <- "RawDataSet"
+  # DataSetName <- "SourceDataSet"
   # Module <- "CCP"
-  # Stage <- "Raw"
+  # Stage <- "Source"
   # DSConnections <- CCPConnections
   # DS.async <- FALSE
 
@@ -56,7 +56,7 @@ ds.GetDataSetCheck <- function(DataSetName,
   if (!is.null(RequiredFeatureNames)) { assert_that(is.list(RequiredFeatureNames)) }
   if (!is.null(EligibleValueSets)) { assert_that(is.list(EligibleValueSets)) }
   if (!is.null(Module)) { assert_that(is.string(Module), Module %in% names(dsFredaClient::Meta.Modules),
-                                      is.string(Stage), Stage %in% c("Raw", "Curated", "Augmented")) }
+                                      is.string(Stage), Stage %in% c("Source", "Refined", "Enriched")) }
 
   # Check validity of 'DSConnections' or find them programmatically if none are passed
   DSConnections <- CheckDSConnections(DSConnections)

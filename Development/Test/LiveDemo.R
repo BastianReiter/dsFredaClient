@@ -41,8 +41,8 @@ TestData <- readRDS("../Data/CCP/CCPTestData2026.rds")
 
 CCPConnections <- dsCCPhosClient::ConnectToVirtualCCP(CCPData = TestData,
                                                       AddedDsPackages = "dsTidyverse",
-                                                      NumberOfServers = 1,
-                                                      NumberOfPatientsPerServer = 500)
+                                                      NumberOfServers = 3,
+                                                      NumberOfPatientsPerServer = 2000)
 
 #===============================================================================
 # Check server requirements using dsCCPhosClient::CheckServerRequirements()
@@ -52,52 +52,53 @@ dsCCPhosClient::CheckServerRequirements()
 
 
 #===============================================================================
-# Load Raw Data Set (RDS) from Opal data base to R sessions on servers
+# Load Source Data Set (SDS) from Opal data base to R sessions on servers
 #===============================================================================
 
-dsCCPhosClient::CCP.LoadRawDataSet(ServerSpecifications = NULL)
+dsCCPhosClient::CCP.LoadSourceDataSet(ServerSpecifications = NULL)
 
 
 #===============================================================================
-# Check RDS tables for existence and completeness
+# Check SDS tables for existence and completeness
 #===============================================================================
 
-# RDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.RawDataSet",
+# SDSTableCheck <- ds.GetDataSetCheck(DataSetName = "CCP.SourceDataSet",
 #                                     Module = "CCP",
-#                                     Stage = "Raw")
+#                                     Stage = "Source")
 
 #===============================================================================
-# Optionally: Draw random sample from Raw Data Set on servers
+# Optionally: Draw random sample from Source Data Set on servers
 #===============================================================================
 
-# dsCCPhosClient::ds.CCP.DrawSample(RawDataSetName = "CCP.RawDataSet",
+# dsCCPhosClient::ds.CCP.DrawSample(SourceDataSetName = "CCP.SourceDataSet",
 #                                   SampleSize = 500,
-#                                   SampleName = "RDSSample")
+#                                   SampleName = "SDSSample")
 
 #===============================================================================
-# Transform Raw Data Set (RDS) into Curated Data Set (CDS)
+# Transform Source Data Set (SDS) into Refined Data Set (RDS)
 #===============================================================================
 
-# Transform Raw Data Set (RDS) into Curated Data Set (CDS) (using default settings)
-ds.CurateData(RawDataSetName = "CCP.RawDataSet",
+# Transform Source Data Set (SDS) into Refined Data Set (RDS) (using default settings)
+ds.RefineData(SourceDataSetName = "CCP.SourceDataSet",
               Module = "CCP",
-              OutputName = "CCP.CurationOutput")
+              OutputName = "CCP.RefinementOutput")
 
 
 
 
-FredaGUI::Widget.DataSetCheck(RDSCheckData = ds.GetDataSetCheck(DataSetName = "CCP.RawDataSet",
+FredaGUI::Widget.DataSetCheck(SDSCheckData = ds.GetDataSetCheck(DataSetName = "CCP.SourceDataSet",
                                                                 Module = "CCP",
-                                                                Stage = "Raw"),
-                              CDSCheckData = ds.GetDataSetCheck(DataSetName = "CCP.RawDataSet",
+                                                                Stage = "Source"),
+                              RDSCheckData = ds.GetDataSetCheck(DataSetName = "CCP.RefinedDataSet",
                                                                 Module = "CCP",
-                                                                Stage = "Curated"))
+                                                                Stage = "Refined"))
 
-FredaGUI::Widget.CurationReport(Module = "CCP",
-                                CurationReport = ds.GetCurationReport())
+FredaGUI::Widget.RefinementReport(Module = "CCP",
+                                RefinementReport = ds.GetRefinementReport())
 
 
 
+FredaGUI::Widget.ServerExplorer()
 
 
 
@@ -110,14 +111,14 @@ FredaGUI::Widget.CurationReport(Module = "CCP",
 
 
 #===============================================================================
-# Transform Curated Data Set (CDS) into Augmented Data Set (ADS)
+# Transform Refined Data Set (RDS) into Enriched Data Set (EDS)
 #===============================================================================
 
-# Run ds.AugmentData
-dsCCPhosClient::ds.CCP.AugmentData(CuratedDataSetName = "CCP.CuratedDataSet",
-                                   OutputName = "CCP.AugmentationOutput")
+# Run ds.EnrichData
+dsCCPhosClient::ds.CCP.EnrichData(RefinedDataSetName = "CCP.RefinedDataSet",
+                                   OutputName = "CCP.EnrichmentOutput")
 
-ADSTableCheck <- ds.GetDataSetCheck(DataSetName = "AugmentedDataSet")
+EDSTableCheck <- ds.GetDataSetCheck(DataSetName = "EnrichedDataSet")
 
 
 
@@ -135,7 +136,7 @@ ServerWorkspaceInfo <- GetServerWorkspaceInfo()
 View(ServerWorkspaceInfo$Overview$All)
 
 # Detailed meta data of a particular object (also part of ServerWorkspaceInfo)
-ObjectMetaData <- ds.GetObjectMetaData(ObjectName = "CDS_Patient")
+ObjectMetaData <- ds.GetObjectMetaData(ObjectName = "RDS_Patient")
 
 # Explore Object meta data: Structural overview
 View(ObjectMetaData$ServerA$Structure)
@@ -145,25 +146,25 @@ ObjectMetaData$FirstEligible$DataTypes["PatientID"]
 
 
 #===============================================================================
-# Process ADS tables
+# Process EDS tables
 #===============================================================================
 
 
 # dsTidyverse
-# ds.filter(df.name = "ADS_Patient",
+# ds.filter(df.name = "EDS_Patient",
 #           tidy_expr = list(CountDiagnoses == 1),
-#           newobj = "ADS_Patient_OneDiagnosis")
+#           newobj = "EDS_Patient_OneDiagnosis")
 #
 #
-# ds.filter(df.name = "ADS_Patient",
+# ds.filter(df.name = "EDS_Patient",
 #           tidy_expr = list(Gender == "Female"),
-#           newobj = "ADS_Patient_OneDiagnosis")
+#           newobj = "EDS_Patient_OneDiagnosis")
 
 
 
 
-Messages <- ds.JoinTables(TableNameA = "CCP.ADS.Patient",
-                          TableNameB = "CCP.ADS.Diagnosis",
+Messages <- ds.JoinTables(TableNameA = "CCP.EDS.Patient",
+                          TableNameB = "CCP.EDS.Diagnosis",
                           ByStatement = "PatientID",
                           OutputName = "AnalysisDataSet")
 
@@ -173,8 +174,8 @@ Messages <- ds.JoinTables(TableNameA = "CCP.ADS.Patient",
 # Data Exploration
 #===============================================================================
 
-CohortDescription <- ds.GetCohortDescription(DataSetName = "AugmentedDataSet",
-                                             CCPDataSetType = "ADS")
+CohortDescription <- ds.GetCohortDescription(DataSetName = "EnrichedDataSet",
+                                             CCPDataSetType = "EDS")
 
 
 # Transform data into display-friendly time series tables using auxiliary function 'DisplayTimeSeries()'
@@ -206,13 +207,13 @@ Plot <- CohortDescription$AgeDistribution %>%
 
 
 
-ds.GetSampleStatistics(TableName = "CCP.ADS.Diagnosis",
+ds.GetSampleStatistics(TableName = "CCP.EDS.Diagnosis",
                        FeatureName = "PatientAgeAtDiagnosis",
                        GroupingFeatureName = "TNM.M",
                        DSConnections = CCPConnections)
 
 
-ds.GetFrequencyTable(TableName = "CCP.ADS.Diagnosis",
+ds.GetFrequencyTable(TableName = "CCP.EDS.Diagnosis",
                      FeatureName = "TNM.T",
                      GroupingFeatureName = "TNM.M",
                      DSConnections = CCPConnections)
@@ -223,11 +224,11 @@ ds.GetFrequencyTable(TableName = "CCP.ADS.Diagnosis",
 #===============================================================================
 
 
-Test <- ds.GetCrossTab(TableName = "ADS_Patient",
+Test <- ds.GetCrossTab(TableName = "EDS_Patient",
                        FeatureNames = c("Sex", "LastVitalStatus", "CountDiagnoses"),
                        RemoveNA = TRUE)
 
-ds.MutateTable(TableName = "ADS_Diagnosis",
+ds.MutateTable(TableName = "EDS_Diagnosis",
                MutateExpression = "UICCStageClassification = case_when(str_starts(TNM_T, '3') ~ 'III', .default = '<NA>')",
                OutputName = "TestUICC")
 
@@ -269,7 +270,7 @@ Test <- ds.GetFeatureInfo(TableName = "AnalysisDataSet",
 Test <- ds.GetSampleStatistics(TableName = "AnalysisDataSet",
                                MetricFeatureName = "PatientAgeAtDiagnosis")
 
-Test <- ds.GetFrequencyTable(TableName = "ADS_Diagnosis",
+Test <- ds.GetFrequencyTable(TableName = "EDS_Diagnosis",
                              FeatureName = "TNM_T",
                              MaxNumberCategories = 20)
 
@@ -311,19 +312,19 @@ Test <- ExploreFeature(TableName = "AnalysisDataSet",
 
 
 
-ds.GetObjectMetaData(ObjectName = "AugmentationOutput")
+ds.GetObjectMetaData(ObjectName = "EnrichmentOutput")
 
 
-ds.mean(x = "ADS_Patients$PatientAgeAtDiagnosis",
+ds.mean(x = "EDS_Patients$PatientAgeAtDiagnosis",
         datasources = CCPConnections)
 
 
-MetaData_ADS_Patients <- ds.GetObjectMetaData(ObjectName = "ADS_Patients")
+MetaData_EDS_Patients <- ds.GetObjectMetaData(ObjectName = "EDS_Patients")
 
-View(MetaData_ADS_Patients$ServerA$ContentOverview)
+View(MetaData_EDS_Patients$ServerA$ContentOverview)
 
 
-SampleStatistics <- ds.GetSampleStatistics(TableName = "ADS_Patients",
+SampleStatistics <- ds.GetSampleStatistics(TableName = "EDS_Patients",
                                            MetricFeatureName = "PatientAgeAtDiagnosis")
 
 
@@ -337,8 +338,8 @@ TestPlot <- MakeBoxPlot(SampleStatistics = SampleStatistics,
 TestPlot
 
 
-# dsSurvivalClient::ds.Surv(time = "ADS_Patients$TimeFollowUp",
-#                           event = "ADS_Patients$IsDocumentedDeceased",
+# dsSurvivalClient::ds.Surv(time = "EDS_Patients$TimeFollowUp",
+#                           event = "EDS_Patients$IsDocumentedDeceased",
 #                           objectname = "TestSurv",
 #                           datasources = CCPConnections)
 #

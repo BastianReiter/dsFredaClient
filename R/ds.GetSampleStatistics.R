@@ -28,7 +28,7 @@ ds.GetSampleStatistics <- function(TableName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableName <- "CCP.ADS.Diagnosis"
+  # TableName <- "CCP.EDS.Diagnosis"
   # FeatureName <- "PatientAgeAtDiagnosis"
   # GroupingFeatureName <- "TNM.M"
   # RemoveNA <- TRUE
@@ -154,7 +154,7 @@ ds.GetSampleStatistics <- function(TableName,
 
 
   # Using dsBaseClient::ds.ranksSecure not possible if servers run in 'non-permissive' mode
-  # Test <- dsBaseClient::ds.ranksSecure(input.var.name = "CCP.ADS.Diagnosis$PatientAgeAtDiagnosis",
+  # Test <- dsBaseClient::ds.ranksSecure(input.var.name = "CCP.EDS.Diagnosis$PatientAgeAtDiagnosis",
   #                                      datasources = DSConnections)
 
 
