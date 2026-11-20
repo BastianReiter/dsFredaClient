@@ -27,7 +27,7 @@ ds.GetTestData <- function(DataSetName = NA_character_,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # DataSetName <- "CCP.RawDataSet"
+  # DataSetName <- "CCP.SourceDataSet"
   # TableName <- NA_character_
   # SampleSize <- 30
   # Shuffle <- TRUE

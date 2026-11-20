@@ -1,17 +1,17 @@
 
-#' MakeCurationReport
+#' MakeRefinementReport
 #'
-#' Create html output based on curation report objects supplied by \code{\link{GetCurationReport}}. Requires Quarto.
+#' Create html output based on Refinement report objects supplied by \code{\link{GetRefinementReport}}. Requires Quarto.
 #'
-#' @param CurationReportData List | Curation output object supplied by \code{\link{GetCurationReport}}
+#' @param RefinementReportData List | Refinement output object supplied by \code{\link{GetRefinementReport}}
 #' @param PathToReportTemplate String | Path to a qmd-file serving as template for a Quarto document to be rendered
 #'
 #' @export
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-MakeCurationReport <- function(CurationReportData,
-                               PathToReportTemplate = "./Development/Reporting/CurationReport.qmd")
+MakeRefinementReport <- function(RefinementReportData,
+                               PathToReportTemplate = "./Development/Reporting/RefinementReport.qmd")
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
     # require(quarto)
@@ -19,16 +19,16 @@ MakeCurationReport <- function(CurationReportData,
     # require(utils)
 
     # For testing purposes
-    # CurationReportData <- CurationReports$SiteA
-    # PathToReportTemplate <- "./Development/Reporting/CurationReport.qmd"
+    # RefinementReportData <- RefinementReports$SiteA
+    # PathToReportTemplate <- "./Development/Reporting/RefinementReport.qmd"
 
-    # Temporarily save R object containing curation report data to make it accessible to the Quarto background R sesssion
-    # saveRDS(object = CurationReportData,
-    #         file = "./Development/Reporting/CurationReport.rds")
+    # Temporarily save R object containing Refinement report data to make it accessible to the Quarto background R sesssion
+    # saveRDS(object = RefinementReportData,
+    #         file = "./Development/Reporting/RefinementReport.rds")
     #
     # tryCatch({
     #             quarto_render(input = PathToReportTemplate,
-    #                           execute_params = list(PathToCurationReportData = "CurationReport.rds"))
+    #                           execute_params = list(PathToRefinementReportData = "RefinementReport.rds"))
     #             CompletedSuccessfully <- TRUE
     #             cat("Report created successfully!\n")
     #          },

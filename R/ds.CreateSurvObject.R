@@ -29,7 +29,7 @@ ds.CreateSurvObject <- function(TableName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableName <- "ADS_Patients"
+  # TableName <- "EDS.Patients"
   # TimeFeature <- "TimeFollowUp"
   # EventFeature <- "IsDocumentedDeceased"
   # MinFollowUpTime <- 20

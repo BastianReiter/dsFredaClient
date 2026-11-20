@@ -1,15 +1,15 @@
 
-#' ds.CurateData
+#' ds.RefineData
 #'
 #' `r lifecycle::badge("experimental")` \cr\cr
-#' Triggers transformation of Raw Data Set (RDS) into Curated Data Set (CDS) on servers.
+#' Triggers transformation of Source Data Set (SDS) into Refined Data Set (RDS) on servers.
 #'
-#' Linked to server-side ASSIGN methods \code{CurateDataDS()} and \code{ExtractFromListDS()}
+#' Linked to server-side ASSIGN methods \code{RefineDataDS()} and \code{ExtractFromListDS()}
 #'
-#' @param RawDataSetName \code{character} - Name of Raw Data Set object (list) on server - Default: '<Module>.RawDataSet'
+#' @param SourceDataSetName \code{character} - Name of Source Data Set object (list) on server - Default: '<Module>.SourceDataSet'
 #' @param Module \code{string} - Identifying a registered FREDA module (Examples: 'CCP' / 'P21')
-#' @param OutputName \code{character} - Name of output object to be assigned on server - Default: '<Module>.CurationOutput'
-#' @param Profile.CurationProcess \code{string} - "Default"
+#' @param OutputName \code{character} - Name of output object to be assigned on server - Default: '<Module>.RefinementOutput'
+#' @param Profile.RefinementProcess \code{string} - "Default"
 #' @param Profile.DataRemediation \code{string} - "Default"
 #' @param Profile.Dictionary \code{string} - "Default"
 #' @param Profile.FeatureRequirements \code{string} - "Default"
@@ -21,8 +21,8 @@
 #' @param Profile.TableNormalization \code{string} - "Default"
 #' @param Profile.TransformativeExpressions \code{string} - "Default"
 #' @param RunAssignmentChecks \code{logical} - Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{TRUE}
-#' @param UnpackCuratedDataSet \code{logical} - Indicating whether the Curated Data Set \code{list} should be unpacked so that tables \code{data.frames} are directly accessible - Default: \code{TRUE}
-#' @param RunSeparately \code{logical} - Indicating whether \code{CurateDataDS()} should be run separately for each server. This can be done for testing purposes or if timeout issues arise. - Default: \code{FALSE}
+#' @param UnpackRefinedDataSet \code{logical} - Indicating whether the Refined Data Set \code{list} should be unpacked so that tables \code{data.frames} are directly accessible - Default: \code{TRUE}
+#' @param RunSeparately \code{logical} - Indicating whether \code{RefineDataDS()} should be run separately for each server. This can be done for testing purposes or if timeout issues arise. - Default: \code{FALSE}
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
 #' @param DS.async \code{flag} - Value of argument 'async' in \code{DSI::datashield.assign()} / \code{DSI::datashield.aggregate()} - Default: \code{dsFredaClient::Set.DSSettings$DS.async}
 #'
@@ -32,10 +32,10 @@
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
+ds.RefineData <- function(SourceDataSetName = paste0(Module, ".SourceDataSet"),
                           Module,
-                          OutputName = paste0(Module, ".CurationOutput"),
-                          Profile.CurationProcess = "Default",
+                          OutputName = paste0(Module, ".RefinementOutput"),
+                          Profile.RefinementProcess = "Default",
                           Profile.DataRemediation = "Default",
                           Profile.Dictionary = "Default",
                           Profile.FeatureRequirements = "Default",
@@ -48,17 +48,17 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
                           Profile.TransformativeExpressions = "Default",
                           #--- Secondary Arguments ---
                           RunAssignmentChecks = TRUE,
-                          UnpackCuratedDataSet = TRUE,
+                          UnpackRefinedDataSet = TRUE,
                           RunSeparately = FALSE,
                           DSConnections = NULL,
                           DS.async = dsFredaClient::Set.DSSettings$DS.async)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   #--- For Testing Purposes ---
-  # RawDataSetName <- "CCP.RawDataSet"
+  # SourceDataSetName <- "CCP.SourceDataSet"
   # Module <- "CCP"
-  # OutputName <- "CCP.CurationOutput"
-  # Profile.CurationProcess <- "Default"
+  # OutputName <- "CCP.RefinementOutput"
+  # Profile.RefinementProcess <- "Default"
   # Profile.DataRemediation <- "Default"
   # Profile.Dictionary <- "Default"
   # Profile.FeatureRequirements <- "Default"
@@ -70,16 +70,16 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
   # Profile.TableNormalization <- "Default"
   # Profile.TransformativeExpressions <- "Default"
   # RunAssignmentChecks <- TRUE
-  # UnpackCuratedDataSet <- TRUE
+  # UnpackRefinedDataSet <- TRUE
   # RunSeparately <- FALSE
   # DSConnections <- CCPConnections
   # DS.async <- FALSE
 
   # --- Argument Validation ---
-  assert_that(is.string(RawDataSetName),
+  assert_that(is.string(SourceDataSetName),
               is.string(Module),
               is.string(OutputName),
-              is.string(Profile.CurationProcess),
+              is.string(Profile.RefinementProcess),
               is.string(Profile.DataRemediation),
               is.string(Profile.Dictionary),
               is.string(Profile.FeatureRequirements),
@@ -91,7 +91,7 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
               is.string(Profile.TableNormalization),
               is.string(Profile.TransformativeExpressions),
               is.flag(RunAssignmentChecks),
-              is.flag(UnpackCuratedDataSet),
+              is.flag(UnpackRefinedDataSet),
               is.flag(RunSeparately),
               is.flag(DS.async))
 
@@ -103,21 +103,21 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
   # Initiate output messaging objects
   Messages <- list()
   if (RunAssignmentChecks == TRUE) { Messages$Assignment <- list() }
-  Messages$Curation.Completion <- list()
+  Messages$Refinement.Completion <- list()
 
 
-# Trigger dsFreda::CurateDataDS()
+# Trigger dsFreda::RefineDataDS()
 #-------------------------------------------------------------------------------
 
   # Auxiliary function to wrap triggering of server-side function call
-  TriggerCurateDataDS <- function(SelectedConnections)
+  TriggerRefineDataDS <- function(SelectedConnections)
   {
       DSI::datashield.assign(conns = SelectedConnections,
                              symbol = OutputName,
-                             value = call("CurateDataDS",
-                                          RawDataSetName.S = RawDataSetName,
+                             value = call("RefineDataDS",
+                                          SourceDataSetName.S = SourceDataSetName,
                                           Module.S = Module,
-                                          Profile.CurationProcess.S = Profile.CurationProcess,
+                                          Profile.RefinementProcess.S = Profile.RefinementProcess,
                                           Profile.DataRemediation.S = Profile.DataRemediation,
                                           Profile.Dictionary.S = Profile.Dictionary,
                                           Profile.FeatureRequirements.S = Profile.FeatureRequirements,
@@ -139,33 +139,33 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
           # First, use dsBaseClient::ds.exists("PING") to ping ALL servers and effectively keep them idle before triggering heavy work at ONE server. This may reduce risk of running into a server timeout issue.
           .Ping <- dsBaseClient::ds.exists("PING")
           # Then trigger heavy work at ONE server
-          TriggerCurateDataDS(DSConnections[i])
+          TriggerRefineDataDS(DSConnections[i])
       }
 
   # ... or trigger normal DSI call with complete list of connections (default)
   } else {
 
-      TriggerCurateDataDS(DSConnections)
+      TriggerRefineDataDS(DSConnections)
   }
 
 
   if (RunAssignmentChecks == TRUE)
   {
-      # Call helper function to check if assignment of CurationOutput succeeded
+      # Call helper function to check if assignment of RefinementOutput succeeded
       Messages$Assignment <- c(Messages$Assignment,
                                ds.GetObjectStatus(ObjectName = OutputName,
                                                   DSConnections = DSConnections))
   }
 
 
-# Extract objects from list returned by CurateDataDS() and assign them to R server sessions
+# Extract objects from list returned by RefineDataDS() and assign them to R server sessions
 #-------------------------------------------------------------------------------
 
-  # Named vector determining how objects inside CurationOutput list created on servers should be extracted
-  ObjectNames <- setNames(c(paste0(Module, c(".CuratedDataSet",
+  # Named vector determining how objects inside RefinementOutput list created on servers should be extracted
+  ObjectNames <- setNames(c(paste0(Module, c(".RefinedDataSet",
                                              ".NonconformingRecords",
                                              ".AffectedRootSubjects",
-                                             ".CurationReport")),
+                                             ".RefinementReport")),
                             "Messages"),
                           nm = c("DataSet",
                                  "NonconformingRecords",
@@ -173,7 +173,7 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
                                  "Report",
                                  "Messages"))
 
-  # Extract objects from CurationOutput list
+  # Extract objects from RefinementOutput list
   for (i in 1:length(ObjectNames))
   {
       # Execute server-side list extraction
@@ -195,32 +195,32 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
   }
 
 
-# Optionally unpack (unlist) CuratedDataSet
+# Optionally unpack (unlist) RefinedDataSet
 #-------------------------------------------------------------------------------
 
-  if (UnpackCuratedDataSet == TRUE)
+  if (UnpackRefinedDataSet == TRUE)
   {
       # Get correct package name from 'Meta.Modules'
       ModulePackageName <- dsFredaClient::Meta.Modules[[Module]]
 
-      # Get curated table names
-      CuratedTableNames <- eval(parse(text = paste0(ModulePackageName, "::Meta.Tables$TableName.Curated")))
+      # Get Refined table names
+      RefinedTableNames <- eval(parse(text = paste0(ModulePackageName, "::Meta.Tables$TableName.Refined")))
 
-      for(i in 1:length(CuratedTableNames))
+      for(i in 1:length(RefinedTableNames))
       {
           # Execute server-side assign function
           DSI::datashield.assign(conns = DSConnections,
-                                 symbol = paste0(Module, ".CDS.", CuratedTableNames[i]),      # E.g. 'CCP.CDS.Metastasis'
+                                 symbol = paste0(Module, ".RDS.", RefinedTableNames[i]),      # E.g. 'CCP.RDS.Metastasis'
                                  value = call("ExtractFromListDS",
-                                              ListName.S = paste0(Module, ".CuratedDataSet"),
-                                              ObjectName.S = CuratedTableNames[i]),
+                                              ListName.S = paste0(Module, ".RefinedDataSet"),
+                                              ObjectName.S = RefinedTableNames[i]),
                                  async = DS.async)
 
           if (RunAssignmentChecks == TRUE)
           {
               # Call helper function to check if object assignment succeeded
               Messages$Assignment <- c(Messages$Assignment,
-                                       ds.GetObjectStatus(ObjectName = paste0(Module, ".CDS.", CuratedTableNames[i]),
+                                       ds.GetObjectStatus(ObjectName = paste0(Module, ".RDS.", RefinedTableNames[i]),
                                                           DSConnections = DSConnections,
                                                           DS.async = DS.async))
           }
@@ -242,27 +242,27 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
 # Get Messages object from servers (as a list of lists) and create completion check object
 #-------------------------------------------------------------------------------
 
-  CurationMessages <- DSI::datashield.aggregate(conns = DSConnections,
+  RefinementMessages <- DSI::datashield.aggregate(conns = DSConnections,
                                                 expr = call("GetReportingObjectDS",
                                                             ObjectName.S = "Messages"),
                                                 async = DS.async)
 
   # Create table object for output
-  Curation.Completion <- CurationMessages %>%
+  Refinement.Completion <- RefinementMessages %>%
                               map(\(ServerMessages) tibble(Process.CompletionCheck = ServerMessages$Process.CompletionCheck,
                                                            Process.Duration = ServerMessages$Process.Duration )) %>%
                               list_rbind(names_to = "ServerName")
 
-  # Create vector of messages informing about curation completion
-  Messages$Curation.Completion <- CurationMessages %>%
+  # Create vector of messages informing about Refinement completion
+  Messages$Refinement.Completion <- RefinementMessages %>%
                                       imap(function(ServerMessages, servername)
                                            {
                                               tibble(CompletionCheck = ServerMessages$Process.CompletionCheck,
                                                      Duration = ServerMessages$Process.Duration) %>%
-                                                  mutate(Message = case_when(CompletionCheck == "green" ~ paste0("Curation on server '", servername, "' performed successfully! (Duration: ", Duration, ")"),
-                                                                             CompletionCheck == "yellow" ~ paste0("Curation on server '", servername, "' performed with warnings! \n", ServerMessages$FinalMessage),
-                                                                             CompletionCheck == "red" ~ paste0("Curation on server '", servername, "' could not be performed! \n", ServerMessages$FinalMessage),
-                                                                             .default = paste0("Curation on server '", servername, "' could not be assessed. \n", ServerMessages$FinalMessage)),
+                                                  mutate(Message = case_when(CompletionCheck == "green" ~ paste0("Refinement on server '", servername, "' performed successfully! (Duration: ", Duration, ")"),
+                                                                             CompletionCheck == "yellow" ~ paste0("Refinement on server '", servername, "' performed with warnings! \n", ServerMessages$FinalMessage),
+                                                                             CompletionCheck == "red" ~ paste0("Refinement on server '", servername, "' could not be performed! \n", ServerMessages$FinalMessage),
+                                                                             .default = paste0("Refinement on server '", servername, "' could not be assessed. \n", ServerMessages$FinalMessage)),
                                                          MessageClass = case_when(CompletionCheck == "green" ~ "Success",
                                                                                   CompletionCheck == "yellow" ~ "Warning",
                                                                                   CompletionCheck == "red" ~ "Failure",
@@ -274,8 +274,8 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
                                       list_c()
 
   # Add topic element to start of vector
-  Messages$Curation.Completion <- c(Topic = "Curation process completion",
-                                    Messages$Curation.Completion)
+  Messages$Refinement.Completion <- c(Topic = "Refinement process completion",
+                                    Messages$Refinement.Completion)
 
 
 # Print messages and return output
@@ -284,7 +284,7 @@ ds.CurateData <- function(RawDataSetName = paste0(Module, ".RawDataSet"),
   # Print messages on console
   PrintMessages(Messages)
 
-  # Invisibly return Messages and Curation completion object
+  # Invisibly return Messages and Refinement completion object
   invisible(list(Messages = Messages,
-                 Curation.Completion = Curation.Completion))
+                 Refinement.Completion = Refinement.Completion))
 }

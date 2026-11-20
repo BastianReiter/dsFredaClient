@@ -35,8 +35,8 @@ ds.GetTableCheck <- function(TableName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # TableName <- "CDS_Staging"
-  # RequiredFeatureNames <- filter(dsCCPhos::Meta_Features, TableName_Curated == "Staging")$FeatureName_Curated
+  # TableName <- "RDS_Staging"
+  # RequiredFeatureNames <- filter(dsCCPhos::Meta_Features, TableName_Refined == "Staging")$FeatureName_Refined
   # GetTemplate <- FALSE
   # DSConnections <- CCPConnections
   # DS.async <- FALSE

@@ -74,10 +74,10 @@ ServerRequirements <- CheckServerRequirements(CCPSiteSpecifications = Credential
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Load Raw Data Set (RDS) from Opal data base to R sessions on servers
+# Load Source Data Set (SDS) from Opal data base to R sessions on servers
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Messages <- LoadRawDataSet(CCPSiteSpecifications = Credentials,
+Messages <- LoadSourceDataSet(CCPSiteSpecifications = Credentials,
                            DataSources = CCPConnections)
 
 
@@ -86,57 +86,57 @@ ServerWorkspaceInfo <- GetServerWorkspaceInfo(DataSources = CCPConnections)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Check RDS tables for existence and completeness
+# Check SDS tables for existence and completeness
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-RDSTableCheck <- ds.CheckRDSTables(DataSources = CCPConnections)
+SDSTableCheck <- ds.CheckSDSTables(DataSources = CCPConnections)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Get random samples from Raw Data Set on servers for easier testing
+# Get random samples from Source Data Set on servers for easier testing
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ds.DrawSample(RawDataSetName = "RawDataSet",
+ds.DrawSample(SourceDataSetName = "SourceDataSet",
               SampleSize = "2000",
-              SampleName = "RDSSample",
+              SampleName = "SDSSample",
               DataSources = CCPConnections)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# DATA CURATION: Transform Raw Data Set (RDS) into Curated Data Set (CDS)
+# DATA REFINEMENT: Transform Source Data Set (SDS) into Refined Data Set (RDS)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ds.CurateData(DataSources = CCPConnections,
+ds.RefineData(DataSources = CCPConnections,
               Settings = list(DiagnosisRedundancy_Check = FALSE,
                               DiagnosisAssociation_Check = FALSE),
-              RawDataSetName = "RawDataSet")
+              SourceDataSetName = "SourceDataSet")
 
 
 
-# Make tables from Curated Data Set directly addressable by unpacking them into R server session
-Messages <- ds.UnpackCuratedDataSet(CuratedDataSetName = "CuratedDataSet",
+# Make tables from Refined Data Set directly addressable by unpacking them into R server session
+Messages <- ds.UnpackRefinedDataSet(RefinedDataSetName = "RefinedDataSet",
                                     DataSources = CCPConnections)
 
-# Get curation reports
-CurationReport <- dsCCPhosClient::ds.GetCurationReport(DataSources = CCPConnections)
+# Get Refinement reports
+RefinementReport <- dsCCPhosClient::ds.GetRefinementReport(DataSources = CCPConnections)
 
-View(CurationReport$IneligibleEntries)
+View(RefinementReport$IneligibleEntries)
 
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# DATA AUGMENTATION: Transform Curated Data Set (CDS) into Augmented Data Set (ADS)
+# DATA ENRICHMENT: Transform Refined Data Set (RDS) into Enriched Data Set (EDS)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Run ds.AugmentData
-Messages <- ds.AugmentData(CuratedDataSetName = "CuratedDataSet",
-                           OutputName = "AugmentationOutput",
-                           DataSources = CCPConnections)
+# Run ds.EnrichData
+Messages <- ds.EnrichData(RefinedDataSetName = "RefinedDataSet",
+                          OutputName = "EnrichmentOutput",
+                          DataSources = CCPConnections)
 
 
-# Make tables from Augmented Data Set directly addressable by unpacking them into R server session
-Messages <- ds.UnpackAugmentedDataSet(AugmentedDataSetName = "AugmentedDataSet",
-                                      DataSources = CCPConnections)
+# Make tables from Enriched Data Set directly addressable by unpacking them into R server session
+Messages <- ds.UnpackEnrichedDataSet(EnrichedDataSetName = "EnrichedDataSet",
+                                     DataSources = CCPConnections)
 
 
 

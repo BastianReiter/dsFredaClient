@@ -4,14 +4,13 @@
 \name{dsFredaClient-package}
 \alias{dsFredaClient}
 \alias{dsFredaClient-package}
-\title{dsFredaClient: Federated Refinement, Exploration and Data Augmentation}
+\title{dsFredaClient: Federated Refinement and Exploration of Real-World Data}
 \description{
-Client-side DataSHIELD R package as part of a Framework for Federated Data Processing
+Client-side DataSHIELD-compliant R package for FREDA - a tool for Federated Refinement and Exploration of Real-World Data
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://ccphos.netlify.app/}
   \item \url{https://github.com/BastianReiter/dsFredaClient}
 }
 

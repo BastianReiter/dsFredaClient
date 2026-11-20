@@ -1,18 +1,18 @@
 
-#' ds.PrepareRawData
+#' ds.PrepareSourceData
 #'
-#' Trigger basic preparatory transformations on RawDataSet prior to Curation:
+#' Trigger basic preparatory transformations on SourceDataSet prior to Refinement:
 #' \itemize{  \item Feature name harmonization
 #'            \item Add ID feature (running number) for tables without primary key feature
 #'            \item Type- or format-conversion of features }
 #'
-#' Linked to server-side ASSIGN method \code{PrepareRawDataDS()}
+#' Linked to server-side ASSIGN method \code{PrepareSourceDataDS()}
 #'
-#' @param RawDataSetName \code{string} - Name of Raw Data Set object (list) on server
+#' @param SourceDataSetName \code{string} - Name of Source Data Set object (list) on server
 #' @param Module \code{string} identifying a defined data set and the corresponding meta data needed for feature name harmonization (Examples: 'CCP' / 'P21')
-#' @param RDSTableNames \code{character vector} - Names of RDS tables
+#' @param SDSTableNames \code{character vector} - Names of SDS tables
 #' @param FeatureNames.Dictionary Optional \code{list} containing dictionary data for feature name harmonization (Form: \code{list(Department = c(FAB = "Fachabteilung"))})
-#' @param FeatureNames.FuzzyStringMatching.Run \code{logical} - Whether to use fuzzy string matching to harmonize raw feature names
+#' @param FeatureNames.FuzzyStringMatching.Run \code{logical} - Whether to use fuzzy string matching to harmonize Source feature names
 #' @param FeatureNames.FuzzyStringMatching.PreferredMethod \code{logical} - Selects the method \code{stringdist()} uses (see \code{stringdist} documentation) - Default: 'jw'
 #' @param FeatureNames.FuzzyStringMatching.Tolerance \code{logical} - Number between 0 and 1 relating to normalized distance between to strings (1 meaning furthest distance, 0 meaning no distance). If a string in 'Vector' is not similar enough to any of the 'EligibleStrings' and its minimal harmonized distance exceeds this number, it is set \code{NA}. - Default: 0.2
 #' @param AddIDFeature.Do \code{logical} - Whether to add an ID feature (running number) to tables
@@ -20,8 +20,8 @@
 #' @param AddIDFeature.OverwriteExistingIDFeature \code{logical} - Whether to overwrite an existing feature with the same name
 #' @param Conversion.IntoCharacter \code{string} - Controls conversion of certain features in data set tables into character type. One of 'None' / 'All' / 'Date'. - Default: 'None'
 #' @param Conversion.DateIntoPOSIXct \code{list} - Containing character vectors representing date formats used in argument 'tryFormats' in function \code{base::as.POSIXct}. List element should be either '.All' for all date features or specific date feature names. - Default: \code{NULL}
-#' @param CurateFeatureNames \code{logical} - Indicating whether (after primary harmonization) feature names should be recoded from 'raw' to 'curated' feature names according to Module-specific meta data
-#' @param OutputName \code{character scalar} - Name of output object to be assigned on server - Default: 'RDSPreparationOutput'
+#' @param RecodeFeatureNames \code{logical} - Indicating whether (after primary harmonization) feature names should be recoded from 'Source' to 'Refined' feature names according to Module-specific meta data
+#' @param OutputName \code{character scalar} - Name of output object to be assigned on server - Default: 'SDSPreparationOutput'
 #' @param RunAssignmentChecks \code{logical} - Indicating whether assignment checks should be performed or omitted for reduced execution time - Default: \code{FALSE}
 #' @param PrintMessages \code{logical} - Indicating whether to print messages
 #' @param DSConnections \code{list} of \code{DSConnection} objects. This argument may be omitted if such an object is already uniquely specified in the global environment.
@@ -33,9 +33,9 @@
 #'
 #' @author Bastian Reiter
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ds.PrepareRawData <- function(RawDataSetName,
+ds.PrepareSourceData <- function(SourceDataSetName,
                               Module,
-                              RDSTableNames,
+                              SDSTableNames,
                               FeatureNames.Dictionary = list(),
                               FeatureNames.FuzzyStringMatching.Run = FALSE,
                               FeatureNames.FuzzyStringMatching.PreferredMethod = "jw",
@@ -45,8 +45,8 @@ ds.PrepareRawData <- function(RawDataSetName,
                               AddIDFeature.OverwriteExistingIDFeature = FALSE,
                               Conversion.IntoCharacter = "None",
                               Conversion.DateIntoPOSIXct = NULL,
-                              CurateFeatureNames = FALSE,
-                              OutputName = "RDSPreparationOutput",
+                              RecodeFeatureNames = FALSE,
+                              OutputName = "SDSPreparationOutput",
                               RunAssignmentChecks = FALSE,
                               PrintMessages = TRUE,
                               DSConnections = NULL,
@@ -54,9 +54,9 @@ ds.PrepareRawData <- function(RawDataSetName,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
   # --- For Testing Purposes ---
-  # RawDataSetName <- "P21.RawDataSet"
+  # SourceDataSetName <- "P21.SourceDataSet"
   # Module <- "P21"
-  # RDSTableNames <- dsFredaP21Client::Meta.Tables$TableName.Curated
+  # SDSTableNames <- dsFredaP21Client::Meta.Tables$TableName.Refined
   # FeatureNames.Dictionary <- list(Case = c("Aufnahmegrund" = NA,      # Fix termini that could otherwise be falsely classified by Fuzzy String Matching
   #                                          "Geburtsmonat" = NA),
   #                                 DiagnosisICD = c("icd_lokalisation" = "Lokalisation",
@@ -71,24 +71,24 @@ ds.PrepareRawData <- function(RawDataSetName,
   # Conversion.IntoCharacter <- "All"
   # Conversion.DateIntoPOSIXct <- NULL
   # Conversion.DateIntoPOSIXct <- list(.All = c("%Y%m%d%H%M", "%Y%m%d", "%Y-%m-%d"))
-  # CurateFeatureNames <- TRUE
-  # OutputName <- "RDSPreparationOutput"
+  # RecodeFeatureNames <- TRUE
+  # OutputName <- "SDSPreparationOutput"
   # RunAssignmentChecks <- FALSE
   # PrintMessages <- TRUE
   # DSConnections <- CCPConnections
   # DS.async <- FALSE
 
   # --- Argument Validation ---
-  assert_that(is.string(RawDataSetName),
+  assert_that(is.string(SourceDataSetName),
               is.string(Module),
-              is.character(RDSTableNames),
+              is.character(SDSTableNames),
               is.list(FeatureNames.Dictionary),
               is.flag(FeatureNames.FuzzyStringMatching.Run),
               is.string(FeatureNames.FuzzyStringMatching.PreferredMethod),
               is.number(FeatureNames.FuzzyStringMatching.Tolerance),
               is.flag(AddIDFeature.Do),
               is.string(Conversion.IntoCharacter),
-              is.flag(CurateFeatureNames),
+              is.flag(RecodeFeatureNames),
               is.string(OutputName),
               is.flag(PrintMessages),
               is.flag(RunAssignmentChecks),
@@ -118,8 +118,8 @@ ds.PrepareRawData <- function(RawDataSetName,
   # Execute server-side assign function: This creates a list on servers with name assigned with 'OutputName'
   DSI::datashield.assign(conns = DSConnections,
                          symbol = OutputName,
-                         value = call("PrepareRawDataDS",
-                                      RawDataSetName.S = RawDataSetName,
+                         value = call("PrepareSourceDataDS",
+                                      SourceDataSetName.S = SourceDataSetName,
                                       Module.S = Module,
                                       FeatureNames.Dictionary.S = FeatureNames.Dictionary,
                                       FeatureNames.FuzzyStringMatching.Run.S = FeatureNames.FuzzyStringMatching.Run,
@@ -130,22 +130,22 @@ ds.PrepareRawData <- function(RawDataSetName,
                                       AddIDFeature.OverwriteExistingIDFeature.S = AddIDFeature.OverwriteExistingIDFeature,
                                       Conversion.IntoCharacter.S = Conversion.IntoCharacter,
                                       Conversion.DateIntoPOSIXct.S = Conversion.DateIntoPOSIXct,
-                                      CurateFeatureNames.S = CurateFeatureNames),
+                                      RecodeFeatureNames.S = RecodeFeatureNames),
                          async = DS.async)
 
 
-# Extract objects from list returned by PrepareRawDataDS() and assign them to R server sessions
+# Extract objects from list returned by PrepareSourceDataDS() and assign them to R server sessions
 #-------------------------------------------------------------------------------
 
-  # Named vector determining how objects inside RDSPreparationOutput list created on servers should be extracted
-  ObjectNames <- setNames(c(RawDataSetName,
-                            paste0(Module, ".OriginalRawDataSet"),
+  # Named vector determining how objects inside SDSPreparationOutput list created on servers should be extracted
+  ObjectNames <- setNames(c(SourceDataSetName,
+                            paste0(Module, ".OriginalSourceDataSet"),
                             "Messages"),
-                          nm = c("RawDataSet",
-                                 "OriginalRawDataSet",
+                          nm = c("SourceDataSet",
+                                 "OriginalSourceDataSet",
                                  "Messages"))
 
-  # Extract objects from RDSPreparationOutput list
+  # Extract objects from SDSPreparationOutput list
   for (i in 1:length(ObjectNames))
   {
       # Execute server-side list extraction
@@ -167,16 +167,16 @@ ds.PrepareRawData <- function(RawDataSetName,
   }
 
 
-# Re-unpack RDS list, so that PREPARED RDS tables overwrite 'old' ones on servers
+# Re-unpack SDS list, so that PREPARED SDS tables overwrite 'old' ones on servers
 #-------------------------------------------------------------------------------
 
-  for (tablename in RDSTableNames)
+  for (tablename in SDSTableNames)
   {
       # Execute server-side assign function
       DSI::datashield.assign(conns = DSConnections,
-                             symbol = paste0(Module, ".RDS.", tablename),      # E.g. 'CCP.RDS.Case'
+                             symbol = paste0(Module, ".SDS.", tablename),      # E.g. 'CCP.SDS.Case'
                              value = call("ExtractFromListDS",
-                                          ListName.S = RawDataSetName,
+                                          ListName.S = SourceDataSetName,
                                           ObjectName.S = tablename),
                              async = DS.async)
 
@@ -184,7 +184,7 @@ ds.PrepareRawData <- function(RawDataSetName,
       {
           # Call helper function to check if object assignment succeeded
           Messages$Assignment <- c(Messages$Assignment,
-                                   ds.GetObjectStatus(ObjectName = paste0(Module, ".RDS.", RDSTableNames[i]),
+                                   ds.GetObjectStatus(ObjectName = paste0(Module, ".SDS.", SDSTableNames[i]),
                                                       DSConnections = DSConnections,
                                                       DS.async = DS.async))
       }
